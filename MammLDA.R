@@ -10,14 +10,19 @@ library(R2OpenBUGS)
 library(tidyverse)
 library(reshape2)
 
-wd <- "c:/users/beasley/dropbox"
-setwd(wd)
-
 # Load and clean mammal data -----------------------------------------
-mamm <- read.csv("mammrawdata.csv", stringsAsFactors = F)
+mamm <- read.csv("mammraw2019.csv", stringsAsFactors = F)
 
 # Trim dataset to include species/sites/surveys
 mamm.smol <- select(mamm, Site, Day, Abbrev)
+
+# Add sites with 0 captures
+no.caps <- data.frame(Site = c("Borderview2", "Buck1", "Buck3", "Buck4", "Butternut1",
+                               "MBR2", "MBR3", "MBR4", "RiverBerry2"),
+                      Day = rep(1, 9),
+                      Abbrev = rep("PELE", 9))
+
+mamm.smol <- rbind(mamm.smol, no.caps)
 
 # Get abundances per site/species/day
 mamm.smol %>%
@@ -101,6 +106,17 @@ init.values <- function(){
 }
 
 # Send model to Gibbs sampler
-mod <- bugs(data = datalist, inits = init.values, parameters.to.save = params,
-            n.iter = 5000, model.file = "MammCommModel.txt", n.chains = 3,
-            n.burnin = 1000, debug = T)
+# mod <- bugs(data = datalist, inits = init.values, parameters.to.save = params,
+#             n.iter = 5000, model.file = "MammCommModel.txt", n.chains = 3,
+#             n.burnin = 2000, debug = T)
+# 
+# saveRDS(mod, file = "MSAMoutput2019.rds")
+
+mod <- readRDS(file = "MSAMoutput2019.rds")
+
+# Summary -------------------------------------------------
+Zs <- mod$sims.list$Z
+Zmean <- as.data.frame(apply(Zs, c(2,3), mean))
+
+colnames(Zmean) <- sort(unique(mamm.clean$Abbrev))
+
