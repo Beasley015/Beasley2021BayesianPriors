@@ -77,7 +77,7 @@ for(i in 1:ncol(cov.vals)){
   }
 }
 
-# Function for detection process ----------------------------------
+# Simulate detection process ----------------------------------
 # Load model results from Master's work
 masters.mod <- readRDS("modelsampledglades.rds")
 
@@ -92,6 +92,40 @@ bet <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 
 # Generate detection probabilities from beta dist with above params
 sim.dets <- rbeta(n = nspec, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
+
+# Function to create encounter histories
+
+trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
+  #Detection intercept and cov responses
+  beta0<-qlogis(det) #put it on logit scale
+  #Responses to a cov would go here
+  
+  #Logit link function
+  logit.p <- array(NA, dim = c(sites, survs, specs))
+  for(i in 1:specs){
+    logit.p[,,i] <- beta0[i]
+  }
+  
+  p <- plogis(logit.p)
+  
+  #Simulate observation data
+  L<-list()
+  
+  for(b in 1:specs){
+    y<-matrix(NA, ncol = survs, nrow = sites)
+    for(a in 1:survs){
+      y[,a]<-rbinom(n = sites, size = mat[b,], prob = p[,,b])
+    }
+    L[[b]]<-y
+  }
+  
+  #Smash it into array
+  obsdata<-array(as.numeric(unlist(L)), dim=c(sites, survs, specs))
+  
+  return(obsdata)
+}
+
+obs.data <- trap.hist(mat = binneutral, det = c(sim.dets, 0))
 
 # Function to send that sucker to JAGS ----------------------------
 
