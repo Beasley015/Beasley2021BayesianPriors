@@ -77,6 +77,14 @@ for(i in 1:ncol(cov.vals)){
   }
 }
 
+trus <- list(binneutral, binpresent, contneutral, contpresent, noneneutral, nonepresent)
+
+#name objects in trus to keep them straight
+sim.names <- c('binneutral', 'binpresent', 'contneutral', 'contpresent', 'noneneutral', 
+               'nonepresent')
+
+names(trus) <- sim.names
+
 # Simulate detection process ----------------------------------
 # Load model results from Master's work
 masters.mod <- readRDS("modelsampledglades.rds")
@@ -125,7 +133,9 @@ trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
   return(obsdata)
 }
 
-obs.data <- trap.hist(mat = binneutral, det = c(sim.dets, 0))
+obs.data <- lapply(trus, trap.hist, det = c(sim.dets, 0))
+
+names(obs.data) <- sim.names
 
 # Function to send that sucker to JAGS ----------------------------
 
