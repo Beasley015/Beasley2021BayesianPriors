@@ -164,7 +164,7 @@ cat("
 
         #Estimate occupancy of species i at point j
         for (j in 1:J) {
-          logit(psi[j,i]) <- a0[i]+a1[i]*cov[j]
+          logit(psi[j,i]) <- a0[i]
           mu.psi[j,i] <- psi[j,i]*w[i]
           Z[j,i] ~ dbern(mu.psi[j,i])
 
@@ -179,12 +179,35 @@ cat("
         }
         
         #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-        n0<-sum(w[(n+1):(n+zeroes)])
-        N<-n+n0
+        n0<-sum(w[(nspec+1):(nspec+naug)])
+        N<-nspec+n0
 
         #Create a loop to determine point level richness estimates
         for(j in 1:J){
-          Nsite[j]<- inprod(Z[j,1:(n+zeroes)],w[1:(n+zeroes)])
+          Nsite[j]<- inprod(Z[j,1:(nspec+naug)],w[1:(nspec+naug)])
         }
     }
     ", file = "nocov.txt")
+
+# Compile data into list
+datalist <- list(J = nsite, K = Ks, obs = obs.data$noneneutral, nspec = nspec, 
+                 naug = naug)
+
+# Specify parameters
+parms <- list('Z', 'N', 'a0', 'b0', 'mu.psi', 'mu.p')
+
+# Initial values
+maxobs <- apply(obs.data$noneneutral, c(1,3), max)
+init.values<-function(){
+  omega.guess <- runif(1,0,1)
+  list(omega = omega.guess,
+       w=c(rep(1,nspec), rbinom(n = naug, size=1, prob=omega.guess)),
+       a0 = rnorm(n = (nspec+naug), mean = runif(1,0,0)),
+       b0 = rnorm(n = (nspec+naug), mean = runif(1,0,1)),
+       Z = maxobs
+       )
+}
+
+model <- jags(model.file = "nocov.txt", data = datalist, n.chains = 3,
+              parameters.to.save = parms, inits = init.values, n.burnin = 100,
+              n.iter = 1000)
