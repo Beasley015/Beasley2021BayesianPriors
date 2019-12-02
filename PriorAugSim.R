@@ -5,7 +5,7 @@
 
 # Setup -----------------------------------------------
 # Load packages
-library(R2jags)
+library(R2OpenBUGS)
 library(vcdExtra)
 library(tidyverse)
 library(MASS)
@@ -185,16 +185,75 @@ cat("
     }
     ", file = "nocov.txt")
 
-# Model with covariate
+# Model with covariate, uninformed priors
+cat("
+    model{
+      # Define hyperprior distributions: intercepts
+    
+    omega ~ dunif(0,1)
+    
+    #Intercepts
+    a0.mean ~ dnorm(0,0.001)
+    sigma.a0 ~ dunif(0,10)
+    tau.a0 <- 1/(sigma.a0*sigma.a0)
+
+    a1.mean ~ dnorm(0,0.001)
+    sigma.a1 ~ dunif(0,10)
+    tau.a1 <- 1/(sigma.a1*sigma.a1)
+    
+    b0.mean ~ dnorm(0,0.001)
+    sigma.b0 ~ dunif(0,10)
+    tau.b0 <- 1/(sigma.b0*sigma.b0)
+    
+    for(i in 1:nspec+naug){
+    #create priors from distributions above
+    w[i] ~ dbern(omega)
+    #indicates whether or not species is exposed to sampling
+    
+    a0[i] ~ dnorm(a0.mean, tau.a0)
+    a1[i] ~ dnorm(a1.mean, tau.a1)
+    
+    b0[i] ~ dnorm(b0.mean, tau.b0)
+    
+    #Estimate occupancy of species i at point j
+    for (j in 1:J) {
+    logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+    mu.psi[j,i] <- psi[j,i]*w[i]
+    Z[j,i] ~ dbern(mu.psi[j,i])
+    
+    #Estimate detection of i at point j during sampling period k
+    for(k in 1:K[j]){
+    logit(p[j,k,i]) <-  b0[i]
+    mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
+    #The addition of Z means that detecting a species depends on its occupancy
+    obs[j,k,i] ~ dbern(mu.p[j,k,i])
+    }
+    }
+    }
+    
+    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
+    n0<-sum(w[(nspec+1):(nspec+naug)])
+    N<-nspec+n0
+    
+    }
+    ", file = "cov.txt")
+
+# Model with covariate, informed priors
 cat("")
 
-# Write function for sending model to gibbs sampler
-VivaLaMSOM <- function(J, K, obs, nspec, naug){
+# Write function for sending model to gibbs sampler --------------------------------
+VivaLaMSOM <- function(J, K, obs, nspec, naug, textdoc, covar=NULL){
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, nspec = nspec, naug = naug)
+  if(textdoc == "cov.txt"){
+    list.append(datalist, cov=covar)
+  }
 
   # Specify parameters
   parms <- list('Z', 'N', 'a0', 'b0', 'mu.psi', 'mu.p')
+  if(textdoc == "cov.txt"){
+   list.append(parms, 'a1') 
+  }
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -202,7 +261,7 @@ VivaLaMSOM <- function(J, K, obs, nspec, naug){
     omega.guess <- runif(1,0,1)
     list(omega = omega.guess,
          w=c(rep(1,nspec), rbinom(n = naug, size=1, prob=omega.guess)),
-         a0 = rnorm(n = (nspec+naug)),
+         a0 = rnorm(n = (nspec+naug)), a1 = rnorm(n = (nspec+naug)),
          b0 = rnorm(n = (nspec+naug)),
          Z = maxobs)
   }
@@ -213,7 +272,26 @@ VivaLaMSOM <- function(J, K, obs, nspec, naug){
   #               n.iter = 1000)
 
   # BUGS works though
-  model <- bugs(model.file = "nocov.txt", data = datalist, n.chains = 3,
-      parameters.to.save = parms, inits = init.values, n.burnin = 1000,
-      n.iter = 10000, debug = T)
-  }
+    model <- bugs(model.file = textdoc, data = datalist, n.chains = 3,
+                  parameters.to.save = parms, inits = init.values, n.burnin = 10,
+                  n.iter = 100, debug = F)
+    
+    return(model)
+}
+
+# Run sims -------------------------------------
+outputs.nocov <- list()
+for(i in 1:length(obs.data)){
+  outputs.nocov[[i]] <- VivaLaMSOM(J=nsite, K=Ks, nspec=nspec, naug=naug, 
+                             obs = obs.data[[i]], textdoc = "nocov.txt")  
+  print(i)
+}
+names(outputs.nocov) <- sim.names
+
+outputs.bin.uninf <- list()
+
+outputs.cont.uninf <- list()
+
+outputs.bin.inf <- list()
+
+outputs.cont.inf <- list()
