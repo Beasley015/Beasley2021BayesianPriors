@@ -42,9 +42,5 @@
         n0<-sum(w[(nspec+1):(nspec+naug)])
         N<-nspec+n0
 
-        #Create a loop to determine point level richness estimates
-        for(j in 1:J){
-          Nsite[j]<- inprod(Z[j,1:(nspec+naug)],w[1:(nspec+naug)])
-        }
     }
     

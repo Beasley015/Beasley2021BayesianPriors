@@ -136,7 +136,7 @@ obs.data <- lapply(trus, trap.hist, det = c(sim.dets, 0))
 
 names(obs.data) <- sim.names
 
-# Function to send that sucker to JAGS ----------------------------
+# Write Models ----------------------------
 # Model without covariate
 cat("
     model{
@@ -182,32 +182,38 @@ cat("
         n0<-sum(w[(nspec+1):(nspec+naug)])
         N<-nspec+n0
 
-        #Create a loop to determine point level richness estimates
-        for(j in 1:J){
-          Nsite[j]<- inprod(Z[j,1:(nspec+naug)],w[1:(nspec+naug)])
-        }
     }
     ", file = "nocov.txt")
 
-# Compile data into list
-datalist <- list(J = nsite, K = Ks, obs = obs.data$noneneutral, nspec = nspec, 
-                 naug = naug)
+# Model with covariate
+cat("")
 
-# Specify parameters
-parms <- list('Z', 'N', 'a0', 'b0', 'mu.psi', 'mu.p')
+# Write function for sending model to gibbs sampler
+VivaLaMSOM <- function(J, K, obs, nspec, naug){
+  # Compile data into list
+  datalist <- list(J = J, K = K, obs = obs, nspec = nspec, naug = naug)
 
-# Initial values
-maxobs <- apply(obs.data$noneneutral, c(1,3), max)
-init.values<-function(){
-  omega.guess <- runif(1,0,1)
-  list(omega = omega.guess,
-       w=c(rep(1,nspec), rbinom(n = naug, size=1, prob=omega.guess)),
-       a0 = rnorm(n = (nspec+naug), mean = runif(1,0,0)),
-       b0 = rnorm(n = (nspec+naug), mean = runif(1,0,1)),
-       Z = maxobs
-       )
-}
+  # Specify parameters
+  parms <- list('Z', 'N', 'a0', 'b0', 'mu.psi', 'mu.p')
 
-model <- jags(model.file = "nocov.txt", data = datalist, n.chains = 3,
-              parameters.to.save = parms, inits = init.values, n.burnin = 100,
-              n.iter = 1000)
+  # Initial values
+  maxobs <- apply(obs, c(1,3), max)
+  init.values<-function(){
+    omega.guess <- runif(1,0,1)
+    list(omega = omega.guess,
+         w=c(rep(1,nspec), rbinom(n = naug, size=1, prob=omega.guess)),
+         a0 = rnorm(n = (nspec+naug)),
+         b0 = rnorm(n = (nspec+naug)),
+         Z = maxobs)
+  }
+
+  # JAGS command: this isn't working; hates my initial values for some reason
+  # model <- jags(model.file = "nocov.txt", data = datalist, n.chains = 3,
+  #               parameters.to.save = parms, inits = init.values, n.burnin = 100,
+  #               n.iter = 1000)
+
+  # BUGS works though
+  model <- bugs(model.file = "nocov.txt", data = datalist, n.chains = 3,
+      parameters.to.save = parms, inits = init.values, n.burnin = 1000,
+      n.iter = 10000, debug = T)
+  }
