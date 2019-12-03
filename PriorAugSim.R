@@ -22,26 +22,22 @@ nsurvey <- 4
 Ks <- rep(nsurvey, nsite)
 
 # Matrix of covariate responses
-resp.neutral <- rnorm(n = nspec + naug, mean = 0, sd = 0.25)
-resp.present <- c(rnorm(n = 9, mean = 1, sd = 0.25), 
+resp2cov <- c(rnorm(n = 9, mean = 1, sd = 0.25), 
                  rnorm(n = 4, mean = 0, sd = 0.25),
                  rnorm(n = 3, mean = -1, sd = 0.25))
 
-resp2cov <- matrix(c(resp.neutral, resp.present, resp.present), ncol = 3)
-resp.names <- c("neutral", "present", "present")
-
 # Covariate values for sites
-no.cov <- rep(0, nsite)
 cov.bin <- as.numeric(rbernoulli(n = nsite, 0.75))
 cov.cont <- rnorm(n = nsite, mean = 0, sd = 2)
 
-cov.vals <- cbind(no.cov, cov.bin, cov.cont)
-cov.names <- c("none", "bin", "cont")
+cov.vals <- cbind(cov.bin, cov.cont)
+cov.names <- c("bin", "cont")
 
 # Function for abundance data -------------------------------------
+# Need to fix lambda values
 tru.mats <- function(spec = nspec + naug, site = nsite, cov, resp){
   #Draw lambdas from a logseries distribution
-  mean.lambdas <- rlogseries(spec, 0.75)
+  mean.lambdas <- rgamma(spec, shape=1.5, rate=2)
   
   #Get site-level lambdas to account for covariates
   alpha0 <- log(mean.lambdas) #log-scale intercept
@@ -71,17 +67,14 @@ tru.mats <- function(spec = nspec + naug, site = nsite, cov, resp){
 
 #Get true abundances
 for(i in 1:ncol(cov.vals)){
-  for(j in 1:ncol(resp2cov)){
-     assign(paste(cov.names[i], resp.names[j], sep = ""),
-            tru.mats(cov = cov.vals[,i], resp = resp2cov[,j]))
-  }
+    assign(paste(cov.names[i], sep = ""),
+          tru.mats(cov = cov.vals[,i], resp = resp2cov))
 }
 
-trus <- list(binneutral, binpresent, contneutral, contpresent, noneneutral, nonepresent)
+trus <- list(bin, cont)
 
 #name objects in trus to keep them straight
-sim.names <- c('binneutral', 'binpresent', 'contneutral', 'contpresent', 'noneneutral', 
-               'nonepresent')
+sim.names <- c('bin', 'cont')
 
 names(trus) <- sim.names
 
@@ -99,7 +92,17 @@ spec.det <- colMeans(spec.p)
 bet <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 
 # Generate detection probabilities from beta dist with above params
-sim.dets <- rbeta(n = nspec, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
+sim.dets <- rbeta(n = nspec+naug, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
+
+# Assign one species to have 0 detection probability
+sums <- lapply(trus, colSums)
+all.sums <- sums[[1]]+sums[[2]]
+
+# Undetected species is rare
+sim.dets[sample(which(all.sums == min(all.sums)),1)] <- 0
+
+# Undetected species is common
+# sim.dets[sample(which(all.sums == median(all.sums)),1)] <- 0
 
 # Function to create encounter histories
 trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
@@ -137,55 +140,61 @@ obs.data <- lapply(trus, trap.hist, det = c(sim.dets, 0))
 names(obs.data) <- sim.names
 
 # Write Models ----------------------------
-# Model without covariate
+# Model without uninformed priors
 cat("
     model{
-      # Define hyperprior distributions: intercepts
-        
-        omega ~ dunif(0,1)
-
-        #Intercepts
-        a0.mean ~ dnorm(0,0.001)
-        sigma.a0 ~ dunif(0,10)
-        tau.a0 <- 1/(sigma.a0*sigma.a0)
+      
+    # Define hyperprior distributions: intercepts
     
-        b0.mean ~ dnorm(0,0.001)
-        sigma.b0 ~ dunif(0,10)
-        tau.b0 <- 1/(sigma.b0*sigma.b0)
+    omega ~ dunif(0,1)
     
-        for(i in 1:nspec+naug){
-          #create priors from distributions above
-          w[i] ~ dbern(omega)
-          #indicates whether or not species is exposed to sampling
-          
-          a0[i] ~ dnorm(a0.mean, tau.a0)
+    #Intercepts
+    a0.mean ~ dnorm(0,0.001)
+    sigma.a0 ~ dunif(0,10)
+    tau.a0 <- 1/(sigma.a0*sigma.a0)
     
-          b0[i] ~ dnorm(b0.mean, tau.b0)
-
-        #Estimate occupancy of species i at point j
-        for (j in 1:J) {
-          logit(psi[j,i]) <- a0[i]
-          mu.psi[j,i] <- psi[j,i]*w[i]
-          Z[j,i] ~ dbern(mu.psi[j,i])
-
-          #Estimate detection of i at point j during sampling period k
-            for(k in 1:K[j]){
-              logit(p[j,k,i]) <-  b0[i]
-              mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
-              #The addition of Z means that detecting a species depends on its occupancy
-              obs[j,k,i] ~ dbern(mu.p[j,k,i])
-            }
-          }
-        }
-        
-        #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-        n0<-sum(w[(nspec+1):(nspec+naug)])
-        N<-nspec+n0
-
+    a1.mean ~ dnorm(0,0.001)
+    sigma.a1 ~ dunif(0,10)
+    tau.a1 <- 1/(sigma.a1*sigma.a1)
+    
+    b0.mean ~ dnorm(0,0.001)
+    sigma.b0 ~ dunif(0,10)
+    tau.b0 <- 1/(sigma.b0*sigma.b0)
+    
+    for(i in 1:nspec){
+    #create priors from distributions above
+    w[i] ~ dbern(omega)
+    #indicates whether or not species is exposed to sampling
+    
+    a0[i] ~ dnorm(a0.mean, tau.a0)
+    a1[i] ~ dnorm(a1.mean, tau.a1)
+    
+    b0[i] ~ dnorm(b0.mean, tau.b0)
+    
+    #Estimate occupancy of species i at point j
+    for (j in 1:J) {
+    logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+    mu.psi[j,i] <- psi[j,i]*w[i]
+    Z[j,i] ~ dbern(mu.psi[j,i])
+    
+    #Estimate detection of i at point j during sampling period k
+    for(k in 1:K[j]){
+    logit(p[j,k,i]) <-  b0[i]
+    mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
+    #The addition of Z means that detecting a species depends on its occupancy
+    obs[j,k,i] ~ dbern(mu.p[j,k,i])
     }
-    ", file = "nocov.txt")
+    }
+    }
+    
+    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
+    n0<-sum(w[(nspec+1):(nspec+naug)])
+    N<-nspec+n0
+    
+    }
+    ", file = "noaug.txt")
 
-# Model with covariate, uninformed priors
+# Model with augmentation, uninformed priors
 cat("
     model{
       # Define hyperprior distributions: intercepts
@@ -236,13 +245,14 @@ cat("
     N<-nspec+n0
     
     }
-    ", file = "cov.txt")
+    ", file = "aug_uninf.txt")
 
-# Model with covariate, informed priors
-cat("")
+# Model with informed priors
+cat("
+    ")
 
 # Write function for sending model to gibbs sampler --------------------------------
-VivaLaMSOM <- function(J, K, obs, nspec, naug, textdoc, covar=NULL){
+VivaLaMSOM <- function(J, K, obs, nspec, naug=NULL, textdoc, covar){
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, nspec = nspec, naug = naug)
   if(textdoc == "cov.txt"){
