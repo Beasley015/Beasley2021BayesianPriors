@@ -34,7 +34,6 @@ cov.vals <- cbind(cov.bin, cov.cont)
 cov.names <- c("bin", "cont")
 
 # Function for abundance data -------------------------------------
-# Need to fix lambda values
 tru.mats <- function(spec = nspec + naug, site = nsite, cov, resp){
   #Draw lambdas from a logseries distribution
   mean.lambdas <- rgamma(spec, shape=1.5, rate=2)
@@ -62,7 +61,8 @@ tru.mats <- function(spec = nspec + naug, site = nsite, cov, resp){
   
   ns[ns > 1] <- 1
   
-  return(ns)
+  output <- list(ns, mean.lambdas)
+  return(output)
 }
 
 #Get true abundances
@@ -71,12 +71,14 @@ for(i in 1:ncol(cov.vals)){
           tru.mats(cov = cov.vals[,i], resp = resp2cov))
 }
 
-trus <- list(bin, cont)
+trus <- list(bin[[1]], cont[[1]])
+lambdas <- list(bin[[2]], cont[[2]])
 
-#name objects in trus to keep them straight
+#name objects in objects to keep them straight
 sim.names <- c('bin', 'cont')
 
 names(trus) <- sim.names
+names(lambdas) <- sim.names
 
 # Simulate detection process ----------------------------------
 # Load model results from Master's work
@@ -93,6 +95,8 @@ bet <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 
 # Generate detection probabilities from beta dist with above params
 sim.dets <- rbeta(n = nspec+naug, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
+
+# Weight it based on lambda values
 
 # Assign one species to have 0 detection probability
 sums <- lapply(trus, colSums)
