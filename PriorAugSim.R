@@ -27,7 +27,7 @@ resp2cov <- c(rnorm(n = 9, mean = 1, sd = 0.25),
                  rnorm(n = 3, mean = -1, sd = 0.25))
 
 # Covariate values for sites
-cov.bin <- as.numeric(rbernoulli(n = nsite, 0.75))
+cov.bin <- as.numeric(rbernoulli(n = nsite, 0.5))
 cov.cont <- rnorm(n = nsite, mean = 0, sd = 2)
 
 cov.vals <- cbind(cov.bin, cov.cont)
@@ -93,20 +93,38 @@ spec.det <- colMeans(spec.p)
 # Get maximum likelihood estimates for params of beta distribution
 bet <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 
+# Rare species is undetected
+for(i in 1:length(trus)){
+  row <- trus[[i]][which(lambdas[[i]] == min(lambdas[[i]])),]
+  trus[[i]] <- trus[[i]][-which(lambdas[[i]] == min(lambdas[[i]])),]
+  trus[[i]] <- rbind(trus[[i]], row)
+}
+
+# DO THE SAME FOR COVARIATE VALUES
+reorder.covs <- function(lbd, FUN){
+    resp <- resp2cov[which(lbd == FUN(lbd))]
+    resp2cov <- resp2cov[-which(lbd == FUN(lbd))]
+    resp2cov <- c(resp2cov, resp)
+}
+
+resp.bin <- reorder.covs(lambdas$bin, FUN = min)
+resp.cont <- reorder.covs(lambdas$cont, FUN = min)
+
+# Common species is undetected
+# for(i in 1:length(trus)){
+#   row <- trus[[i]][which(lambdas[[i]] == median(lambdas[[i]])),]
+#   trus[[i]] <- trus[[i]][-which(lambdas[[i]] == median(lambdas[[i]])),]
+#   trus[[i]] <- rbind(trus[[i]], row)
+# }
+
+# resp.bin <- reorder.covs(lambdas$bin, FUN = median)
+# resp.cont <- reorder.covs(lambdas$cont, FUN = median)
+
 # Generate detection probabilities from beta dist with above params
-sim.dets <- rbeta(n = nspec+naug, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
+sim.dets <- rbeta(n = nspec, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
 
-# Weight it based on lambda values
-
-# Assign one species to have 0 detection probability
-sums <- lapply(trus, colSums)
-all.sums <- sums[[1]]+sums[[2]]
-
-# Undetected species is rare
-sim.dets[sample(which(all.sums == min(all.sums)),1)] <- 0
-
-# Undetected species is common
-# sim.dets[sample(which(all.sums == median(all.sums)),1)] <- 0
+# Assign last species a detection probability of 0
+sim.dets <- c(sim.dets, 0)
 
 # Function to create encounter histories
 trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
@@ -139,12 +157,12 @@ trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
   return(obsdata)
 }
 
-obs.data <- lapply(trus, trap.hist, det = c(sim.dets, 0))
+obs.data <- lapply(trus, trap.hist, det = sim.dets)
 
 names(obs.data) <- sim.names
 
 # Write Models ----------------------------
-# Model without uninformed priors
+# Model without augmentation
 cat("
     model{
       
@@ -252,6 +270,10 @@ cat("
     ", file = "aug_uninf.txt")
 
 # Model with informed priors
+cat("
+    ")
+
+# Model with misinformed priors
 cat("
     ")
 
