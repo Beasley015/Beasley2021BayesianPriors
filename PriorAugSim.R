@@ -5,8 +5,9 @@
 
 # Setup -----------------------------------------------
 # Load packages
+library(car)
+library(boot)
 library(R2OpenBUGS)
-library(vcdExtra)
 library(tidyverse)
 library(MASS)
 
@@ -33,27 +34,40 @@ cov.cont <- rnorm(n = nsite, mean = 0, sd = 2)
 cov.vals <- cbind(cov.bin, cov.cont)
 cov.names <- c("bin", "cont")
 
-# Function for abundance data -------------------------------------
-tru.mats <- function(spec = nspec + naug, site = nsite, cov, resp){
-  #Draw lambdas from a logseries distribution
-  mean.lambdas <- rgamma(spec, shape=1.5, rate=2)
+# Simulate occupancy data -------------------------------------
+# Load Master's data
+masters.mod <- readRDS("modelsampledglades.rds")
+masters.occ <- masters.mod$sims.list$u
+
+spec.psi <- plogis(masters.occ[,1:8])
+
+spec.occ <- colMeans(spec.psi)
+
+# Get maximum likelihood estimates for params of beta distribution
+bet.occ <- fitdistr(x = spec.occ, start = list(shape1 = 1, shape2 = 1), "beta")
+
+# Draw occupancy probabilities from above distribution
+sim.occ <- rbeta(n = nspec+naug, shape1 = bet.occ$estimate[1], 
+                 shape2 = bet.occ$estimate[2])
+
+# Write function to simulate true occupancy state
+tru.mats <- function(spec=nspec+naug, site=nsite, probs=sim.occ, cov, resp){
+  #Get site-level psi to account for covariates
+  alpha0 <- logit(probs) #logit-scale intercept
+  alpha1 <- inv.logit(resp) #log-scale covariate responses
   
-  #Get site-level lambdas to account for covariates
-  alpha0 <- log(mean.lambdas) #log-scale intercept
-  alpha1 <- exp(resp) #log-scale covariate responses
-  
-  log.lambdas <- matrix(NA, nrow = spec, ncol = site)
+  logit.psi <- matrix(NA, nrow = spec, ncol = site)
   
   for(i in 1:spec){
-    log.lambdas[i,] <- alpha0[i] + alpha1[i]*cov
+    logit.psi[i,] <- alpha0[i] + alpha1[i]*cov
   }
 
-  lambdas <- exp(log.lambdas)  #inverse link transformation
+  psi <- inv.logit(logit.psi)  #inverse link transformation
   
   #create list of abundance vectors
   nlist<-list()
   for(a in 1:spec){
-    nlist[[a]] <- rpois(n = site, lambda = lambdas[a])
+    nlist[[a]] <- rbinom(n = site, size = 1, prob = psi)
   }
   
   #Turn abundance vectors into abundance matrix
@@ -61,7 +75,7 @@ tru.mats <- function(spec = nspec + naug, site = nsite, cov, resp){
   
   ns[ns > 1] <- 1
   
-  output <- list(ns, mean.lambdas)
+  output <- list(ns, psi)
   return(output)
 }
 
@@ -72,18 +86,16 @@ for(i in 1:ncol(cov.vals)){
 }
 
 trus <- list(bin[[1]], cont[[1]])
-lambdas <- list(bin[[2]], cont[[2]])
+psi <- list(bin[[2]], cont[[2]])
 
 #name objects in objects to keep them straight
 sim.names <- c('bin', 'cont')
 
 names(trus) <- sim.names
-names(lambdas) <- sim.names
+names(psi) <- sim.names
 
 # Simulate detection process ----------------------------------
 # Load model results from Master's work
-masters.mod <- readRDS("modelsampledglades.rds")
-
 masters.v <- masters.mod$sims.list$v
 
 spec.p <- plogis(masters.v[,1:8])
@@ -91,7 +103,7 @@ spec.p <- plogis(masters.v[,1:8])
 spec.det <- colMeans(spec.p)
 
 # Get maximum likelihood estimates for params of beta distribution
-bet <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
+bet.det <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 
 # Rare species is undetected
 for(i in 1:length(trus)){
@@ -107,8 +119,8 @@ reorder.covs <- function(lbd, FUN){
     resp2cov <- c(resp2cov, resp)
 }
 
-resp.bin <- reorder.covs(lambdas$bin, FUN = min)
-resp.cont <- reorder.covs(lambdas$cont, FUN = min)
+resp.bin <- reorder.covs(psi$bin, FUN = min)
+resp.cont <- reorder.covs(psi$cont, FUN = min)
 
 # Common species is undetected
 # for(i in 1:length(trus)){
@@ -117,8 +129,8 @@ resp.cont <- reorder.covs(lambdas$cont, FUN = min)
 #   trus[[i]] <- rbind(trus[[i]], row)
 # }
 
-# resp.bin <- reorder.covs(lambdas$bin, FUN = median)
-# resp.cont <- reorder.covs(lambdas$cont, FUN = median)
+# resp.bin <- reorder.covs(psi$bin, FUN = median)
+# resp.cont <- reorder.covs(psi$cont, FUN = median)
 
 # Generate detection probabilities from beta dist with above params
 sim.dets <- rbeta(n = nspec, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
