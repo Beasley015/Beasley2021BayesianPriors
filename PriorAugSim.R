@@ -112,7 +112,6 @@ for(i in 1:length(trus)){
   trus[[i]] <- rbind(trus[[i]], row)
 }
 
-# DO THE SAME FOR COVARIATE VALUES
 reorder.covs <- function(lbd, FUN){
     resp <- resp2cov[which(lbd == FUN(lbd))]
     resp2cov <- resp2cov[-which(lbd == FUN(lbd))]
@@ -133,7 +132,7 @@ resp.cont <- reorder.covs(psi$cont, FUN = min)
 # resp.cont <- reorder.covs(psi$cont, FUN = median)
 
 # Generate detection probabilities from beta dist with above params
-sim.dets <- rbeta(n = nspec, shape1 = bet$estimate[1], shape2 = bet$estimate[2])
+sim.dets <- rbeta(n = nspec, shape1 = bet.det$estimate[1], shape2 = bet.det$estimate[2])
 
 # Assign last species a detection probability of 0
 sim.dets <- c(sim.dets, 0)
@@ -283,7 +282,59 @@ cat("
 
 # Model with informed priors
 cat("
-    ")
+    model{
+    # Define hyperprior distributions: intercepts
+    
+    omega ~ dunif(0,1)
+    
+    #Intercepts
+    a0.mean ~ dnorm(0,0.001)
+    sigma.a0 ~ dunif(0,10)
+    tau.a0 <- 1/(sigma.a0*sigma.a0)
+    
+    a1.mean ~ dnorm(0,0.001)
+    sigma.a1 ~ dunif(0,10)
+    tau.a1 <- 1/(sigma.a1*sigma.a1)
+    
+    b0.mean ~ dnorm(0,0.001)
+    sigma.b0 ~ dunif(0,10)
+    tau.b0 <- 1/(sigma.b0*sigma.b0)
+    
+    for(i in 1:nspec+naug){
+    #create priors from distributions above
+    w[i] ~ dbern(omega)
+    #indicates whether or not species is exposed to sampling
+    
+    a0[i] ~ dnorm(a0.mean, tau.a0)
+    a1[i] ~ dnorm(a1.mean, tau.a1)
+    if(i == nspec+naug){
+      a1[i] ~ dnorm(a1.mean+(0.5*resp), tau.a1)
+    }
+    
+    b0[i] ~ dnorm(b0.mean, tau.b0)
+    
+    #Estimate occupancy of species i at point j
+    for (j in 1:J) {
+    logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+    mu.psi[j,i] <- psi[j,i]*w[i]
+    Z[j,i] ~ dbern(mu.psi[j,i])
+    
+    #Estimate detection of i at point j during sampling period k
+    for(k in 1:K[j]){
+    logit(p[j,k,i]) <-  b0[i]
+    mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
+    #The addition of Z means that detecting a species depends on its occupancy
+    obs[j,k,i] ~ dbern(mu.p[j,k,i])
+    }
+    }
+    }
+    
+    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
+    n0<-sum(w[(nspec+1):(nspec+naug)])
+    N<-nspec+n0
+    
+    }
+    ", file = "aug_inf.txt")
 
 # Model with misinformed priors
 cat("

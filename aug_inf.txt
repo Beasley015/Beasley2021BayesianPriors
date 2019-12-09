@@ -1,6 +1,6 @@
 
     model{
-      # Define hyperprior distributions: intercepts
+    # Define hyperprior distributions: intercepts
     
     omega ~ dunif(0,1)
     
@@ -8,7 +8,7 @@
     a0.mean ~ dnorm(0,0.001)
     sigma.a0 ~ dunif(0,10)
     tau.a0 <- 1/(sigma.a0*sigma.a0)
-
+    
     a1.mean ~ dnorm(0,0.001)
     sigma.a1 ~ dunif(0,10)
     tau.a1 <- 1/(sigma.a1*sigma.a1)
@@ -24,6 +24,9 @@
     
     a0[i] ~ dnorm(a0.mean, tau.a0)
     a1[i] ~ dnorm(a1.mean, tau.a1)
+    if(i == nspec+naug){
+      a1[i] ~ dnorm(a1.mean+(0.5*resp), tau.a1)
+    }
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
     
