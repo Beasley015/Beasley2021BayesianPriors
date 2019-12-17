@@ -16,16 +16,16 @@ set.seed(15)
 
 # Global variables
 nspec <- 15
-naug <- 1
+naug <- 2
 nsite <- 30
 nsurvey <- 4
 
 Ks <- rep(nsurvey, nsite)
 
 # Matrix of covariate responses
-resp2cov <- c(rnorm(n = 9, mean = 1, sd = 0.25), 
-                 rnorm(n = 4, mean = 0, sd = 0.25),
-                 rnorm(n = 3, mean = -1, sd = 0.25))
+resp2cov <- c(rnorm(n = 10, mean = 1, sd = 0.25), 
+                 rnorm(n = 3, mean = 0, sd = 0.25),
+                 rnorm(n = 4, mean = -1, sd = 0.25))
 
 # Covariate values for sites
 cov.bin <- as.numeric(rbernoulli(n = nsite, 0.5))
@@ -105,10 +105,10 @@ spec.det <- colMeans(spec.p)
 # Get maximum likelihood estimates for params of beta distribution
 bet.det <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 
-# Rare species is undetected
+# Rare species
 for(i in 1:length(trus)){
-  row <- trus[[i]][which(lambdas[[i]] == min(lambdas[[i]])),]
-  trus[[i]] <- trus[[i]][-which(lambdas[[i]] == min(lambdas[[i]])),]
+  row <- trus[[i]][which(psi[[i]] == min(psi[[i]])),]
+  trus[[i]] <- trus[[i]][-which(psi[[i]] == min(psi[[i]])),]
   trus[[i]] <- rbind(trus[[i]], row)
 }
 
@@ -122,20 +122,20 @@ resp.bin <- reorder.covs(psi$bin, FUN = min)
 resp.cont <- reorder.covs(psi$cont, FUN = min)
 
 # Common species is undetected
-# for(i in 1:length(trus)){
-#   row <- trus[[i]][which(lambdas[[i]] == median(lambdas[[i]])),]
-#   trus[[i]] <- trus[[i]][-which(lambdas[[i]] == median(lambdas[[i]])),]
-#   trus[[i]] <- rbind(trus[[i]], row)
-# }
+for(i in 1:length(trus)){
+  row <- trus[[i]][which(psi[[i]] == median(psi[[i]])),]
+  trus[[i]] <- trus[[i]][-which(psi[[i]] == median(psi[[i]])),]
+  trus[[i]] <- rbind(trus[[i]], row)
+}
 
-# resp.bin <- reorder.covs(psi$bin, FUN = median)
-# resp.cont <- reorder.covs(psi$cont, FUN = median)
+resp.bin <- reorder.covs(psi$bin, FUN = median)
+resp.cont <- reorder.covs(psi$cont, FUN = median)
 
 # Generate detection probabilities from beta dist with above params
 sim.dets <- rbeta(n = nspec, shape1 = bet.det$estimate[1], shape2 = bet.det$estimate[2])
 
 # Assign last species a detection probability of 0
-sim.dets <- c(sim.dets, 0)
+sim.dets <- c(sim.dets, rep(0,2))
 
 # Function to create encounter histories
 trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
