@@ -5,34 +5,32 @@
 
 # Setup -----------------------------------------------
 # Load packages
-library(car)
-library(boot)
-library(R2OpenBUGS)
+library(R2jags)
 library(tidyverse)
 library(MASS)
+library(abind)
+library(boot)
 
 # Set seed
-set.seed(15)
+set.seed(17)
 
 # Global variables
 nspec <- 15
-naug <- 2
+nmiss <- 2 # Species present but not detected during sampling
+naug <- 3 # Hypothetical species not exposed to sampling
+ems <- nmiss + naug # Number of all-zero histories to add to observed data
 nsite <- 30
 nsurvey <- 4
 
 Ks <- rep(nsurvey, nsite)
 
 # Matrix of covariate responses
-resp2cov <- c(rnorm(n = 10, mean = 1, sd = 0.25), 
-                 rnorm(n = 3, mean = 0, sd = 0.25),
-                 rnorm(n = 4, mean = -1, sd = 0.25))
+resp2cov <- c(rnorm(n = 10, mean = 1, sd = 0.15), 
+                 rnorm(n = 3, mean = 0, sd = 0.15),
+                 rnorm(n = 4, mean = -1, sd = 0.15))
 
 # Covariate values for sites
-cov.bin <- as.numeric(rbernoulli(n = nsite, 0.5))
-cov.cont <- rnorm(n = nsite, mean = 0, sd = 2)
-
-cov.vals <- cbind(cov.bin, cov.cont)
-cov.names <- c("bin", "cont")
+cov <- rnorm(n = nsite, mean = 0, sd = 2)
 
 # Simulate occupancy data -------------------------------------
 # Load Master's data
@@ -47,14 +45,14 @@ spec.occ <- colMeans(spec.psi)
 bet.occ <- fitdistr(x = spec.occ, start = list(shape1 = 1, shape2 = 1), "beta")
 
 # Draw occupancy probabilities from above distribution
-sim.occ <- rbeta(n = nspec+naug, shape1 = bet.occ$estimate[1], 
+sim.occ <- rbeta(n = nspec+nmiss, shape1 = bet.occ$estimate[1], 
                  shape2 = bet.occ$estimate[2])
 
 # Write function to simulate true occupancy state
-tru.mats <- function(spec=nspec+naug, site=nsite, probs=sim.occ, cov, resp){
+tru.mats <- function(spec=nspec+nmiss, site=nsite, probs=sim.occ){
   #Get site-level psi to account for covariates
   alpha0 <- logit(probs) #logit-scale intercept
-  alpha1 <- inv.logit(resp) #log-scale covariate responses
+  alpha1 <- inv.logit(resp2cov) #log-scale covariate responses
   
   logit.psi <- matrix(NA, nrow = spec, ncol = site)
   
@@ -75,24 +73,10 @@ tru.mats <- function(spec=nspec+naug, site=nsite, probs=sim.occ, cov, resp){
   
   ns[ns > 1] <- 1
   
-  output <- list(ns, psi)
-  return(output)
+  return(ns)
 }
 
-#Get true abundances
-for(i in 1:ncol(cov.vals)){
-    assign(paste(cov.names[i], sep = ""),
-          tru.mats(cov = cov.vals[,i], resp = resp2cov))
-}
-
-trus <- list(bin[[1]], cont[[1]])
-psi <- list(bin[[2]], cont[[2]])
-
-#name objects in objects to keep them straight
-sim.names <- c('bin', 'cont')
-
-names(trus) <- sim.names
-names(psi) <- sim.names
+tru <- tru.mats()
 
 # Simulate detection process ----------------------------------
 # Load model results from Master's work
@@ -105,40 +89,35 @@ spec.det <- colMeans(spec.p)
 # Get maximum likelihood estimates for params of beta distribution
 bet.det <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 
-# Rare species
-for(i in 1:length(trus)){
-  row <- trus[[i]][which(psi[[i]] == min(psi[[i]])),]
-  trus[[i]] <- trus[[i]][-which(psi[[i]] == min(psi[[i]])),]
-  trus[[i]] <- rbind(trus[[i]], row)
+# Reorder true occurrence matrix, psi, and cov responses
+reorder <- function(x){
+  if(length(dim(x)) == 0){
+    pos <- c(which(sim.occ == min(sim.occ)), which(sim.occ == median(sim.occ)))
+    nondet <- x[pos]
+    x <- x[-pos]
+    x <- c(x, nondet)
+  } else {
+    pos <- c(which(sim.occ == min(sim.occ)), which(sim.occ == median(sim.occ)))
+    nondet <- x[pos,]
+    x <- x[-pos,]
+    x <- rbind(x, nondet)
+  }
+  return(x)
 }
 
-reorder.covs <- function(lbd, FUN){
-    resp <- resp2cov[which(lbd == FUN(lbd))]
-    resp2cov <- resp2cov[-which(lbd == FUN(lbd))]
-    resp2cov <- c(resp2cov, resp)
-}
-
-resp.bin <- reorder.covs(psi$bin, FUN = min)
-resp.cont <- reorder.covs(psi$cont, FUN = min)
-
-# Common species is undetected
-for(i in 1:length(trus)){
-  row <- trus[[i]][which(psi[[i]] == median(psi[[i]])),]
-  trus[[i]] <- trus[[i]][-which(psi[[i]] == median(psi[[i]])),]
-  trus[[i]] <- rbind(trus[[i]], row)
-}
-
-resp.bin <- reorder.covs(psi$bin, FUN = median)
-resp.cont <- reorder.covs(psi$cont, FUN = median)
+tru <- reorder(x = tru)
+resp2cov <- reorder(x = resp2cov)
+sim.occ <- reorder(x = sim.occ)
 
 # Generate detection probabilities from beta dist with above params
-sim.dets <- rbeta(n = nspec, shape1 = bet.det$estimate[1], shape2 = bet.det$estimate[2])
+sim.dets <- rbeta(n = nspec, shape1 = bet.det$estimate[1], 
+                  shape2 = bet.det$estimate[2])
 
-# Assign last species a detection probability of 0
+# Assign selected species a detection probability of 0
 sim.dets <- c(sim.dets, rep(0,2))
 
 # Function to create encounter histories
-trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
+trap.hist <- function(mat, det, specs=nspec, sites=nsite, survs=nsurvey){
   #Detection intercept and cov responses
   beta0<-qlogis(det) #put it on logit scale
   #Responses to a cov would go here
@@ -168,9 +147,18 @@ trap.hist <- function(mat, det, specs=nspec+naug, sites=nsite, survs=nsurvey){
   return(obsdata)
 }
 
-obs.data <- lapply(trus, trap.hist, det = sim.dets)
+obs.data <- trap.hist(mat = tru, det = sim.dets)
 
-names(obs.data) <- sim.names
+# Augment the observed dataset ------------------------------------
+ems.array <- array(0, dim = c(nsite, nsurvey, ems))
+obs.aug <- abind(obs.data, ems.array, along = 3)
+
+# Add prior information --------------------------------
+uninf <- rep(0, nspec+ems)
+weakinf <- c(rep(0, nspec), round(resp2cov[16:17])*0.1, rep(0, naug))
+modinf <- c(rep(0, nspec), round(resp2cov[16:17])*0.5, rep(0, naug))
+weakmisinf <- c(rep(0, nspec), round(resp2cov[16:17])*-0.1, rep(0, naug))
+modmisinf <- c(rep(0, nspec), round(resp2cov[16:17])*-0.5, rep(0, naug))
 
 # Write Models ----------------------------
 # Model without augmentation
@@ -178,9 +166,7 @@ cat("
     model{
       
     # Define hyperprior distributions: intercepts
-    
-    omega ~ dunif(0,1)
-    
+
     #Intercepts
     a0.mean ~ dnorm(0,0.001)
     sigma.a0 ~ dunif(0,10)
@@ -194,10 +180,8 @@ cat("
     sigma.b0 ~ dunif(0,10)
     tau.b0 <- 1/(sigma.b0*sigma.b0)
     
-    for(i in 1:nspec){
+    for(i in 1:spec){
     #create priors from distributions above
-    w[i] ~ dbern(omega)
-    #indicates whether or not species is exposed to sampling
     
     a0[i] ~ dnorm(a0.mean, tau.a0)
     a1[i] ~ dnorm(a1.mean, tau.a1)
@@ -207,7 +191,7 @@ cat("
     #Estimate occupancy of species i at point j
     for (j in 1:J) {
     logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
-    mu.psi[j,i] <- psi[j,i]*w[i]
+    mu.psi[j,i] <- psi[j,i]
     Z[j,i] ~ dbern(mu.psi[j,i])
     
     #Estimate detection of i at point j during sampling period k
@@ -220,78 +204,23 @@ cat("
     }
     }
     
-    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-    n0<-sum(w[(nspec+1):(nspec+naug)])
-    N<-nspec+n0
+    N<-spec
     
     }
     ", file = "noaug.txt")
 
-# Model with augmentation, uninformed priors
+# Model with augmentation
 cat("
     model{
-      # Define hyperprior distributions: intercepts
-    
-    omega ~ dunif(0,1)
-    
-    #Intercepts
-    a0.mean ~ dnorm(0,0.001)
-    sigma.a0 ~ dunif(0,10)
-    tau.a0 <- 1/(sigma.a0*sigma.a0)
-
-    a1.mean ~ dnorm(0,0.001)
-    sigma.a1 ~ dunif(0,10)
-    tau.a1 <- 1/(sigma.a1*sigma.a1)
-    
-    b0.mean ~ dnorm(0,0.001)
-    sigma.b0 ~ dunif(0,10)
-    tau.b0 <- 1/(sigma.b0*sigma.b0)
-    
-    for(i in 1:nspec+naug){
-    #create priors from distributions above
-    w[i] ~ dbern(omega)
-    #indicates whether or not species is exposed to sampling
-    
-    a0[i] ~ dnorm(a0.mean, tau.a0)
-    a1[i] ~ dnorm(a1.mean, tau.a1)
-    
-    b0[i] ~ dnorm(b0.mean, tau.b0)
-    
-    #Estimate occupancy of species i at point j
-    for (j in 1:J) {
-    logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
-    mu.psi[j,i] <- psi[j,i]*w[i]
-    Z[j,i] ~ dbern(mu.psi[j,i])
-    
-    #Estimate detection of i at point j during sampling period k
-    for(k in 1:K[j]){
-    logit(p[j,k,i]) <-  b0[i]
-    mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
-    #The addition of Z means that detecting a species depends on its occupancy
-    obs[j,k,i] ~ dbern(mu.p[j,k,i])
-    }
-    }
-    }
-    
-    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-    n0<-sum(w[(nspec+1):(nspec+naug)])
-    N<-nspec+n0
-    
-    }
-    ", file = "aug_uninf.txt")
-
-# Model with informed priors
-cat("
-    model{
+      
     # Define hyperprior distributions: intercepts
-    
     omega ~ dunif(0,1)
     
     #Intercepts
     a0.mean ~ dnorm(0,0.001)
     sigma.a0 ~ dunif(0,10)
     tau.a0 <- 1/(sigma.a0*sigma.a0)
-    
+
     a1.mean ~ dnorm(0,0.001)
     sigma.a1 ~ dunif(0,10)
     tau.a1 <- 1/(sigma.a1*sigma.a1)
@@ -300,23 +229,20 @@ cat("
     sigma.b0 ~ dunif(0,10)
     tau.b0 <- 1/(sigma.b0*sigma.b0)
     
-    for(i in 1:nspec+naug){
-    #create priors from distributions above
+    for(i in 1:spec+aug){
+    # Create priors from hyperpriors
     w[i] ~ dbern(omega)
     #indicates whether or not species is exposed to sampling
     
     a0[i] ~ dnorm(a0.mean, tau.a0)
-    a1[i] ~ dnorm(a1.mean, tau.a1)
-    if(i == nspec+naug){
-      a1[i] ~ dnorm(a1.mean+(0.5*resp), tau.a1)
-    }
+    a1[i] ~ dnorm(a1.mean+info, tau.a1)
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {
     logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
-    mu.psi[j,i] <- psi[j,i]*w[i]
+    mu.psi[j,i] <- psi[j,i] * w[i]
     Z[j,i] ~ dbern(mu.psi[j,i])
     
     #Estimate detection of i at point j during sampling period k
@@ -330,67 +256,47 @@ cat("
     }
     
     #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-    n0<-sum(w[(nspec+1):(nspec+naug)])
+    n0<-sum(w[(spec+1):(spec+aug)])
     N<-nspec+n0
     
     }
-    ", file = "aug_inf.txt")
-
-# Model with misinformed priors
-cat("
-    ")
+    ", file = "aug_model.txt")
 
 # Write function for sending model to gibbs sampler --------------------------------
-VivaLaMSOM <- function(J, K, obs, nspec, naug=NULL, textdoc, covar){
+VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info = NULL){
   # Compile data into list
-  datalist <- list(J = J, K = K, obs = obs, nspec = nspec, naug = naug)
-  if(textdoc == "cov.txt"){
-    list.append(datalist, cov=covar)
+  datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov)
+  if(textdoc == 'aug_model.txt'){
+    append(datalist, aug = aug)
   }
 
   # Specify parameters
-  parms <- list('Z', 'N', 'a0', 'b0', 'mu.psi', 'mu.p')
-  if(textdoc == "cov.txt"){
-   list.append(parms, 'a1') 
-  }
+  parms <- c('Z', 'N', 'a0', 'b0', 'a1')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
   init.values<-function(){
     omega.guess <- runif(1,0,1)
-    list(omega = omega.guess,
-         w=c(rep(1,nspec), rbinom(n = naug, size=1, prob=omega.guess)),
-         a0 = rnorm(n = (nspec+naug)), a1 = rnorm(n = (nspec+naug)),
-         b0 = rnorm(n = (nspec+naug)),
+    inits <- list(
+         a0 = rnorm(n = (spec+aug)), a1 = rnorm(n = (spec+aug)),
+         b0 = rnorm(n = (spec+aug)),
          Z = maxobs)
+    if(textdoc == 'aug_model.txt'){
+      append(inits, omega = omega.guess,
+             w=c(rep(1,spec), rbinom(n = aug, size=1, prob=omega.guess)))
+    }
+    
+    return(inits)
   }
 
-  # JAGS command: this isn't working; hates my initial values for some reason
-  # model <- jags(model.file = "nocov.txt", data = datalist, n.chains = 3,
-  #               parameters.to.save = parms, inits = init.values, n.burnin = 100,
-  #               n.iter = 1000)
-
-  # BUGS works though
-    model <- bugs(model.file = textdoc, data = datalist, n.chains = 3,
-                  parameters.to.save = parms, inits = init.values, n.burnin = 10,
-                  n.iter = 100, debug = F)
+  #JAGS command: this isn't working; hates my initial values for some reason
+  model <- jags(model.file = textdoc, data = datalist, n.chains = 3,
+                parameters.to.save = parms, inits = init.values, n.burnin = 100,
+                n.iter = 1000)
     
     return(model)
 }
 
 # Run sims -------------------------------------
-outputs.nocov <- list()
-for(i in 1:length(obs.data)){
-  outputs.nocov[[i]] <- VivaLaMSOM(J=nsite, K=Ks, nspec=nspec, naug=naug, 
-                             obs = obs.data[[i]], textdoc = "nocov.txt")  
-  print(i)
-}
-names(outputs.nocov) <- sim.names
-
-outputs.bin.uninf <- list()
-
-outputs.cont.uninf <- list()
-
-outputs.bin.inf <- list()
-
-outputs.cont.inf <- list()
+VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,spec = nspec, 
+           textdoc = 'noaug.txt')
