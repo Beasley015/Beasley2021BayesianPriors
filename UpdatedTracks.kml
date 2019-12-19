@@ -1,0 +1,2341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>UpdatedTracks.kml</name>
+	<Schema name="UpdatedTracks" id="S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+		<SimpleField type="string" name="type"><displayName>&lt;b&gt;type&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="tident"><displayName>&lt;b&gt;tident&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="ident"><displayName>&lt;b&gt;ident&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="double" name="Latitude"><displayName>&lt;b&gt;Latitude&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="double" name="Longitude"><displayName>&lt;b&gt;Longitude&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="double" name="y_proj"><displayName>&lt;b&gt;y_proj&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="double" name="x_proj"><displayName>&lt;b&gt;x_proj&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="comment"><displayName>&lt;b&gt;comment&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="new_trk"><displayName>&lt;b&gt;new_trk&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="new_seg"><displayName>&lt;b&gt;new_seg&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="display"><displayName>&lt;b&gt;display&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="color"><displayName>&lt;b&gt;color&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="double" name="altitude"><displayName>&lt;b&gt;altitude&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="double" name="depth"><displayName>&lt;b&gt;depth&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="double" name="temp"><displayName>&lt;b&gt;temp&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="time"><displayName>&lt;b&gt;time&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="model"><displayName>&lt;b&gt;model&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="filename"><displayName>&lt;b&gt;filename&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="ltime"><displayName>&lt;b&gt;ltime&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="desc"><displayName>&lt;b&gt;desc&lt;/b&gt;</displayName>
+</SimpleField>
+		<SimpleField type="string" name="link"><displayName>&lt;b&gt;link&lt;/b&gt;</displayName>
+</SimpleField>
+	</Schema>
+	<Style id="style01161">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="style01151">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style01181</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style01131</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="style01141">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style0151</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style01101</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="style01281">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01212">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01101">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01251">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01241">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style031">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style0191">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="style01261">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style0171</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style0133</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="style001">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01271">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="style0132">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style01113</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style0141</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="style01213">
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<PolyStyle>
+			<color>ffff0000</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="style021">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style07</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style001</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="style01181">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style0161">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="style01191">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style01212</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style01112</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="style0171">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01113">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style0133">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style0101">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01131">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style051">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="style041">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style051</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style031</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="style0181">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style0191</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style01251</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="style01121">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style0101</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style0161</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="style01221">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style01271</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style01241</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="style01291">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style01231</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style01171</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="style01112">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style07">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01231">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style01171">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="style0151">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="style01201">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#style01161</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#style01281</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="style0141">
+		<IconStyle>
+			<color>ff0000ff</color>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>type</b></td><td>$[UpdatedTracks/type]</td></tr>
+  <tr><td><b>tident</b></td><td>$[UpdatedTracks/tident]</td></tr>
+  <tr><td><b>ident</b></td><td>$[UpdatedTracks/ident]</td></tr>
+  <tr><td><b>Latitude</b></td><td>$[UpdatedTracks/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[UpdatedTracks/Longitude]</td></tr>
+  <tr><td><b>y_proj</b></td><td>$[UpdatedTracks/y_proj]</td></tr>
+  <tr><td><b>x_proj</b></td><td>$[UpdatedTracks/x_proj]</td></tr>
+  <tr><td><b>comment</b></td><td>$[UpdatedTracks/comment]</td></tr>
+  <tr><td><b>new_trk</b></td><td>$[UpdatedTracks/new_trk]</td></tr>
+  <tr><td><b>new_seg</b></td><td>$[UpdatedTracks/new_seg]</td></tr>
+  <tr><td><b>display</b></td><td>$[UpdatedTracks/display]</td></tr>
+  <tr><td><b>color</b></td><td>$[UpdatedTracks/color]</td></tr>
+  <tr><td><b>altitude</b></td><td>$[UpdatedTracks/altitude]</td></tr>
+  <tr><td><b>depth</b></td><td>$[UpdatedTracks/depth]</td></tr>
+  <tr><td><b>temp</b></td><td>$[UpdatedTracks/temp]</td></tr>
+  <tr><td><b>time</b></td><td>$[UpdatedTracks/time]</td></tr>
+  <tr><td><b>model</b></td><td>$[UpdatedTracks/model]</td></tr>
+  <tr><td><b>filename</b></td><td>$[UpdatedTracks/filename]</td></tr>
+  <tr><td><b>ltime</b></td><td>$[UpdatedTracks/ltime]</td></tr>
+  <tr><td><b>desc</b></td><td>$[UpdatedTracks/desc]</td></tr>
+  <tr><td><b>link</b></td><td>$[UpdatedTracks/link]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff0000ff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff0000ff</color>
+		</PolyStyle>
+	</Style>
+	<Folder id="layer 0">
+		<name>UpdatedTracks</name>
+		<open>1</open>
+		<Placemark>
+			<name>Hort2</name>
+			<styleUrl>#style041</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Hort2</SimpleData>
+					<SimpleData name="ident">T3</SimpleData>
+					<SimpleData name="Latitude">44.4322</SimpleData>
+					<SimpleData name="Longitude">-73.1985</SimpleData>
+					<SimpleData name="y_proj">5.53258e+06</SimpleData>
+					<SimpleData name="x_proj">-8.14842e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.19828773699101,44.43218798523424,0 -73.19751835114738,44.43224676021325,0 -73.19725011382498,44.43214206272499,0 -73.19595617443845,44.43226534050405,0 -73.19574833661906,44.43232403814124,0 -73.19574333124739,44.43243549014759,0 -73.19588916198741,44.43246752694853,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Hort3</name>
+			<styleUrl>#style021</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Hort3</SimpleData>
+					<SimpleData name="ident">T5</SimpleData>
+					<SimpleData name="Latitude">44.4303</SimpleData>
+					<SimpleData name="Longitude">-73.2061</SimpleData>
+					<SimpleData name="y_proj">5.53227e+06</SimpleData>
+					<SimpleData name="x_proj">-8.14927e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.20400986316324,44.42921504095038,0 -73.20437680475813,44.42911282959052,0 -73.20465020726951,44.42839375119355,0 -73.20652920283092,44.42830625898028,0 -73.20648158130655,44.42863024021626,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Audubon1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Audubon1</SimpleData>
+					<SimpleData name="ident">T7</SimpleData>
+					<SimpleData name="Latitude">44.3512</SimpleData>
+					<SimpleData name="Longitude">-72.992</SimpleData>
+					<SimpleData name="y_proj">5.51995e+06</SimpleData>
+					<SimpleData name="x_proj">-8.12543e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.99199024355377,44.35117512609197,0 -72.9916937581875,44.3492597208466,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Audubon2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Audubon2</SimpleData>
+					<SimpleData name="ident">T33</SimpleData>
+					<SimpleData name="Latitude">44.3488</SimpleData>
+					<SimpleData name="Longitude">-73.0003</SimpleData>
+					<SimpleData name="y_proj">5.51958e+06</SimpleData>
+					<SimpleData name="x_proj">-8.12635e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.00027825667192,44.34881113238247,0 -73.00225935628374,44.34750462514543,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Inter1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Inter1</SimpleData>
+					<SimpleData name="ident">T9</SimpleData>
+					<SimpleData name="Latitude">44.4973</SimpleData>
+					<SimpleData name="Longitude">-73.2092</SimpleData>
+					<SimpleData name="y_proj">5.54272e+06</SimpleData>
+					<SimpleData name="x_proj">-8.14961e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.20915194567559,44.4972500424789,0 -73.20852020724864,44.49538131180546,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Jericho2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Jericho2</SimpleData>
+					<SimpleData name="ident">T15</SimpleData>
+					<SimpleData name="Latitude">44.4442</SimpleData>
+					<SimpleData name="Longitude">-72.9989</SimpleData>
+					<SimpleData name="y_proj">5.53445e+06</SimpleData>
+					<SimpleData name="x_proj">-8.1262e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.99885496324082,44.44422782006357,0 -72.99785962361779,44.44601576667318,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Jericho1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Jericho1</SimpleData>
+					<SimpleData name="ident">T17</SimpleData>
+					<SimpleData name="Latitude">44.4495</SimpleData>
+					<SimpleData name="Longitude">-72.993</SimpleData>
+					<SimpleData name="y_proj">5.53527e+06</SimpleData>
+					<SimpleData name="x_proj">-8.12554e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.99299055175861,44.44953660490833,0 -72.99263044680561,44.44762999183651,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Inter2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Inter2</SimpleData>
+					<SimpleData name="ident">T19</SimpleData>
+					<SimpleData name="Latitude">44.5062</SimpleData>
+					<SimpleData name="Longitude">-73.2153</SimpleData>
+					<SimpleData name="y_proj">5.54412e+06</SimpleData>
+					<SimpleData name="x_proj">-8.15029e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.21526651730316,44.50621146908668,0 -73.21353321167422,44.5047397539534,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>StM1</name>
+			<styleUrl>#style01261</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">StM1</SimpleData>
+					<SimpleData name="ident">T21</SimpleData>
+					<SimpleData name="Latitude">44.4948</SimpleData>
+					<SimpleData name="Longitude">-73.1549</SimpleData>
+					<SimpleData name="y_proj">5.54233e+06</SimpleData>
+					<SimpleData name="x_proj">-8.14357e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.15483776000627,44.49559415922222,0 -73.1521590157557,44.494706972797,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>StM2</name>
+			<styleUrl>#style01291</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">StM2</SimpleData>
+					<SimpleData name="ident">T23</SimpleData>
+					<SimpleData name="Latitude">44.4909</SimpleData>
+					<SimpleData name="Longitude">-73.1496</SimpleData>
+					<SimpleData name="y_proj">5.54173e+06</SimpleData>
+					<SimpleData name="x_proj">-8.14297e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.1545507851506,44.49112590621857,0 -73.15289934224541,44.49060090596624,0 -73.15132576902103,44.49143516072731,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>MBR2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">MBR2</SimpleData>
+					<SimpleData name="ident">T25</SimpleData>
+					<SimpleData name="Latitude">43.6333</SimpleData>
+					<SimpleData name="Longitude">-72.5375</SimpleData>
+					<SimpleData name="y_proj">5.40886e+06</SimpleData>
+					<SimpleData name="x_proj">-8.07483e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.5374547121798,43.63326317643185,0 -72.53577119298056,43.63478626073476,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>MBR3</name>
+			<styleUrl>#style0132</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">MBR1</SimpleData>
+					<SimpleData name="ident">T27</SimpleData>
+					<SimpleData name="Latitude">43.6322</SimpleData>
+					<SimpleData name="Longitude">-72.5437</SimpleData>
+					<SimpleData name="y_proj">5.4087e+06</SimpleData>
+					<SimpleData name="x_proj">-8.07553e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.5436881641571,43.6321755494789,0 -72.54243597822806,43.63044830705018,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>MBR1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">MBR3</SimpleData>
+					<SimpleData name="ident">T29</SimpleData>
+					<SimpleData name="Latitude">43.6329</SimpleData>
+					<SimpleData name="Longitude">-72.5212</SimpleData>
+					<SimpleData name="y_proj">5.4088e+06</SimpleData>
+					<SimpleData name="x_proj">-8.07302e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.5211801102472,43.63286951765151,0 -72.52377724124322,43.63339025428057,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>MBR4</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">MBR4</SimpleData>
+					<SimpleData name="ident">T31</SimpleData>
+					<SimpleData name="Latitude">43.6361</SimpleData>
+					<SimpleData name="Longitude">-72.5466</SimpleData>
+					<SimpleData name="y_proj">5.4093e+06</SimpleData>
+					<SimpleData name="x_proj">-8.07586e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.54664917662358,43.63610280409833,0 -72.54917467416222,43.63678349663802,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Audubon2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Audubon2</SimpleData>
+					<SimpleData name="ident">T33</SimpleData>
+					<SimpleData name="Latitude">44.3488</SimpleData>
+					<SimpleData name="Longitude">-73.0003</SimpleData>
+					<SimpleData name="y_proj">5.51958e+06</SimpleData>
+					<SimpleData name="x_proj">-8.12635e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.00027825667192,44.34881113238247,0 -73.00225935628374,44.34750462514543,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Borderview1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Borderview1</SimpleData>
+					<SimpleData name="ident">T35</SimpleData>
+					<SimpleData name="Latitude">45.0111</SimpleData>
+					<SimpleData name="Longitude">-73.3104</SimpleData>
+					<SimpleData name="y_proj">5.62328e+06</SimpleData>
+					<SimpleData name="x_proj">-8.16088e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.31040988729633,45.01114598931235,0 -73.31057931944039,45.01014664976643,0 -73.31097657422198,45.01012687552823,0 -73.31105990464266,45.00951246147328,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Borderview2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Borderview2</SimpleData>
+					<SimpleData name="ident">T39</SimpleData>
+					<SimpleData name="Latitude">45.0029</SimpleData>
+					<SimpleData name="Longitude">-73.3081</SimpleData>
+					<SimpleData name="y_proj">5.62197e+06</SimpleData>
+					<SimpleData name="x_proj">-8.16062e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.30806144859852,45.00287272126982,0 -73.30536650274617,45.00287272126982,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RiverBerry1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">RiverBerry1</SimpleData>
+					<SimpleData name="ident">T41</SimpleData>
+					<SimpleData name="Latitude">44.6472</SimpleData>
+					<SimpleData name="Longitude">-72.9794</SimpleData>
+					<SimpleData name="y_proj">5.56615e+06</SimpleData>
+					<SimpleData name="x_proj">-8.12403e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.97941730336129,44.64718848148755,0 -72.97673071723099,44.64703758368225,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RiverBerry2</name>
+			<styleUrl>#style01221</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">RiverBerry2</SimpleData>
+					<SimpleData name="ident">T43</SimpleData>
+					<SimpleData name="Latitude">44.6521</SimpleData>
+					<SimpleData name="Longitude">-72.9798</SimpleData>
+					<SimpleData name="y_proj">5.56691e+06</SimpleData>
+					<SimpleData name="x_proj">-8.12407e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.96778393975943,44.65273560045701,0 -72.96424672769021,44.65236190215315,0 -72.96418183703852,44.65221175855209,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Elmer1</name>
+			<styleUrl>#style01151</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Elmer1</SimpleData>
+					<SimpleData name="ident">T45</SimpleData>
+					<SimpleData name="Latitude">43.9835</SimpleData>
+					<SimpleData name="Longitude">-73.1098</SimpleData>
+					<SimpleData name="y_proj">5.46289e+06</SimpleData>
+					<SimpleData name="x_proj">-8.13854e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.11315297988536,43.98095870074728,0 -73.1120415934124,43.98323014134017,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Elmer2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Elmer2</SimpleData>
+					<SimpleData name="ident">T47</SimpleData>
+					<SimpleData name="Latitude">43.9838</SimpleData>
+					<SimpleData name="Longitude">-73.1031</SimpleData>
+					<SimpleData name="y_proj">5.46293e+06</SimpleData>
+					<SimpleData name="x_proj">-8.1378e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.10308591432867,43.98377475423074,0 -73.10415632885493,43.98199513736907,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Butternut1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Butternut1</SimpleData>
+					<SimpleData name="ident">T49</SimpleData>
+					<SimpleData name="Latitude">44.7721</SimpleData>
+					<SimpleData name="Longitude">-73.3219</SimpleData>
+					<SimpleData name="y_proj">5.58571e+06</SimpleData>
+					<SimpleData name="x_proj">-8.16215e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.32187288529345,44.77207151257465,0 -73.32193341834721,44.77207828100806,0 -73.32199132385605,44.7720873578479,0 -73.32204660182777,44.77209874309421,0 -73.32209925226964,44.77211243674714,0 -73.32214927518858,44.77212843880685,0 -73.3221966705911,44.77214674927356,0 -73.32224143848343,44.77216736814741,0 -73.32228357887166,44.77219029542876,0 -73.32256650596533,44.77233795545332,0 -73.32280427205473,44.77252739226221,0 -73.32291539275707,44.77276351906988,0 -73.32291323218644,44.77281087002024,0 -73.32290752758104,44.7728603161906,0 -73.32289834560572,44.77291126181723,0 -73.3228858428387,44.77296282947201,0 -73.32287011326947,44.77301444238172,0 -73.32285169767305,44.77306417534059,0 -73.32283118701093,44.77311042555565,0 -73.32280939784177,44.77315134406611,0 -73.32279278066616,44.77317666878547,0 -73.32277138612359,44.77320427343576,0 -73.32274572915867,44.77323348999197,0 -73.32271664290897,44.77326336684944,0 -73.32268498370755,44.77329299677719,0 -73.32265226697228,44.77332093500468,0 -73.32261991484593,44.77334596853157,0 -73.32258924232518,44.77336708002313,0 -73.32255676879089,44.77338572658483,0 -73.32251685636747,44.77340481980092,0 -73.32246983055107,44.77342420187642,0 -73.32241631894608,44.77344361300141,0 -73.3223560913255,44.77346306964778,0 -73.32229189304705,44.77348162549831,0 -73.32222626350951,44.77349853778549,0 -73.32216397986967,44.77351256945995,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Butternut2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Butternut2</SimpleData>
+					<SimpleData name="ident">T85</SimpleData>
+					<SimpleData name="Latitude">44.7707</SimpleData>
+					<SimpleData name="Longitude">-73.3168</SimpleData>
+					<SimpleData name="y_proj">5.5855e+06</SimpleData>
+					<SimpleData name="x_proj">-8.16159e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.3167871622456,44.77074664119149,0 -73.31687029952849,44.76883429622103,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Barr2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Barr2</SimpleData>
+					<SimpleData name="ident">T124</SimpleData>
+					<SimpleData name="Latitude">44.608</SimpleData>
+					<SimpleData name="Longitude">-72.2925</SimpleData>
+					<SimpleData name="y_proj">5.56001e+06</SimpleData>
+					<SimpleData name="x_proj">-8.04757e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.29251619327626,44.60797267672423,0 -72.29383153885462,44.60629809188963,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Buck1</name>
+			<styleUrl>#style01121</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Buckner1</SimpleData>
+					<SimpleData name="ident">T126</SimpleData>
+					<SimpleData name="Latitude">43.5704</SimpleData>
+					<SimpleData name="Longitude">-73.3972</SimpleData>
+					<SimpleData name="y_proj">5.3992e+06</SimpleData>
+					<SimpleData name="x_proj">-8.17054e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.40084842527503,43.57147654932027,0 -73.40372412883352,43.57318804095512,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Buck2</name>
+			<styleUrl>#style0181</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Buckner4</SimpleData>
+					<SimpleData name="ident">T132</SimpleData>
+					<SimpleData name="Latitude">43.5766</SimpleData>
+					<SimpleData name="Longitude">-73.4043</SimpleData>
+					<SimpleData name="y_proj">5.40016e+06</SimpleData>
+					<SimpleData name="x_proj">-8.17133e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<gx:balloonVisibility>1</gx:balloonVisibility>
+			<LineString>
+				<coordinates>
+					-73.40322369623705,43.57428730774174,0 -73.39950897860975,43.57411198361913,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Buck4</name>
+			<styleUrl>#style01141</styleUrl>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">BUCK4</SimpleData>
+					<SimpleData name="ident">T259</SimpleData>
+					<SimpleData name="Latitude">43.5902</SimpleData>
+					<SimpleData name="Longitude">-73.4146</SimpleData>
+					<SimpleData name="y_proj">5.40224e+06</SimpleData>
+					<SimpleData name="x_proj">-8.17247e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk"></SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">83.29</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time">2019/07/19 21:43:04</SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime">2019/07/19 17:43:04</SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-73.41455494049997,43.5901618749,0 -73.4145668428,43.59016019849998,0 -73.41456835159998,43.590162294,0 -73.41455209069999,43.59017754899998,0 -73.41453440489998,43.59017327429999,0 -73.41454077509998,43.59019163059998,0 -73.41450037429999,43.59022825959998,0 -73.41451462359997,43.59019397759998,0 -73.41451579699999,43.59017897399998,0 -73.41449677009999,43.59019087629996,0 -73.4144608118,43.59022348189994,0 -73.4143997077,43.59027712609998,0 -73.41438118369997,43.59030101449996,0 -73.41430742289997,43.59037050049996,0 -73.41428462419997,43.59039111989998,0 -73.41422863299999,43.59043990259998,0 -73.41418588529997,43.59051072969997,0 -73.41413743789998,43.59056806189996,0 -73.41408865529999,43.5906308424,0 -73.41406200079999,43.59064936639997,0 -73.41402193529999,43.59070560889998,0 -73.41397449369997,43.59075372109997,0 -73.4139659442,43.5908274818,0 -73.41393442819997,43.59088112599996,0 -73.41389930809997,43.59092487949998,0 -73.41387466529997,43.59097718259995,0 -73.41387290509999,43.59099629340002,0 -73.41385496779999,43.59105320650001,0 -73.41380652039999,43.59111154449996,0 -73.4137929417,43.59116267409996,0 -73.41376226399999,43.59122922639998,0 -73.41374600309999,43.59125152229999,0 -73.41372253369995,43.59132478009997,0 -73.41371289449998,43.59136199580001,0 -73.41368724589998,43.59142008239999,0 -73.41367173939997,43.59148210849996,0 -73.41367274519999,43.5915106069,0 -73.41366059149998,43.59155419280001,0 -73.41364114549998,43.59159342009998,0 -73.41361893339997,43.59164932739997,0 -73.41359965499999,43.59170339070001,0 -73.41359286569997,43.59174747949998,0 -73.41361365279998,43.59179676509998,0 -73.41363117099999,43.5918515828,0 -73.41362639329999,43.59185024159997,0 -73.41361977159998,43.5918564443,0 -73.41363351789998,43.59185921029995,0 -73.41363645159997,43.59186298209998,0 -73.41364131309997,43.59187119639999,0 -73.41363309879998,43.59187739900002,0 -73.41363066809997,43.59188267959998,0 -73.41362538749998,43.59189391139999,0 -73.41363117099999,43.59189483339998,0 -73.41363393699999,43.59188200909996,0 -73.41360812079998,43.59183087940001,0 -73.41358213689999,43.59183305869995,0 -73.4135872498,43.5918279458,0 -73.41357786209998,43.59180221329995,0 -73.41356763619997,43.5917950887,0 -73.41359680519997,43.59177606179998,0 -73.41358833949997,43.59173934909995,0 -73.41359144079999,43.59172694389996,0 -73.41360158289999,43.59168117869997,0 -73.41361013239997,43.59166097829998,0 -73.41360853979998,43.59164061019997,0 -73.41362161559997,43.59160649589998,0 -73.41363133859998,43.5915950965,0 -73.4136473481,43.59155595299996,0 -73.41365271249998,43.59154765489999,0 -73.41366059149998,43.59152988529996,0 -73.41367484069998,43.59149392689999,0 -73.41367852869999,43.59148998739997,0 -73.41369537639999,43.59142117199995,0 -73.41369646600001,43.5914251115,0 -73.41370753009997,43.59138571659998,0 -73.41370903889997,43.59139150009998,0 -73.41372060589995,43.59133148569997,0 -73.41372798199998,43.5913158953,0 -73.41371976769999,43.59129577879997,0 -73.41375337909997,43.59125026499996,0 -73.41375295999998,43.59124414619998,0 -73.41378238049998,43.59119653699996,0 -73.41379520479998,43.59118798750001,0 -73.41381255539997,43.59113543289998,0 -73.41380937019999,43.59111372379998,0 -73.41382378709996,43.59108706939998,0 -73.41383761729999,43.59107541849997,0 -73.41385756619997,43.59105991200001,0 -73.41387039049997,43.59100693839998,0 -73.41386687009997,43.59100274739999,0 -73.41388715429999,43.59095094729998,0 -73.41387977819998,43.59093150119997,0 -73.4139060136,43.5909337644,0 -73.41392252590001,43.59089537519998,0 -73.41392939909997,43.59088506549996,0 -73.41395454479999,43.5908564832,0 -73.41398044489999,43.59081750740001,0 -73.41398270799998,43.5908265598,0 -73.41396971609997,43.59082773329998,0 -73.41400047759997,43.59079118819999,0 -73.41400793749997,43.59076185150001,0 -73.41401698999998,43.59072865919998,0 -73.41402386319997,43.59071281740002,0 -73.41403115539997,43.5907087103,0 -73.41405990529995,43.59066487289997,0 -73.4140722267,43.59064425339999,0 -73.4140869789,43.59061324039998,0 -73.41411924919997,43.59057803639998,0 -73.41413978489999,43.59056177549999,0 -73.41417389919998,43.5905245598,0 -73.41418873519999,43.59052145849998,0 -73.41421044429998,43.59046630560001,0 -73.41421329419998,43.59043470579999,0 -73.41423885899998,43.59043152069997,0 -73.41426651919998,43.59040277079999,0 -73.41427548789999,43.59040855429998,0 -73.41428160669999,43.59038097779998,0 -73.41431412849997,43.59034074470002,0 -73.41434044759997,43.59034292399996,0 -73.41437565159995,43.59028860929998,0 -73.41439476239997,43.5903014336,0 -73.4144233447,43.59025918879998,0 -73.41443558219999,43.59025985929999,0 -73.41446072789999,43.59022817570001,0 -73.4144910704,43.59020504169997,0 -73.41448578979998,43.59021308829996,0 -73.41448453249998,43.59020361679994,0 -73.41449031609997,43.59020235949999,0 -73.41449174099999,43.59019892289999,0 -73.41451889839999,43.59017645939997,0 -73.41446701439999,43.59006011859997,0 -73.4144615661,43.59005341309998,0 -73.41436970049999,43.58993723989996,0 -73.41437883679997,43.58992299059998,0 -73.41439920479999,43.58992550519999,0 -73.41437431049997,43.58992030839995,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Dummer2</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Dummer2</SimpleData>
+					<SimpleData name="ident">T134</SimpleData>
+					<SimpleData name="Latitude">42.8239</SimpleData>
+					<SimpleData name="Longitude">-72.559</SimpleData>
+					<SimpleData name="y_proj">5.2852e+06</SimpleData>
+					<SimpleData name="x_proj">-8.07724e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.5590472301016,42.82387955731131,0 -72.55918466515355,42.82190549906848,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Dummer1</name>
+			<styleUrl>#style01213</styleUrl>
+			<Style id="inline">
+				<IconStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</IconStyle>
+				<LineStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</LineStyle>
+				<PolyStyle>
+					<color>ff0000ff</color>
+					<colorMode>normal</colorMode>
+				</PolyStyle>
+			</Style>
+			<ExtendedData>
+				<SchemaData schemaUrl="#S_UpdatedTracks_SSSDDDDSSSSSDDDSSSSSS1">
+					<SimpleData name="type">TRACK</SimpleData>
+					<SimpleData name="tident">Dummer1</SimpleData>
+					<SimpleData name="ident">T136</SimpleData>
+					<SimpleData name="Latitude">42.8182</SimpleData>
+					<SimpleData name="Longitude">-72.566</SimpleData>
+					<SimpleData name="y_proj">5.28434e+06</SimpleData>
+					<SimpleData name="x_proj">-8.078e+06</SimpleData>
+					<SimpleData name="comment"></SimpleData>
+					<SimpleData name="new_trk">True</SimpleData>
+					<SimpleData name="new_seg"></SimpleData>
+					<SimpleData name="display"></SimpleData>
+					<SimpleData name="color"></SimpleData>
+					<SimpleData name="altitude">0</SimpleData>
+					<SimpleData name="depth">0</SimpleData>
+					<SimpleData name="temp">0</SimpleData>
+					<SimpleData name="time"></SimpleData>
+					<SimpleData name="model">garmin eTrex 20x So</SimpleData>
+					<SimpleData name="filename"></SimpleData>
+					<SimpleData name="ltime"></SimpleData>
+					<SimpleData name="desc"></SimpleData>
+					<SimpleData name="link"></SimpleData>
+				</SchemaData>
+			</ExtendedData>
+			<LineString>
+				<coordinates>
+					-72.56595078036511,42.81818656178336,0 -72.56749793260927,42.81656797344384,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Barr1</name>
+			<styleUrl>#style01201</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					-72.28806479927157,44.60884691128796,0 -72.28807556887647,44.60890275775108,0 -72.28809893456479,44.60895969241792,0 -72.28811062763809,44.60899261857448,0 -72.28813392860207,44.60906989104097,0 -72.28814530467638,44.60912542027209,0 -72.28817011912707,44.60914982502958,0 -72.28820686174252,44.60922150288339,0 -72.28824430301403,44.60927945519606,0 -72.28825665471065,44.60931343410902,0 -72.28830767763563,44.60935800061901,0 -72.28832020891205,44.60940061584227,0 -72.28834569790351,44.60945484401615,0 -72.28837139765911,44.60950715821483,0 -72.28838423716864,44.6095490190621,0 -72.28841024161311,44.60959695295271,0 -72.28844949090338,44.60964016159377,0 -72.28847576931734,44.6096704804933,0 -72.28848905677775,44.60974425605748,0 -72.28850247217433,44.6098169565261,0 -72.28852936375479,44.60988262722007,0 -72.28857008131134,44.60996540426996,0 -72.28861062731708,44.60999028192416,0 -72.28865124755588,44.61001310389631,0 -72.28871869082747,44.61002875726808,0 -72.28877240150939,44.61003111466455,0 -72.28883914083046,44.61002015980107,0 -72.28887904501167,44.60999944057868,0 -72.2889321680741,44.60996357146505,0 -72.28897227131584,44.60994816509535,0 -72.28902481750575,44.60990123632043,0 -72.28906379476115,44.60986117319042,0 -72.28910306143141,44.60983257345584,0 -72.28912746394143,44.60977637185773,0 -72.28915288512638,44.60974514714378,0 -72.28917776868879,44.60970324773268,0 -72.28920312438221,44.60967333506486,0 -72.28921603775895,44.60966401067437,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Buck3</name>
+			<styleUrl>#style01191</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					-73.42041869934133,43.58437724429367,0 -73.41966283814443,43.58634578952208,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+	</Folder>
+</Document>
+</kml>
