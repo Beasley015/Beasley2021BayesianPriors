@@ -18,7 +18,7 @@ bias.plot <- ggplot()+
   geom_abline(slope = 0.5, intercept = 0, size = 1)+
   geom_abline(slope = 0.48, intercept = -0.5, linetype = 2, size = 1)+
   stat_function(aes(-10:10), fun = curve, n = 100, linetype = 3, size = 1)+
-  labs(x = "Observed", y = "Estimated")+
+  labs(x = "True", y = "Estimated")+
   theme_classic(base_size = 18)+
   theme(axis.text = element_blank())
 
