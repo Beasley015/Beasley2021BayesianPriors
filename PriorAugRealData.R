@@ -9,7 +9,7 @@ library(tidyverse)
 library(rgdal)
 library(spData)
 library(sf)
-library(gsn)
+library(ggsn)
 
 # Load data --------------------------------
 # Vegetation data ------------------------
@@ -26,7 +26,11 @@ vegpca <- prcomp(filtered.veg[,3:8])
 vegdat <- data.frame(Site = filtered.veg$Site, Habitat = filtered.veg$Habitat, 
                      PC1 = vegpca$x[,1], PC2 = vegpca$x[,2])
 
-qplot(data = vegdat, x = PC1, y = PC2, color = Habitat)
+ggplot(data = vegdat, aes(x = PC1, y = PC2, color = Habitat))+
+  geom_point(size = 3)+
+  scale_color_viridis_d()+
+  theme_bw(base_size = 18)+
+  theme(panel.grid = element_blank())
 
 # Shapefile --------------------------
 traplines <- readOGR(dsn = "UpdatedTracks.kml")
@@ -78,9 +82,10 @@ VT <- us_states[which(us_states$NAME=="Vermont"),]
 
 ggplot(data = VT)+
   geom_sf()+
-  geom_jitter(data = traps, aes(x = X, y = Y, color = Habitat), size = 3, width = 0.05,
-              height = 0.05)+
+  geom_jitter(data = traps, aes(x = X, y = Y, color = Habitat), 
+              size = 3, width = 0.05, height = 0.05)+
   scale_color_viridis_d()+
   north(VT, location = "bottomright", scale = 0.2)+
-  theme_classic()
+  theme_classic(base_size = 16)+
+  theme(axis.title = element_blank(), axis.text = element_blank())
 
