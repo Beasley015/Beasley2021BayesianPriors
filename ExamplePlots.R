@@ -22,4 +22,4 @@ bias.plot <- ggplot()+
   theme_classic(base_size = 18)+
   theme(axis.text = element_blank())
 
-ggsave(bias.plot, file = "bias.jpeg", dpi = 650)
+ggsave(bias.plot, file = "bias.jpeg", dpi = 650, width = 7, height = 5, units = "in")
