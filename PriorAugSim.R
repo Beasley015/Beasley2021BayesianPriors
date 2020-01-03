@@ -154,11 +154,15 @@ ems.array <- array(0, dim = c(nsite, nsurvey, ems))
 obs.aug <- abind(obs.data, ems.array, along = 3)
 
 # Add prior information --------------------------------
-uninf <- rep(0, nspec+ems)
-weakinf <- c(rep(0, nspec), round(resp2cov[16:17])*0.1, rep(0, naug))
-modinf <- c(rep(0, nspec), round(resp2cov[16:17])*0.5, rep(0, naug))
-weakmisinf <- c(rep(0, nspec), round(resp2cov[16:17])*-0.1, rep(0, naug))
-modmisinf <- c(rep(0, nspec), round(resp2cov[16:17])*-0.5, rep(0, naug))
+uninf <- list(rep(0, nspec+ems), rep(0, nspec+ems))
+weakinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*0.1, rep(0, naug)),
+                  c(rep(0, nspec), round(resp2cov[16:17])*0.1, rep(0, naug)))
+modinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*0.5, rep(0, naug)),
+               c(rep(0, nspec), round(resp2cov[16:17])*0.5, rep(0, naug)))
+weakmisinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*-0.1, rep(0, naug)),
+                   c(rep(0, nspec), round(resp2cov[16:17])*-0.1, rep(0, naug)))
+modmisinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*-0.5, rep(0, naug)),
+                  c(rep(0, nspec), round(resp2cov[16:17])*-0.5, rep(0, naug)))
 
 # Write Models ----------------------------
 # Model without augmentation
@@ -234,8 +238,8 @@ cat("
     w[i] ~ dbern(omega)
     #indicates whether or not species is exposed to sampling
     
-    a0[i] ~ dnorm(a0.mean, tau.a0)
-    a1[i] ~ dnorm(a1.mean+info, tau.a1)
+    a0[i] ~ dnorm(a0.mean+info1[i], tau.a0)
+    a1[i] ~ dnorm(a1.mean+info2[i], tau.a1)
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
     
@@ -263,11 +267,17 @@ cat("
     ", file = "aug_model.txt")
 
 # Write function for sending model to gibbs sampler --------------------------------
-VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info = NULL){
+VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL, 
+                       info2 = NULL){
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov)
   if(textdoc == 'aug_model.txt'){
     append(datalist, aug = aug)
+  }
+  
+  if(is.null(info1) == F){
+    append(datalist, info1 = info1)
+    append(datalist, info2 = info2)
   }
 
   # Specify parameters
