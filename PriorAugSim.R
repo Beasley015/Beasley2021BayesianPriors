@@ -261,7 +261,7 @@ cat("
     
     #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
     n0<-sum(w[(spec+1):(spec+aug)])
-    N<-nspec+n0
+    N<-spec+n0
     
     }
     ", file = "aug_model.txt")
@@ -272,12 +272,12 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov)
   if(textdoc == 'aug_model.txt'){
-    append(datalist, aug = aug)
+    datalist$aug <- aug
   }
   
   if(is.null(info1) == F){
-    append(datalist, info1 = info1)
-    append(datalist, info2 = info2)
+    datalist$info1 <- info1
+    datalist$info2 <- info2
   }
 
   # Specify parameters
@@ -289,11 +289,12 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
     omega.guess <- runif(1,0,1)
     inits <- list(
          a0 = rnorm(n = (spec+aug)), a1 = rnorm(n = (spec+aug)),
-         b0 = rnorm(n = (spec+aug)),
-         Z = maxobs)
+         b0 = rnorm(n = (spec+aug))#,
+         #Z = maxobs
+         )
     if(textdoc == 'aug_model.txt'){
-      append(inits, omega = omega.guess,
-             w=c(rep(1,spec), rbinom(n = aug, size=1, prob=omega.guess)))
+      inits$omega <- omega.guess
+      inits$w <- c(rep(1,spec), rbinom(n = aug, size=1, prob=omega.guess))
     }
     
     return(inits)
@@ -310,3 +311,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
 # Run sims -------------------------------------
 VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,spec = nspec, 
            textdoc = 'noaug.txt')
+
+VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+           textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]], 
+           info2 = uninf[[2]])
