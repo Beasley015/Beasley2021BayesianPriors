@@ -89,3 +89,4 @@ ggplot(data = VT)+
   theme_classic(base_size = 16)+
   theme(axis.title = element_blank(), axis.text = element_blank())
 
+ggsave(file = "sitemap.jpeg")
