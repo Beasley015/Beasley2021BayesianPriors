@@ -233,7 +233,7 @@ cat("
     sigma.b0 ~ dunif(0,10)
     tau.b0 <- 1/(sigma.b0*sigma.b0)
     
-    for(i in 1:spec+aug){
+    for(i in 1:(spec+aug)){
     # Create priors from hyperpriors
     w[i] ~ dbern(omega)
     #indicates whether or not species is exposed to sampling
@@ -289,8 +289,8 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
     omega.guess <- runif(1,0,1)
     inits <- list(
          a0 = rnorm(n = (spec+aug)), a1 = rnorm(n = (spec+aug)),
-         b0 = rnorm(n = (spec+aug))#,
-         #Z = maxobs
+         b0 = rnorm(n = (spec+aug)),
+         Z = maxobs
          )
     if(textdoc == 'aug_model.txt'){
       inits$omega <- omega.guess
@@ -309,9 +309,9 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
 }
 
 # Run sims -------------------------------------
-VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,spec = nspec, 
+mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,spec = nspec, 
            textdoc = 'noaug.txt')
 
-VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
-           textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]], 
+mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+           textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
            info2 = uninf[[2]])

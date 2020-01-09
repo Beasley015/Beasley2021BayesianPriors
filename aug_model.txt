@@ -17,7 +17,7 @@
     sigma.b0 ~ dunif(0,10)
     tau.b0 <- 1/(sigma.b0*sigma.b0)
     
-    for(i in 1:spec+aug){
+    for(i in 1:(spec+aug)){
     # Create priors from hyperpriors
     w[i] ~ dbern(omega)
     #indicates whether or not species is exposed to sampling
