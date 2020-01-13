@@ -33,20 +33,8 @@ resp2cov <- c(rnorm(n = 10, mean = 1, sd = 0.15),
 cov <- rnorm(n = nsite, mean = 0, sd = 2)
 
 # Simulate occupancy data -------------------------------------
-# Load Master's data
-masters.mod <- readRDS("modelsampledglades.rds")
-masters.occ <- masters.mod$sims.list$u
-
-spec.psi <- plogis(masters.occ[,1:8])
-
-spec.occ <- colMeans(spec.psi)
-
-# Get maximum likelihood estimates for params of beta distribution
-bet.occ <- fitdistr(x = spec.occ, start = list(shape1 = 1, shape2 = 1), "beta")
-
-# Draw occupancy probabilities from above distribution
-sim.occ <- rbeta(n = nspec+nmiss, shape1 = bet.occ$estimate[1], 
-                 shape2 = bet.occ$estimate[2])
+# Draw occupancy probabilities from beta distribution
+sim.occ <- rbeta(n = nspec+nmiss, shape1 = 4, shape2 = 2)
 
 # Write function to simulate true occupancy state
 tru.mats <- function(spec=nspec+nmiss, site=nsite, probs=sim.occ){
@@ -80,6 +68,7 @@ tru <- tru.mats()
 
 # Simulate detection process ----------------------------------
 # Load model results from Master's work
+masters.mod <- readRDS("modelsampledglades.rds")
 masters.v <- masters.mod$sims.list$v
 
 spec.p <- plogis(masters.v[,1:8])
@@ -268,7 +257,7 @@ cat("
 
 # Write function for sending model to gibbs sampler --------------------------------
 VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL, 
-                       info2 = NULL){
+                       info2 = NULL, burn = 2500, iter = 8000, thin = 10){
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov)
   if(textdoc == 'aug_model.txt'){
@@ -281,7 +270,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
   }
 
   # Specify parameters
-  parms <- c('Z', 'N', 'a0', 'b0', 'a1')
+  parms <- c('N', 'a0', 'b0', 'a1')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -300,18 +289,27 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
     return(inits)
   }
 
-  #JAGS command: this isn't working; hates my initial values for some reason
+  #JAGS command
   model <- jags(model.file = textdoc, data = datalist, n.chains = 3,
-                parameters.to.save = parms, inits = init.values, n.burnin = 100,
-                n.iter = 1000)
+                parameters.to.save = parms, inits = init.values, n.burnin = burn,
+                n.iter = iter, n.thin = thin)
     
     return(model)
 }
 
-# Run sims -------------------------------------
+# Run sims ------------------------------------
 mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,spec = nspec, 
            textdoc = 'noaug.txt')
 
 mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
            textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
-           info2 = uninf[[2]])
+           info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
+
+mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+                      textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = weakinf[[1]],
+                      info2 = weakinf[[2]], burn = 6000, iter = 12000, thin = 5)
+
+#This one is close- one rhat at 1.6
+mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+                      textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = modinf[[1]],
+                      info2 = modinf[[2]], burn = 2500, iter = 12000, thin = 10)
