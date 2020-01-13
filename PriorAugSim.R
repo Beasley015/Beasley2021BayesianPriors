@@ -309,7 +309,6 @@ mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = n
                       textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = weakinf[[1]],
                       info2 = weakinf[[2]], burn = 6000, iter = 12000, thin = 5)
 
-#This one is close- one rhat at 1.6
 mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
                       textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = modinf[[1]],
-                      info2 = modinf[[2]], burn = 2500, iter = 12000, thin = 10)
+                      info2 = modinf[[2]], burn = 8000, iter = 12000, thin = 3)
