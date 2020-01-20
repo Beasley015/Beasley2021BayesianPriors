@@ -34,7 +34,7 @@ cov <- rnorm(n = nsite, mean = 0, sd = 2)
 
 # Simulate occupancy data -------------------------------------
 # Draw occupancy probabilities from beta distribution
-sim.occ <- rbeta(n = nspec+nmiss, shape1 = 4, shape2 = 2)
+sim.occ <- rbeta(n = nspec+nmiss, shape1 = 3, shape2 = 2)
 
 # Write function to simulate true occupancy state
 tru.mats <- function(spec=nspec+nmiss, site=nsite, probs=sim.occ){
@@ -270,7 +270,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
   }
 
   # Specify parameters
-  parms <- c('N', 'a0', 'b0', 'a1')
+  parms <- c('N', 'a0', 'b0', 'a1', 'Z')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -312,3 +312,13 @@ mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = n
 mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
                       textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = modinf[[1]],
                       info2 = modinf[[2]], burn = 8000, iter = 12000, thin = 3)
+
+mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                              textdoc = 'aug_model.txt', aug = nmiss+naug, 
+                              info1 = weakmisinf[[1]], info2 = weakmisinf[[2]], 
+                              burn = 5000, iter = 10000, thin = 5)
+
+mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                         textdoc = 'aug_model.txt', aug = nmiss+naug, 
+                         info1 = modmisinf[[1]], info2 = modmisinf[[2]], burn = 2500,
+                         iter = 10000, thin = 10)
