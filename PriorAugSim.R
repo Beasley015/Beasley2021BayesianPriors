@@ -12,7 +12,7 @@ library(abind)
 library(boot)
 
 # Set seed
-set.seed(17)
+set.seed(15)
 
 # Global variables
 nspec <- 15
@@ -25,50 +25,48 @@ nsurvey <- 4
 Ks <- rep(nsurvey, nsite)
 
 # Matrix of covariate responses
-resp2cov <- c(rnorm(n = 10, mean = 1, sd = 0.15), 
-                 rnorm(n = 3, mean = 0, sd = 0.15),
-                 rnorm(n = 4, mean = -1, sd = 0.15))
+resp2cov <- rnorm(n = nspec+naug, sd = 0.25)
+
+resp2cov <- sample(resp2cov)
 
 # Covariate values for sites
-cov <- rnorm(n = nsite, mean = 0, sd = 2)
+cov <- sort(rnorm(n = nsite))
 
 # Simulate occupancy data -------------------------------------
-# Draw occupancy probabilities from beta distribution
-sim.occ <- rbeta(n = nspec+nmiss, shape1 = 3, shape2 = 2)
+# Get probs from a beta distribution
+
+sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 1)
 
 # Write function to simulate true occupancy state
-tru.mats <- function(spec=nspec+nmiss, site=nsite, probs=sim.occ){
+tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
   #Get site-level psi to account for covariates
-  alpha0 <- logit(probs) #logit-scale intercept
-  alpha1 <- inv.logit(resp2cov) #log-scale covariate responses
+  alpha0 <- logit(sim.occ)
   
   logit.psi <- matrix(NA, nrow = spec, ncol = site)
   
   for(i in 1:spec){
     logit.psi[i,] <- alpha0[i] + alpha1[i]*cov
   }
-
-  psi <- inv.logit(logit.psi)  #inverse link transformation
+  
+  psi <- plogis(logit.psi)
   
   #create list of abundance vectors
   nlist<-list()
   for(a in 1:spec){
-    nlist[[a]] <- rbinom(n = site, size = 1, prob = psi)
+    nlist[[a]] <- rbinom(n = site, size = 1, prob = psi[a,])
   }
   
   #Turn abundance vectors into abundance matrix
   ns<-do.call(rbind, nlist)
   
-  ns[ns > 1] <- 1
-  
-  return(ns)
+  return(list(ns, psi))
 }
 
-tru <- tru.mats()
+tru <- tru.mats()[[1]]
+mu.psi <- rowMeans(tru.mats()[[2]])
 
 # Simulate detection process ----------------------------------
-# Load model results from Master's work
-masters.mod <- readRDS("modelsampledglades.rds")
+# Load detections from Master's work
 masters.v <- masters.mod$sims.list$v
 
 spec.p <- plogis(masters.v[,1:8])
@@ -81,12 +79,12 @@ bet.det <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
 # Reorder true occurrence matrix, psi, and cov responses
 reorder <- function(x){
   if(length(dim(x)) == 0){
-    pos <- c(which(sim.occ == min(sim.occ)), which(sim.occ == median(sim.occ)))
+    pos <- c(which(psi == min(psi)), which(psi == median(psi)))
     nondet <- x[pos]
     x <- x[-pos]
     x <- c(x, nondet)
   } else {
-    pos <- c(which(sim.occ == min(sim.occ)), which(sim.occ == median(sim.occ)))
+    pos <- c(which(psi == min(psi)), which(psi == median(psi)))
     nondet <- x[pos,]
     x <- x[-pos,]
     x <- rbind(x, nondet)
@@ -96,11 +94,10 @@ reorder <- function(x){
 
 tru <- reorder(x = tru)
 resp2cov <- reorder(x = resp2cov)
-sim.occ <- reorder(x = sim.occ)
+occ <- reorder(x = sim.occ)
 
 # Generate detection probabilities from beta dist with above params
-sim.dets <- rbeta(n = nspec, shape1 = bet.det$estimate[1], 
-                  shape2 = bet.det$estimate[2])
+sim.dets <- rbeta(n = nspec, shape1 = bet.det$estimate[1], shape2 = bet.det$estimate[2])
 
 # Assign selected species a detection probability of 0
 sim.dets <- c(sim.dets, rep(0,2))
@@ -161,17 +158,20 @@ cat("
     # Define hyperprior distributions: intercepts
 
     #Intercepts
-    a0.mean ~ dnorm(0,0.001)
-    sigma.a0 ~ dunif(0,10)
-    tau.a0 <- 1/(sigma.a0*sigma.a0)
+    mean.a0 ~ dunif(0,1)
+    a0.mean <- log(mean.a0)-log(1-mean.a0)
+    sigma.a0 ~ dgamma(2, 0.1)
+    tau.a0 <- 1/(sigma.a0^2)
     
-    a1.mean ~ dnorm(0,0.001)
-    sigma.a1 ~ dunif(0,10)
-    tau.a1 <- 1/(sigma.a1*sigma.a1)
+    mean.a1 ~ dunif(0,1)
+    a1.mean <- log(mean.a0)-log(1-mean.a0)
+    sigma.a1 ~ dgamma(2, 0.1)
+    tau.a1 <- 1/(sigma.a1^2)
     
-    b0.mean ~ dnorm(0,0.001)
-    sigma.b0 ~ dunif(0,10)
-    tau.b0 <- 1/(sigma.b0*sigma.b0)
+    mean.b0 ~ dunif(0,1)
+    b0.mean <- log(mean.b0)-log(1-mean.b0)
+    sigma.b0 ~ dgamma(2, 0.1)
+    tau.b0 <- 1/(sigma.b0^2)
     
     for(i in 1:spec){
     #create priors from distributions above
@@ -210,17 +210,17 @@ cat("
     omega ~ dunif(0,1)
     
     #Intercepts
-    a0.mean ~ dnorm(0,0.001)
-    sigma.a0 ~ dunif(0,10)
-    tau.a0 <- 1/(sigma.a0*sigma.a0)
-
-    a1.mean ~ dnorm(0,0.001)
-    sigma.a1 ~ dunif(0,10)
-    tau.a1 <- 1/(sigma.a1*sigma.a1)
+    mean.a0 ~ dunif(0,1)
+    a0.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a0 ~ dgamma(0.01, 0.01)
     
-    b0.mean ~ dnorm(0,0.001)
-    sigma.b0 ~ dunif(0,10)
-    tau.b0 <- 1/(sigma.b0*sigma.b0)
+    mean.a1 ~ dunif(0,1)
+    a1.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a1 ~ dgamma(0.01, 0.1)
+    
+    mean.b0 ~ dunif(0,1)
+    b0.mean <- log(mean.b0)-log(1-mean.b0)
+    tau.b0 ~ dgamma(0.1, 0.1)
     
     for(i in 1:(spec+aug)){
     # Create priors from hyperpriors
@@ -256,7 +256,7 @@ cat("
     ", file = "aug_model.txt")
 
 # Write function for sending model to gibbs sampler --------------------------------
-VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL, 
+VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL, 
                        info2 = NULL, burn = 2500, iter = 8000, thin = 10){
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov)
@@ -276,11 +276,12 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
   maxobs <- apply(obs, c(1,3), max)
   init.values<-function(){
     omega.guess <- runif(1,0,1)
+    mu.psi.guess <- runif(1, 0.25, 1)
     inits <- list(
          a0 = rnorm(n = (spec+aug)), a1 = rnorm(n = (spec+aug)),
          b0 = rnorm(n = (spec+aug)),
          Z = maxobs
-         )
+    )
     if(textdoc == 'aug_model.txt'){
       inits$omega <- omega.guess
       inits$w <- c(rep(1,spec), rbinom(n = aug, size=1, prob=omega.guess))
@@ -297,13 +298,17 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = NULL, cov, textdoc, info1 = NULL,
     return(model)
 }
 
+# Test for appropriate priors ---------------------------------------------
+
+
 # Run sims ------------------------------------
-mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,spec = nspec, 
+mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, spec = nspec, 
            textdoc = 'noaug.txt')
 
 mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
            textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
            info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
+saveRDS(mod.uninf, file = 'moduninf.rds')
 
 mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
                       textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = weakinf[[1]],

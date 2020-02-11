@@ -5,17 +5,17 @@
     omega ~ dunif(0,1)
     
     #Intercepts
-    a0.mean ~ dnorm(0,0.001)
-    sigma.a0 ~ dunif(0,10)
-    tau.a0 <- 1/(sigma.a0*sigma.a0)
-
-    a1.mean ~ dnorm(0,0.001)
-    sigma.a1 ~ dunif(0,10)
-    tau.a1 <- 1/(sigma.a1*sigma.a1)
+    mean.a0 ~ dunif(0,1)
+    a0.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a0 ~ dgamma(0.01, 0.01)
     
-    b0.mean ~ dnorm(0,0.001)
-    sigma.b0 ~ dunif(0,10)
-    tau.b0 <- 1/(sigma.b0*sigma.b0)
+    mean.a1 ~ dunif(0,1)
+    a1.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a1 ~ dgamma(0.01, 0.1)
+    
+    mean.b0 ~ dunif(0,1)
+    b0.mean <- log(mean.b0)-log(1-mean.b0)
+    tau.b0 ~ dgamma(0.1, 0.1)
     
     for(i in 1:(spec+aug)){
     # Create priors from hyperpriors
