@@ -6,15 +6,15 @@
     #Intercepts
     mean.a0 ~ dunif(0,1)
     a0.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a0 <- dgamma(0.1, 0.1)
+    tau.a0 ~ dgamma(0.1, 0.1)
     
     mean.a1 ~ dunif(0,1)
     a1.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a1 <- dgamma(0.1, 0.1)
+    tau.a1 ~ dgamma(0.1, 0.1)
     
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
-    tau.b0 <- dgamma(0.1, 0.1)
+    tau.b0 ~ dgamma(0.1, 0.1)
     
     for(i in 1:spec){
     #create priors from distributions above

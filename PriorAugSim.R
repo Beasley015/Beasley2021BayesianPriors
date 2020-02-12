@@ -67,6 +67,7 @@ mu.psi <- rowMeans(tru.mats()[[2]])
 
 # Simulate detection process ----------------------------------
 # Load detections from Master's work
+masters.mod <- readRDS("modelsampledglades.rds")
 masters.v <- masters.mod$sims.list$v
 
 spec.p <- plogis(masters.v[,1:8])
@@ -160,18 +161,15 @@ cat("
     #Intercepts
     mean.a0 ~ dunif(0,1)
     a0.mean <- log(mean.a0)-log(1-mean.a0)
-    sigma.a0 ~ dgamma(2, 0.1)
-    tau.a0 <- 1/(sigma.a0^2)
+    tau.a0 ~ dgamma(0.1, 0.1)
     
     mean.a1 ~ dunif(0,1)
     a1.mean <- log(mean.a0)-log(1-mean.a0)
-    sigma.a1 ~ dgamma(2, 0.1)
-    tau.a1 <- 1/(sigma.a1^2)
+    tau.a1 ~ dgamma(0.1, 0.1)
     
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
-    sigma.b0 ~ dgamma(2, 0.1)
-    tau.b0 <- 1/(sigma.b0^2)
+    tau.b0 ~ dgamma(0.1, 0.1)
     
     for(i in 1:spec){
     #create priors from distributions above
@@ -212,11 +210,11 @@ cat("
     #Intercepts
     mean.a0 ~ dunif(0,1)
     a0.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a0 ~ dgamma(0.01, 0.01)
+    tau.a0 ~ dgamma(0.1, 0.1)
     
     mean.a1 ~ dunif(0,1)
     a1.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a1 ~ dgamma(0.01, 0.1)
+    tau.a1 ~ dgamma(0.1, 0.1)
     
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
@@ -270,7 +268,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
   }
 
   # Specify parameters
-  parms <- c('N', 'a0', 'b0', 'a1', 'Z')
+  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1', 'Z')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -298,25 +296,22 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
     return(model)
 }
 
-# Test for appropriate priors ---------------------------------------------
-
-
 # Run sims ------------------------------------
-mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, spec = nspec, 
+mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, spec = nspec,
            textdoc = 'noaug.txt')
+saveRDS(mod.noaug, file = "mod_noaug.rds")
 
 mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
            textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
            info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
-saveRDS(mod.uninf, file = 'moduninf.rds')
 
 mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
                       textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = weakinf[[1]],
-                      info2 = weakinf[[2]], burn = 6000, iter = 12000, thin = 5)
+                      info2 = weakinf[[2]], burn = 5000, iter = 12000, thin = 5)
 
 mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
                       textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = modinf[[1]],
-                      info2 = modinf[[2]], burn = 8000, iter = 12000, thin = 3)
+                      info2 = modinf[[2]], burn = 7000, iter = 12000, thin = 3)
 
 mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
                               textdoc = 'aug_model.txt', aug = nmiss+naug, 
@@ -327,3 +322,13 @@ mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nsp
                          textdoc = 'aug_model.txt', aug = nmiss+naug, 
                          info1 = modmisinf[[1]], info2 = modmisinf[[2]], burn = 2500,
                          iter = 10000, thin = 10)
+
+# Function to compare estimates of N -----------------------------------
+getmode <- function(x) {
+  uniqx <- unique(x)
+  uniqx[which.max(tabulate(match(x, uniqx)))]
+}
+
+Ns <- as.vector(mod.noaug$BUGSoutput$sims.list$N)
+Ns.mode <-getmode(Ns)
+
