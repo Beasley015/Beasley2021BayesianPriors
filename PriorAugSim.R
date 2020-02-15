@@ -297,13 +297,14 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
 }
 
 # Run sims ------------------------------------
-mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, spec = nspec,
-           textdoc = 'noaug.txt')
-saveRDS(mod.noaug, file = "mod_noaug.rds")
+# mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, spec = nspec,
+#            textdoc = 'noaug.txt')
+# saveRDS(mod.noaug, file = "mod_noaug.rds")
 
-mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
-           textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
-           info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
+# mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+#            textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
+#            info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
+# saveRDS(mod.uninf, file = "mod_uninf.rds")
 
 mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
                       textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = weakinf[[1]],
@@ -329,6 +330,23 @@ getmode <- function(x) {
   uniqx[which.max(tabulate(match(x, uniqx)))]
 }
 
-Ns <- as.vector(mod.noaug$BUGSoutput$sims.list$N)
-Ns.mode <-getmode(Ns)
+Ns <- as.vector(mod.uninf$BUGSoutput$sims.list$N)
+Ns %>%
+  table() %>%
+  data.frame() %>%
+  {. ->> ns.frame}
+colnames(ns.frame) <- c("N_Species", "Freq")
 
+Ns.mode <-getmode(Ns)
+Ns.mean <- mean(Ns)
+
+ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)), y = Freq))+
+  geom_col()+
+  geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"), size = 1.5)+
+  geom_vline(aes(xintercept = Ns.mean, linetype = "Estimated"), size = 1.5)+
+  scale_linetype_discrete(name = "")+
+  labs(x = "Number of Species")+
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))+
+  theme_classic(base_size = 18)+
+  theme(axis.text.y = element_blank(), legend.key.size = unit(2.5, "lines"))
