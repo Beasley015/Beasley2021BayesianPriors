@@ -306,18 +306,23 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
 #            info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 
-mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
-                      textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = weakinf[[1]],
-                      info2 = weakinf[[2]], burn = 5000, iter = 12000, thin = 5)
+# mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+#                       textdoc = 'aug_model.txt', aug = nmiss+naug, 
+#                       info1 = weakinf[[1]], info2 = weakinf[[2]], burn = 5000, 
+#                       iter = 12000, thin = 5)
+# saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
 
-mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
-                      textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = modinf[[1]],
-                      info2 = modinf[[2]], burn = 7000, iter = 12000, thin = 3)
+# mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+#                       textdoc = 'aug_model.txt', aug = nmiss+naug, 
+#                       info1 = modinf[[1]], info2 = modinf[[2]], burn = 7000, 
+#                       iter = 12000, thin = 3)
+# saveRDS(mod.inf, file = "mod_inf.rds")
 
-mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-                              textdoc = 'aug_model.txt', aug = nmiss+naug, 
-                              info1 = weakmisinf[[1]], info2 = weakmisinf[[2]], 
-                              burn = 5000, iter = 10000, thin = 5)
+mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, 
+                              spec = nspec, textdoc = 'aug_model.txt', 
+                              aug = nmiss+naug, info1 = weakmisinf[[1]], 
+                              info2 = weakmisinf[[2]], burn = 5000, iter = 10000, 
+                              thin = 5)
 
 mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
                          textdoc = 'aug_model.txt', aug = nmiss+naug, 
