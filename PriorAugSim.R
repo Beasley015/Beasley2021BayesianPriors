@@ -329,29 +329,47 @@ mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nsp
                          info1 = modmisinf[[1]], info2 = modmisinf[[2]], burn = 2500,
                          iter = 10000, thin = 10)
 
+# Load models -------------------------------
+mod.uninf <- readRDS("mod_uninf.rds")
+mod.inf.weak <- readRDS("mod_inf_weak.rds")
+mod.inf <- readRDS("mod_inf.rds")
+
+mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf)
+
 # Function to compare estimates of N -----------------------------------
-getmode <- function(x) {
-  uniqx <- unique(x)
-  uniqx[which.max(tabulate(match(x, uniqx)))]
+get.ns <- function(jag){
+  getmode <- function(x) {
+    uniqx <- unique(x)
+    uniqx[which.max(tabulate(match(x, uniqx)))]
+  }
+
+  Ns <- as.vector(jag$BUGSoutput$sims.list$N)
+  Ns %>%
+    table() %>%
+    data.frame() %>%
+    {. ->> ns.frame}
+  colnames(ns.frame) <- c("N_Species", "Freq")
+
+  Ns.mode <-getmode(Ns)
+  Ns.mean <- mean(Ns)
+
+  Ns.plot <- ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)), 
+                                         y = Freq))+
+    geom_col()+
+    geom_vline(aes(xintercept = Ns.mean, linetype = "Estimated"), size = 1.5)+
+    geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"), size = 1.5)+
+    scale_linetype_manual(values = c("Estimated"="dotted", "True"="solid"),
+                          name = "", labels = c("Mean Estimate", "True"))+
+    labs(x = "Number of Species")+
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme_classic(base_size = 18)+
+    theme(axis.text.y = element_blank(), legend.key.height = unit(40, units = 'pt'),
+          legend.position = c(0.8, 0.8))
+
+  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean)
+  
+  return(out.list)
 }
 
-Ns <- as.vector(mod.uninf$BUGSoutput$sims.list$N)
-Ns %>%
-  table() %>%
-  data.frame() %>%
-  {. ->> ns.frame}
-colnames(ns.frame) <- c("N_Species", "Freq")
-
-Ns.mode <-getmode(Ns)
-Ns.mean <- mean(Ns)
-
-ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)), y = Freq))+
-  geom_col()+
-  geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"), size = 1.5)+
-  geom_vline(aes(xintercept = Ns.mean, linetype = "Estimated"), size = 1.5)+
-  scale_linetype_discrete(name = "")+
-  labs(x = "Number of Species")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_y_continuous(expand = c(0,0))+
-  theme_classic(base_size = 18)+
-  theme(axis.text.y = element_blank(), legend.key.size = unit(2.5, "lines"))
+outs <- lapply(mod.outputs, get.ns)
