@@ -318,21 +318,25 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
 #                       iter = 12000, thin = 3)
 # saveRDS(mod.inf, file = "mod_inf.rds")
 
-mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, 
-                              spec = nspec, textdoc = 'aug_model.txt', 
-                              aug = nmiss+naug, info1 = weakmisinf[[1]], 
-                              info2 = weakmisinf[[2]], burn = 5000, iter = 10000, 
-                              thin = 5)
+# mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, 
+#                               spec = nspec, textdoc = 'aug_model.txt', 
+#                               aug = nmiss+naug, info1 = weakmisinf[[1]], 
+#                               info2 = weakmisinf[[2]], burn = 5000, iter = 10000, 
+#                               thin = 5)
+# saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
 
-mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-                         textdoc = 'aug_model.txt', aug = nmiss+naug, 
-                         info1 = modmisinf[[1]], info2 = modmisinf[[2]], burn = 2500,
-                         iter = 10000, thin = 10)
+# mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+#                          textdoc = 'aug_model.txt', aug = nmiss+naug, 
+#                          info1 = modmisinf[[1]], info2 = modmisinf[[2]], burn = 2500,
+#                          iter = 10000, thin = 10)
+# saveRDS(mod.misinf, file = "mod_misinf.rds")
 
 # Load models -------------------------------
 mod.uninf <- readRDS("mod_uninf.rds")
 mod.inf.weak <- readRDS("mod_inf_weak.rds")
 mod.inf <- readRDS("mod_inf.rds")
+mod.misinf.weak <- readRDS("mod_misinf_weak.rds")
+mod.misinf <- readRDS("mod_misinf.rds")
 
 mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf)
 
@@ -373,3 +377,11 @@ get.ns <- function(jag){
 }
 
 outs <- lapply(mod.outputs, get.ns)
+
+# Function to compare mean occupancy & detection probabilities ----------------
+
+# Function to compare covariate responses ----------------------
+
+# Function looking at observed~true richness -------------------------
+
+
