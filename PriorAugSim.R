@@ -34,7 +34,6 @@ cov <- sort(rnorm(n = nsite))
 
 # Simulate occupancy data -------------------------------------
 # Get probs from a beta distribution
-
 sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 1)
 
 # Write function to simulate true occupancy state
@@ -338,9 +337,10 @@ mod.inf <- readRDS("mod_inf.rds")
 mod.misinf.weak <- readRDS("mod_misinf_weak.rds")
 mod.misinf <- readRDS("mod_misinf.rds")
 
-mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf)
+mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf, mod.misinf.weak, mod.misinf)
 
 # Function to compare estimates of N -----------------------------------
+# Write function to get Ns
 get.ns <- function(jag){
   getmode <- function(x) {
     uniqx <- unique(x)
@@ -376,11 +376,52 @@ get.ns <- function(jag){
   return(out.list)
 }
 
-outs <- lapply(mod.outputs, get.ns)
+N.outs <- lapply(mod.outputs, get.ns)
+
+#View plots
+map(N.outs, 1)
 
 # Function to compare mean occupancy & detection probabilities ----------------
+# Occupancy function
+compare.psi <- function(jag){
+  psi <- plogis(jag$BUGSoutput$sims.list$a0)
+  mean.psi <- plogis(jag$BUGSoutput$sims.list$a0.mean)
+
+  psimat <- data.frame(Observed.Mean = apply(psi, 2, mean)[1:17], 
+                      Observed.Sd = apply(p, 2, sd)[1:17], Tru = sim.occ)
+
+  accur <- psimat$Tru >= psimat$Observed.Mean-psimat$Observed.Sd &
+          psimat$Tru <= psimat$Observed.Mean+psimat$Observed.Sd
+
+  perc.acc <- sum(accur)/(nspec+naug)
+
+  psiplot <- ggplot(data = psimat, aes(x = factor(1:17), y = Tru))+
+    geom_point(aes(y = Observed.Mean, color = "Estimated"), size = 2)+
+    geom_errorbar(aes(ymin = Observed.Mean-Observed.Sd, 
+                      ymax = Observed.Mean+Observed.Sd,
+                      color = "Estimated"), size = 1.25)+
+    geom_point(aes(color = "True"), size = 2)+
+    geom_hline(aes(yintercept = mean(mean.psi)), alpha = 0.5, linetype = 'dashed')+
+    scale_color_manual(values = c("black", "red"))+
+    labs(x = "Species", y = "Occupancy Probability")+
+    theme_bw(base_size = 18)+
+    theme(legend.title = element_blank(), panel.grid = element_blank())
+  
+  outs <- list(accuracy = perc.acc, plot = psiplot)
+  
+  return(outs)
+}
+
+# Get outputs
+psi.outs <- lapply(mod.outputs, compare.psi)
+
+# View accuracy and plots
+map(psi.outs, 1)
+map(psi.outs, 2)
 
 # Function to compare covariate responses ----------------------
+
+# Function to compare true/estimated/observed species richness ------------
 
 # Function looking at observed~true richness -------------------------
 
