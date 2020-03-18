@@ -25,7 +25,9 @@ nsurvey <- 4
 Ks <- rep(nsurvey, nsite)
 
 # Matrix of covariate responses
-resp2cov <- rnorm(n = nspec+naug, sd = 0.25)
+resp2cov <- c(rnorm(n = 6, sd = 0.25),
+              rnorm(n = 5, mean = 1, sd = 0.25),
+              rnorm(n = 6, mean = -1, sd = 0.25))
 
 resp2cov <- sample(resp2cov)
 
@@ -141,13 +143,13 @@ obs.aug <- abind(obs.data, ems.array, along = 3)
 
 # Add prior information --------------------------------
 uninf <- list(rep(0, nspec+ems), rep(0, nspec+ems))
-weakinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*0.1, rep(0, naug)),
+weakinf <- list(c(rep(0, nspec), sim.occ[16:17]*0.1, rep(0, naug)),
                   c(rep(0, nspec), round(resp2cov[16:17])*0.1, rep(0, naug)))
-modinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*0.5, rep(0, naug)),
+modinf <- list(c(rep(0, nspec), sim.occ[16:17]*0.5, rep(0, naug)),
                c(rep(0, nspec), round(resp2cov[16:17])*0.5, rep(0, naug)))
-weakmisinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*-0.1, rep(0, naug)),
+weakmisinf <- list(c(rep(0, nspec), sim.occ[16:17]*-0.1, rep(0, naug)),
                    c(rep(0, nspec), round(resp2cov[16:17])*-0.1, rep(0, naug)))
-modmisinf <- list(c(rep(0, nspec), logit(sim.occ[16:17])*-0.5, rep(0, naug)),
+modmisinf <- list(c(rep(0, nspec), sim.occ[16:17]*-0.5, rep(0, naug)),
                   c(rep(0, nspec), round(resp2cov[16:17])*-0.5, rep(0, naug)))
 
 # Write Models ----------------------------
@@ -299,38 +301,40 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
 # mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, spec = nspec,
 #            textdoc = 'noaug.txt')
 # saveRDS(mod.noaug, file = "mod_noaug.rds")
-
-# mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
+# 
+# mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
 #            textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
 #            info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
-
-# mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
-#                       textdoc = 'aug_model.txt', aug = nmiss+naug, 
-#                       info1 = weakinf[[1]], info2 = weakinf[[2]], burn = 5000, 
+# 
+# mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+#                       textdoc = 'aug_model.txt', aug = nmiss+naug,
+#                       info1 = weakinf[[1]], info2 = weakinf[[2]], burn = 5000,
 #                       iter = 12000, thin = 5)
 # saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
-
-# mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec, 
-#                       textdoc = 'aug_model.txt', aug = nmiss+naug, 
-#                       info1 = modinf[[1]], info2 = modinf[[2]], burn = 7000, 
+# 
+# mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+#                       textdoc = 'aug_model.txt', aug = nmiss+naug,
+#                       info1 = modinf[[1]], info2 = modinf[[2]], burn = 7000,
 #                       iter = 12000, thin = 3)
 # saveRDS(mod.inf, file = "mod_inf.rds")
-
-# mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, 
-#                               spec = nspec, textdoc = 'aug_model.txt', 
-#                               aug = nmiss+naug, info1 = weakmisinf[[1]], 
-#                               info2 = weakmisinf[[2]], burn = 5000, iter = 10000, 
+# 
+# mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                               spec = nspec, textdoc = 'aug_model.txt',
+#                               aug = nmiss+naug, info1 = weakmisinf[[1]],
+#                               info2 = weakmisinf[[2]], burn = 5000, iter = 10000,
 #                               thin = 5)
 # saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
-
+# 
 # mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                          textdoc = 'aug_model.txt', aug = nmiss+naug, 
+#                          textdoc = 'aug_model.txt', aug = nmiss+naug,
 #                          info1 = modmisinf[[1]], info2 = modmisinf[[2]], burn = 2500,
 #                          iter = 10000, thin = 10)
 # saveRDS(mod.misinf, file = "mod_misinf.rds")
 
 # Load models -------------------------------
+mod.noaug <- readRDS(file = "mod.noaug.rds")
+
 mod.uninf <- readRDS("mod_uninf.rds")
 mod.inf.weak <- readRDS("mod_inf_weak.rds")
 mod.inf <- readRDS("mod_inf.rds")
@@ -380,6 +384,7 @@ N.outs <- lapply(mod.outputs, get.ns)
 
 #View plots
 map(N.outs, 1)
+map(N.outs, 3)
 
 # Function to compare mean occupancy & detection probabilities ----------------
 # Occupancy function
@@ -388,17 +393,17 @@ compare.psi <- function(jag){
   mean.psi <- plogis(jag$BUGSoutput$sims.list$a0.mean)
 
   psimat <- data.frame(Observed.Mean = apply(psi, 2, mean)[1:17], 
-                      Observed.Sd = apply(p, 2, sd)[1:17], Tru = sim.occ)
+                      Observed.Lo = apply(psi, 2, quantile, 0.025)[1:17], 
+                      Observed.Hi = apply(psi, 2, quantile, 0.975)[1:17],
+                      Tru = sim.occ)
 
-  accur <- psimat$Tru >= psimat$Observed.Mean-psimat$Observed.Sd &
-          psimat$Tru <= psimat$Observed.Mean+psimat$Observed.Sd
+  accur <- psimat$Tru >= psimat$Observed.Lo & psimat$Tru <= psimat$Observed.Hi
 
   perc.acc <- sum(accur)/(nspec+naug)
 
   psiplot <- ggplot(data = psimat, aes(x = factor(1:17), y = Tru))+
     geom_point(aes(y = Observed.Mean, color = "Estimated"), size = 2)+
-    geom_errorbar(aes(ymin = Observed.Mean-Observed.Sd, 
-                      ymax = Observed.Mean+Observed.Sd,
+    geom_errorbar(aes(ymin = Observed.Lo, ymax = Observed.Hi,
                       color = "Estimated"), size = 1.25)+
     geom_point(aes(color = "True"), size = 2)+
     geom_hline(aes(yintercept = mean(mean.psi)), alpha = 0.5, linetype = 'dashed')+
@@ -412,17 +417,102 @@ compare.psi <- function(jag){
   return(outs)
 }
 
+# Detection function
+compare.p <- function(jag){
+  p <- plogis(jag$BUGSoutput$sims.list$b0)
+  mean.p <- plogis(jag$BUGSoutput$sims.list$b0.mean)
+  
+  pmat <- data.frame(Observed.Mean = apply(p, 2, mean)[1:17], 
+                       Observed.Lo = apply(p, 2, quantile, 0.025)[1:17], 
+                       Observed.Hi = apply(p, 2, quantile, 0.975)[1:17],
+                       Tru = sim.dets)
+  
+  accur <- pmat$Tru >= pmat$Observed.Lo &
+    pmat$Tru <= pmat$Observed.Hi
+  
+  perc.acc <- sum(accur)/(nspec+naug)
+  
+  pplot <- ggplot(data = pmat, aes(x = factor(1:17), y = Tru))+
+    geom_point(aes(y = Observed.Mean, color = "Estimated"), size = 2)+
+    geom_errorbar(aes(ymin = Observed.Lo, ymax = Observed.Hi,
+                      color = "Estimated"), size = 1.25)+
+    geom_point(aes(color = "True"), size = 2)+
+    geom_hline(aes(yintercept = mean(mean.p)), alpha = 0.5, linetype = 'dashed')+
+    scale_color_manual(values = c("black", "red"))+
+    labs(x = "Species", y = "Detection Probability")+
+    theme_bw(base_size = 18)+
+    theme(legend.title = element_blank(), panel.grid = element_blank())
+  
+  outs <- list(accuracy = perc.acc, plot = pplot)
+  
+  return(outs)
+}
+
 # Get outputs
 psi.outs <- lapply(mod.outputs, compare.psi)
+p.outs <- lapply(mod.outputs, compare.p)
 
 # View accuracy and plots
 map(psi.outs, 1)
 map(psi.outs, 2)
 
+map(p.outs, 1)
+map(p.outs, 2)
+
 # Function to compare covariate responses ----------------------
+compare.cov <- function(jag){
+  cov.est <- jag$BUGSoutput$sims.list$a1
+
+  covmat <- data.frame(Observed.Mean = apply(cov.est, 2, mean)[1:17], 
+                     Observed.Lo = apply(cov.est, 2, quantile, 0.025)[1:17],
+                     Observed.Hi = apply(cov.est, 2, quantile, 0.975)[1:17],
+                     Tru = resp2cov)
+
+  covplot <- ggplot(data = covmat, aes(x = factor(1:17), y = Tru))+
+    geom_point(aes(y = Observed.Mean, color = "Estimated"), size = 2)+
+    geom_errorbar(aes(ymin = Observed.Lo, ymax = Observed.Hi,
+                      color = "Estimated"), size = 1.25)+
+    geom_point(aes(color = "True"), size = 2)+
+    geom_hline(aes(yintercept = 0), alpha = 0.5, linetype = 'dashed')+
+    scale_color_manual(values = c("black", "red"))+
+    labs(x = "Species", y = "Coefficient")+
+    theme_bw(base_size = 18)+
+    theme(legend.title = element_blank(), panel.grid = element_blank())
+
+  return(covplot)
+}
+
+cov.out <- lapply(mod.outputs, compare.cov)
+
+print(cov.out)
 
 # Function to compare true/estimated/observed species richness ------------
+Zs <- mod.uninf$BUGSoutput$sims.list$Z
+
+Zs.mean <- apply(Zs, c(2,3), mean)
+
+site.rich <- rowSums(Zs.mean)
+tru.rich <- colSums(tru)
+obs.rich <- rowSums(apply(obs.data, c(1,3), max))
+
+rich.all <- data.frame(Rank = rank(tru.rich), Estimated = site.rich, True = tru.rich,
+                       Observed = obs.rich)
+
+ggplot(data = rich.all, aes(x = Rank, y = True))+
+  geom_point(aes(color = "True"))+
+  geom_smooth(aes(color = "True"), method = 'lm')+
+  geom_point(aes(y = Estimated, color = "Estimated"))+
+  geom_smooth(aes(y = Estimated, color = "Estimated"), method = 'lm')+
+  geom_point(aes(y = Observed, color = "Observed"))+
+  geom_smooth(aes(y = Observed, color = "Observed"), method = 'lm')+
+  labs(x = "Sites (Ranked)")+
+  expand_limits(y = 0)+
+  scale_color_viridis_d()+
+  theme_bw(base_size = 18)+
+  theme(panel.grid = element_blank(), legend.title = element_blank())
 
 # Function looking at observed~true richness -------------------------
 
+# Look at percent error for undetected species ---------------------------
 
+# Compare under vs. overestimation of occupancy ----------------------------
