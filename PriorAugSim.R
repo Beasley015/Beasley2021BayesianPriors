@@ -333,7 +333,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
 # saveRDS(mod.misinf, file = "mod_misinf.rds")
 
 # Load models -------------------------------
-mod.noaug <- readRDS(file = "mod.noaug.rds")
+mod.noaug <- readRDS(file = "mod_noaug.rds")
 
 mod.uninf <- readRDS("mod_uninf.rds")
 mod.inf.weak <- readRDS("mod_inf_weak.rds")
@@ -487,32 +487,103 @@ cov.out <- lapply(mod.outputs, compare.cov)
 print(cov.out)
 
 # Function to compare true/estimated/observed species richness ------------
-Zs <- mod.uninf$BUGSoutput$sims.list$Z
+richness.comp <- function(jag){
+  Zs <- jag$BUGSoutput$sims.list$Z
 
-Zs.mean <- apply(Zs, c(2,3), mean)
+  Zs.mean <- apply(Zs, c(2,3), mean)
 
-site.rich <- rowSums(Zs.mean)
-tru.rich <- colSums(tru)
-obs.rich <- rowSums(apply(obs.data, c(1,3), max))
+  site.rich <- rowSums(Zs.mean)
+  tru.rich <- colSums(tru)
+  obs.rich <- rowSums(apply(obs.data, c(1,3), max))
 
-rich.all <- data.frame(Rank = rank(tru.rich), Estimated = site.rich, True = tru.rich,
-                       Observed = obs.rich)
+  rich.all <- data.frame(Rank = rank(tru.rich), Estimated = site.rich, 
+                         True = tru.rich,Observed = obs.rich)
 
-ggplot(data = rich.all, aes(x = Rank, y = True))+
-  geom_point(aes(color = "True"))+
-  geom_smooth(aes(color = "True"), method = 'lm')+
-  geom_point(aes(y = Estimated, color = "Estimated"))+
-  geom_smooth(aes(y = Estimated, color = "Estimated"), method = 'lm')+
-  geom_point(aes(y = Observed, color = "Observed"))+
-  geom_smooth(aes(y = Observed, color = "Observed"), method = 'lm')+
-  labs(x = "Sites (Ranked)")+
-  expand_limits(y = 0)+
-  scale_color_viridis_d()+
-  theme_bw(base_size = 18)+
-  theme(panel.grid = element_blank(), legend.title = element_blank())
+  rich.plot <- ggplot(data = rich.all, aes(x = Rank, y = True))+
+    geom_point(aes(color = "True"))+
+    geom_smooth(aes(color = "True"), method = 'lm')+
+    geom_point(aes(y = Estimated, color = "Estimated"))+
+    geom_smooth(aes(y = Estimated, color = "Estimated"), method = 'lm')+
+    geom_point(aes(y = Observed, color = "Observed"))+
+    geom_smooth(aes(y = Observed, color = "Observed"), method = 'lm')+
+    labs(x = "Sites (Ranked)")+
+    expand_limits(y = 0)+
+    scale_color_viridis_d()+
+    theme_bw(base_size = 18)+
+    theme(panel.grid = element_blank(), legend.title = element_blank())
+  
+  return(rich.plot)
+}
+
+rich.out <- lapply(mod.outputs, richness.comp)
 
 # Function looking at observed~true richness -------------------------
+error.raster <- function(jag){
+  specnames <- as.character(1:(nspec+nmiss))
 
-# Look at percent error for undetected species ---------------------------
+  Zs <- jag$BUGSoutput$sims.list$Z
 
-# Compare under vs. overestimation of occupancy ----------------------------
+  Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,1:17])
+  colnames(Zs.mean) <- specnames
+  Zs.mean$Site <- 1:nrow(Zs.mean)
+
+  tru.frame <-as.data.frame(t(tru))
+  colnames(tru.frame) <- specnames
+  tru.frame$Site <- 1:nrow(tru.frame)
+
+  tru.frame %>%
+    gather('1':'17', key = "Species", value = "Occ") %>%
+    {. ->> tru.frame}
+
+  Zs.mean %>%
+    gather('1':'17', key = "Species", value = "Occ") %>%
+    left_join(tru.frame, by = c("Site", "Species")) %>%
+    mutate(Error = Occ.y - Occ.x) %>%
+    {. ->> merged.frame}
+
+  merged.frame$Species = factor(merged.frame$Species, levels = specnames)
+
+  rast <- ggplot(data = merged.frame, aes(x = Species, y = Site, fill = Error))+
+    geom_tile()+
+    scale_fill_distiller(type = "div", 
+                         limit = max(abs(merged.frame$Error)) * c(-1, 1))+
+    scale_y_continuous(expand = c(0,0))+
+    scale_x_discrete(expand = c(0,0))+
+    theme_bw(base_size = 18)
+  
+  return(rast)
+}
+
+error.out <- lapply(mod.outputs, error.raster)
+
+# Compare estimate error and detection probability ------------------------
+richness.bias <- function(jag){
+  Zs <- jag$BUGSoutput$sims.list$Z
+  
+  Zs.mean <- apply(Zs, c(2,3), mean)
+  
+  site.rich <- rowSums(Zs.mean)
+  tru.rich <- colSums(tru)
+  obs.rich <- rowSums(apply(obs.data, c(1,3), max))
+  
+  rich.all <- data.frame(Estimated = site.rich, True = tru.rich)
+  
+  #Plot examining relationship
+  rich.plot <- ggplot(data = rich.all, aes(x = True, y = Estimated))+
+    geom_point()+
+    geom_smooth(color = "black")+
+    theme_bw(base_size = 18)+
+    theme(panel.grid = element_blank())
+  
+  # Examine fits of different curves
+  
+  
+  outs <- list(rich.plot, fit)
+  
+  return(outs, fit)
+}
+
+bias.out <- lapply(mod.outputs, richness.bias)
+
+# Compare true vs. estimated richness ---------------------------
+
