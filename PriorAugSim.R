@@ -10,6 +10,8 @@ library(tidyverse)
 library(MASS)
 library(abind)
 library(boot)
+library(drc)
+library(AICcmodavg)
 
 # Set seed
 set.seed(15)
@@ -517,7 +519,7 @@ richness.comp <- function(jag){
 
 rich.out <- lapply(mod.outputs, richness.comp)
 
-# Function looking at observed~true richness -------------------------
+# Function looking at observed~true occupancy -------------------------
 error.raster <- function(jag){
   specnames <- as.character(1:(nspec+nmiss))
 
@@ -556,7 +558,7 @@ error.raster <- function(jag){
 
 error.out <- lapply(mod.outputs, error.raster)
 
-# Compare estimate error and detection probability ------------------------
+# Compare true vs. estimated richness ------------------------
 richness.bias <- function(jag){
   Zs <- jag$BUGSoutput$sims.list$Z
   
@@ -566,24 +568,54 @@ richness.bias <- function(jag){
   tru.rich <- colSums(tru)
   obs.rich <- rowSums(apply(obs.data, c(1,3), max))
   
-  rich.all <- data.frame(Estimated = site.rich, True = tru.rich)
+  rich.all <- data.frame(Estimated = site.rich, True = tru.rich, 
+                         True.Sq = tru.rich^2)
   
   #Plot examining relationship
   rich.plot <- ggplot(data = rich.all, aes(x = True, y = Estimated))+
     geom_point()+
-    geom_smooth(color = "black")+
+    geom_abline(slope = 1, intercept = 0)+
+    geom_smooth(color = "black", method = 'lm')+
     theme_bw(base_size = 18)+
     theme(panel.grid = element_blank())
   
   # Examine fits of different curves
+  linear <- glm(data = rich.all, Estimated~True)
+  expon <- glm(data = rich.all, Estimated~True.Sq)
+  quad <- glm(data = rich.all, Estimated~True+True.Sq)
   
+  comparison <- aictab(cand.set = list(linear, expon, quad),
+                       modnames = c("linear", "exponential", "quadratic"))
   
-  outs <- list(rich.plot, fit)
+  outs <- list(Plot = rich.plot, AIC = comparison, Model = summary(linear))
   
-  return(outs, fit)
+  return(outs)
 }
 
 bias.out <- lapply(mod.outputs, richness.bias)
+map(bias.out, 1)
+map(bias.out, 2)
+map(bias.out, 3)
 
-# Compare true vs. estimated richness ---------------------------
+# Compare error and detection probability ---------------------------
+specnames <- as.character(1:(nspec+nmiss))
 
+Zs <- jag$BUGSoutput$sims.list$Z
+
+Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,1:17])
+colnames(Zs.mean) <- specnames
+Zs.mean$Site <- 1:nrow(Zs.mean)
+
+tru.frame <-as.data.frame(t(tru))
+colnames(tru.frame) <- specnames
+tru.frame$Site <- 1:nrow(tru.frame)
+
+tru.frame %>%
+  gather('1':'17', key = "Species", value = "Occ") %>%
+  {. ->> tru.frame}
+
+Zs.mean %>%
+  gather('1':'17', key = "Species", value = "Occ") %>%
+  left_join(tru.frame, by = c("Site", "Species")) %>%
+  mutate(Error = Occ.y - Occ.x) %>%
+  {. ->> merged.frame}
