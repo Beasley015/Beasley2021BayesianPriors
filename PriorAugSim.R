@@ -10,8 +10,8 @@ library(tidyverse)
 library(MASS)
 library(abind)
 library(boot)
-library(drc)
 library(AICcmodavg)
+library(viridis)
 
 # Set seed
 set.seed(15)
@@ -598,24 +598,43 @@ map(bias.out, 2)
 map(bias.out, 3)
 
 # Compare error and detection probability ---------------------------
-specnames <- as.character(1:(nspec+nmiss))
+erdet <- function(jag){
+  specnames <- as.character(1:(nspec+nmiss))
 
-Zs <- jag$BUGSoutput$sims.list$Z
+  Zs <- jag$BUGSoutput$sims.list$Z
 
-Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,1:17])
-colnames(Zs.mean) <- specnames
-Zs.mean$Site <- 1:nrow(Zs.mean)
+  Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,1:17])
+  colnames(Zs.mean) <- specnames
+  Zs.mean$Site <- 1:nrow(Zs.mean)
 
-tru.frame <-as.data.frame(t(tru))
-colnames(tru.frame) <- specnames
-tru.frame$Site <- 1:nrow(tru.frame)
+  tru.frame <-as.data.frame(t(tru))
+  colnames(tru.frame) <- specnames
+  tru.frame$Site <- 1:nrow(tru.frame)
 
-tru.frame %>%
-  gather('1':'17', key = "Species", value = "Occ") %>%
-  {. ->> tru.frame}
+  tru.frame %>%
+    gather('1':'17', key = "Species", value = "Occ") %>%
+    {. ->> tru.frame}
 
-Zs.mean %>%
-  gather('1':'17', key = "Species", value = "Occ") %>%
-  left_join(tru.frame, by = c("Site", "Species")) %>%
-  mutate(Error = Occ.y - Occ.x) %>%
-  {. ->> merged.frame}
+  Zs.mean %>%
+    gather('1':'17', key = "Species", value = "Occ") %>%
+    left_join(tru.frame, by = c("Site", "Species")) %>%
+    mutate(Error = Occ.y - Occ.x) %>%
+    {. ->> merged.frame}
+
+  for(i in 1:nrow(merged.frame)){
+    merged.frame$Detection[i] <- sim.dets[as.numeric(merged.frame$Species[i])]
+  }
+
+  hexplot <- ggplot(data = merged.frame, aes(x = Detection, y = Error))+
+    stat_binhex()+ 
+    geom_hline(yintercept = 0)+
+    scale_fill_viridis(name = "Count")+
+    labs(x = "Detection Probability")+
+    theme_bw(base_size = 20)+
+    theme(panel.grid = element_blank())
+  
+  return(hexplot)
+}
+
+erdet.out <- lapply(mod.outputs, erdet)
+
