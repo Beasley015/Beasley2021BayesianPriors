@@ -28,13 +28,20 @@ Ks <- rep(nsurvey, nsite)
 
 # Matrix of covariate responses
 resp2cov <- c(rnorm(n = 6, sd = 0.25),
-              rnorm(n = 5, mean = 1, sd = 0.25),
-              rnorm(n = 6, mean = -1, sd = 0.25))
+              rnorm(n = 5, mean = 2, sd = 0.25),
+              rnorm(n = 6, mean = -2, sd = 0.25))
 
 resp2cov <- sample(resp2cov)
 
+detcovresp <- c(rnorm(n = 6, sd = 0.25),
+                rnorm(n = 5, mean = 2, sd = 0.25),
+                rnorm(n = 6, mean = -2, sd = 0.25))
+
 # Covariate values for sites
 cov <- sort(rnorm(n = nsite))
+
+detcov <- rnorm(n = nsite)
+sitedets <- matrix(rep(detcov, nsurvey), nrow = nsite)
 
 # Simulate occupancy data -------------------------------------
 # Get probs from a beta distribution
@@ -66,78 +73,53 @@ tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
 }
 
 tru <- tru.mats()[[1]]
-mu.psi <- rowMeans(tru.mats()[[2]])
+psi <- rowMeans(tru.mats()[[2]])
 
-# Simulate detection process ----------------------------------
-# Load detections from Master's work
-masters.mod <- readRDS("modelsampledglades.rds")
-masters.v <- masters.mod$sims.list$v
+# Simulate detection process ---------------------------------
+# Generate mean detection probabilities from beta dist with above params
+mean.p <- rbeta(n = nspec+nmiss, shape1 = 3, shape2 = 4)
 
-spec.p <- plogis(masters.v[,1:8])
-
-spec.det <- colMeans(spec.p)
-
-# Get maximum likelihood estimates for params of beta distribution
-bet.det <- fitdistr(x = spec.det, start = list(shape1 = 1, shape2 = 1), "beta")
-
-# Reorder true occurrence matrix, psi, and cov responses
-reorder <- function(x){
-  if(length(dim(x)) == 0){
-    pos <- c(which(psi == min(psi)), which(psi == median(psi)))
-    nondet <- x[pos]
-    x <- x[-pos]
-    x <- c(x, nondet)
-  } else {
-    pos <- c(which(psi == min(psi)), which(psi == median(psi)))
-    nondet <- x[pos,]
-    x <- x[-pos,]
-    x <- rbind(x, nondet)
-  }
-  return(x)
-}
-
-tru <- reorder(x = tru)
-resp2cov <- reorder(x = resp2cov)
-occ <- reorder(x = sim.occ)
-
-# Generate detection probabilities from beta dist with above params
-sim.dets <- rbeta(n = nspec, shape1 = bet.det$estimate[1], shape2 = bet.det$estimate[2])
-
-# Assign selected species a detection probability of 0
-sim.dets <- c(sim.dets, rep(0,2))
-
-# Function to create encounter histories
-trap.hist <- function(mat, det, specs=nspec, sites=nsite, survs=nsurvey){
+#There's a problem with this function
+#get.obs <- function(mat, specs){
   #Detection intercept and cov responses
-  beta0<-qlogis(det) #put it on logit scale
-  #Responses to a cov would go here
-  
+  beta0<-logit(sim.dets) #put it on logit scale
+
   #Logit link function
-  logit.p <- array(NA, dim = c(sites, survs, specs))
+  logit.p <- array(NA, dim = c(nsite, nsurvey, specs))
   for(i in 1:specs){
-    logit.p[,,i] <- beta0[i]
+    logit.p[,,i] <- beta0[i] + detcovresp[i]*sitedets
   }
-  
+
   p <- plogis(logit.p)
-  
+
   #Simulate observation data
   L<-list()
-  
+
   for(b in 1:specs){
-    y<-matrix(NA, ncol = survs, nrow = sites)
-    for(a in 1:survs){
-      y[,a]<-rbinom(n = sites, size = mat[b,], prob = p[,,b])
+    y<-matrix(NA, ncol = nsite, nrow = nsurvey)
+    for(a in 1:nsurvey){
+      y[a,]<-rbinom(n = nsite, size = mat[b,a], prob = p[,,b])
     }
     L[[b]]<-y
   }
-  
+
   #Smash it into array
-  obsdata<-array(as.numeric(unlist(L)), dim=c(sites, survs, specs))
+  obsdata<-array(as.numeric(unlist(L)), dim=c(nsite, nsurvey, specs))
+
+  #Get site-level p
+  ps <- apply(p, c(1,3), mean)
   
-  return(obsdata)
+  #List of outputs
+  out.list <- list(obs.data = obsdata, ps = ps)
+
+  return(out.list)
 }
 
-obs.data <- trap.hist(mat = tru, det = sim.dets)
+obs.data <- get.obs(mat = tru, specs = nspec+nmiss)[[1]]
+p <- get.obs(mat = tru, specs = nspec+nmiss)[[2]]
+
+#Sanity check: get observed data matrix
+maxobs <- apply(obs.data, c(1,3), max)
 
 # Augment the observed dataset ------------------------------------
 ems.array <- array(0, dim = c(nsite, nsurvey, ems))
