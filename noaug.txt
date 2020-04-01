@@ -27,7 +27,7 @@
     a1[i] ~ dnorm(a1.mean, tau.a1)
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
-    b1[i] ~ dnorm(b0.mean, tau.bo)
+    b1[i] ~ dnorm(b1.mean, tau.b1)
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {

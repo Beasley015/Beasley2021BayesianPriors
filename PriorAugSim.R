@@ -36,12 +36,13 @@ resp2cov <- sample(resp2cov)
 detcovresp <- c(rnorm(n = 6, sd = 0.25),
                 rnorm(n = 5, mean = 2, sd = 0.25),
                 rnorm(n = 6, mean = -2, sd = 0.25))
+detcovresp <- sort(detcovresp, decreasing = T)
 
 # Covariate values for sites
 cov <- sort(rnorm(n = nsite))
 
-detcov <- rnorm(n = nsite)
-sitedets <- matrix(rep(detcov, nsurvey), nrow = nsite)
+detcov <- rnorm(n = nsite, mean = 1)
+detcov <- matrix(rep(detcov, 4), ncol = nsurvey)
 
 # Simulate occupancy data -------------------------------------
 # Get probs from a beta distribution
@@ -76,18 +77,23 @@ tru <- tru.mats()[[1]]
 psi <- rowMeans(tru.mats()[[2]])
 
 # Simulate detection process ---------------------------------
-# Generate mean detection probabilities from beta dist with above params
-mean.p <- rbeta(n = nspec+nmiss, shape1 = 3, shape2 = 4)
+# Generate mean detection probabilities from beta dist
+mean.p <- rbeta(n = nspec+nmiss, shape1 = 3, shape2 = 8)
+mean.p <- sort(mean.p, decreasing = T)
 
 #There's a problem with this function
-#get.obs <- function(mat, specs){
+get.obs <- function(mat, specs){
   #Detection intercept and cov responses
-  beta0<-logit(sim.dets) #put it on logit scale
+  beta0<-logit(mean.p) #put it on logit scale
 
   #Logit link function
   logit.p <- array(NA, dim = c(nsite, nsurvey, specs))
   for(i in 1:specs){
-    logit.p[,,i] <- beta0[i] + detcovresp[i]*sitedets
+    for(j in 1:nsite){
+      for(k in 1:nsurvey){
+        logit.p[j,,i] <- beta0[i] + detcovresp[i]*detcov[j,k]
+      }
+    }
   }
 
   p <- plogis(logit.p)
@@ -98,9 +104,9 @@ mean.p <- rbeta(n = nspec+nmiss, shape1 = 3, shape2 = 4)
   for(b in 1:specs){
     y<-matrix(NA, ncol = nsite, nrow = nsurvey)
     for(a in 1:nsurvey){
-      y[a,]<-rbinom(n = nsite, size = mat[b,a], prob = p[,,b])
+      y[a,]<-rbinom(n = nsite, size = 1, prob = p[,,b]*mat[b,])
     }
-    L[[b]]<-y
+    L[[b]]<-t(y)
   }
 
   #Smash it into array
@@ -120,6 +126,11 @@ p <- get.obs(mat = tru, specs = nspec+nmiss)[[2]]
 
 #Sanity check: get observed data matrix
 maxobs <- apply(obs.data, c(1,3), max)
+colSums(maxobs)
+
+#Remove last two specs: these have lowest observations
+#And will represent undetected species
+obs.data <- obs.data[,,1:nspec]
 
 # Augment the observed dataset ------------------------------------
 ems.array <- array(0, dim = c(nsite, nsurvey, ems))
@@ -155,6 +166,10 @@ cat("
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
+
+    mean.b1 ~ dunif(0,1)
+    b1.mean <- log(mean.b1)-log(1-mean.b1)
+    tau.b1 ~ dgamma(0.1, 0.1)
     
     for(i in 1:spec){
     #create priors from distributions above
@@ -163,6 +178,7 @@ cat("
     a1[i] ~ dnorm(a1.mean, tau.a1)
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
+    b1[i] ~ dnorm(b1.mean, tau.b1)
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {
@@ -172,7 +188,7 @@ cat("
     
     #Estimate detection of i at point j during sampling period k
     for(k in 1:K[j]){
-    logit(p[j,k,i]) <-  b0[i]
+    logit(p[j,k,i]) <-  b0[i] + b1[i]*detcov[j,k]
     mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
     #The addition of Z means that detecting a species depends on its occupancy
     obs[j,k,i] ~ dbern(mu.p[j,k,i])
@@ -204,6 +220,10 @@ cat("
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
+
+    mean.b1 ~ dunif(0,1)
+    b1.mean <- log(mean.b1)-log(1-mean.b1)
+    tau.b1 ~ dgamma(0.1, 0.1)
     
     for(i in 1:(spec+aug)){
     # Create priors from hyperpriors
@@ -214,6 +234,7 @@ cat("
     a1[i] ~ dnorm(a1.mean+info2[i], tau.a1)
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
+    b1[i] ~ dnorm(b1.mean, tau.b1)
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {
@@ -223,7 +244,7 @@ cat("
     
     #Estimate detection of i at point j during sampling period k
     for(k in 1:K[j]){
-    logit(p[j,k,i]) <-  b0[i]
+    logit(p[j,k,i]) <-  b0[i] + b1[i]*detcov[j,k]
     mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
     #The addition of Z means that detecting a species depends on its occupancy
     obs[j,k,i] ~ dbern(mu.p[j,k,i])
@@ -242,7 +263,7 @@ cat("
 VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL, 
                        info2 = NULL, burn = 2500, iter = 8000, thin = 10){
   # Compile data into list
-  datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov)
+  datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov, detcov = detcov)
   if(textdoc == 'aug_model.txt'){
     datalist$aug <- aug
   }
@@ -253,7 +274,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
   }
 
   # Specify parameters
-  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1', 'Z')
+  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1', 'b1','Z')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -262,7 +283,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
     mu.psi.guess <- runif(1, 0.25, 1)
     inits <- list(
          a0 = rnorm(n = (spec+aug)), a1 = rnorm(n = (spec+aug)),
-         b0 = rnorm(n = (spec+aug)),
+         b0 = rnorm(n = (spec+aug)), b1 = rnorm(n = (spec+aug)),
          Z = maxobs
     )
     if(textdoc == 'aug_model.txt'){
