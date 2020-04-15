@@ -22,15 +22,16 @@
     tau.b1 ~ dgamma(0.1, 0.1)
     
     for(i in 1:(spec+aug)){
-    # Create priors from hyperpriors
-    w[i] ~ dbern(omega)
-    #indicates whether or not species is exposed to sampling
     
-    a0[i] ~ dnorm(a0.mean+info1[i], tau.a0)
-    a1[i] ~ dnorm(a1.mean+info2[i], tau.a1)
-    
-    b0[i] ~ dnorm(b0.mean, tau.b0)
-    b1[i] ~ dnorm(b1.mean, tau.b1)
+     # Create priors from hyperpriors
+            w[i] ~ dbern(omega)
+            #indicates whether or not species is exposed to sampling
+
+            a0[i] ~ dnorm(a0.mean, tau.a0)
+            a1[i] ~ dnorm(a1.mean, tau.a1)
+
+            b0[i] ~ dnorm(b0.mean, tau.b0)
+            b1[i] ~ dnorm(b1.mean, tau.b1) 
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {

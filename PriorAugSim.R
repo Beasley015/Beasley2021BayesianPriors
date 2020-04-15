@@ -137,9 +137,32 @@ ems.array <- array(0, dim = c(nsite, nsurvey, ems))
 obs.aug <- abind(obs.data, ems.array, along = 3)
 
 # Add prior information --------------------------------
-uninf <- list(rep(0, nspec+ems), rep(0, nspec+ems))
-weakinf <- list(c(rep(0, nspec), sim.occ[16:17]*0.1, rep(0, naug)),
-                  c(rep(0, nspec), round(resp2cov[16:17])*0.1, rep(0, naug)))
+uninf <- "#Create priors from hyperpriors
+            w[i] ~ dbern(omega)
+            #indicates whether or not species is exposed to sampling
+
+            a0[i] ~ dnorm(a0.mean, tau.a0)
+            a1[i] ~ dnorm(a1.mean, tau.a1)
+
+            b0[i] ~ dnorm(b0.mean, tau.b0)
+            b1[i] ~ dnorm(b1.mean, tau.b1)"
+
+
+weakinf <- "#Create priors from hyperpriors
+              w[i] ~ dbern(omega)
+              #indicates whether or not species is exposed to sampling
+
+              a0[i] ~ dnorm(a0.mean, tau.a0)
+              a0[16] ~ dnorm(a0.mean, tau.a0)T(,a0.mean)
+              a0[17] ~ dnorm(a0.mean, tau.a0)T(a0.mean,)
+
+              a1[i] ~ dnorm(a1.mean, tau.a1)
+              a1[16] ~ dnorm(a1.mean, tau.a1)T(a1.mean-(2/sqrt(tau.a1)),a1.mean+(2/sqrt(tau.a1)))
+              a1[17] ~ dnorm(a1.mean, tau.a1)T(,a1.mean)
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)
+              b1[i] ~ dnorm(b1.mean, tau.b1)"
+
 modinf <- list(c(rep(0, nspec), sim.occ[16:17]*0.5, rep(0, naug)),
                c(rep(0, nspec), round(resp2cov[16:17])*0.5, rep(0, naug)))
 weakmisinf <- list(c(rep(0, nspec), sim.occ[16:17]*-0.1, rep(0, naug)),
@@ -202,7 +225,8 @@ cat("
     ", file = "noaug.txt")
 
 # Model with augmentation
-cat("
+write.model <- function(priors){
+  mod <- paste("
     model{
       
     # Define hyperprior distributions: intercepts
@@ -226,15 +250,8 @@ cat("
     tau.b1 ~ dgamma(0.1, 0.1)
     
     for(i in 1:(spec+aug)){
-    # Create priors from hyperpriors
-    w[i] ~ dbern(omega)
-    #indicates whether or not species is exposed to sampling
     
-    a0[i] ~ dnorm(a0.mean+info1[i], tau.a0)
-    a1[i] ~ dnorm(a1.mean+info2[i], tau.a1)
-    
-    b0[i] ~ dnorm(b0.mean, tau.b0)
-    b1[i] ~ dnorm(b1.mean, tau.b1)
+    ",priors,"
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {
@@ -257,20 +274,21 @@ cat("
     N<-spec+n0
     
     }
-    ", file = "aug_model.txt")
+    ")
+ writeLines(mod, "aug_model.txt") 
+}
 
 # Write function for sending model to gibbs sampler --------------------------------
-VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL, 
-                       info2 = NULL, burn = 2500, iter = 8000, thin = 10){
+VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf, 
+                       burn = 2500, iter = 8000, thin = 10){
+  # Write model for augmented datasets
+  if(textdoc == 'augmodel.txt')
+    write.model(priors = priors)
+  
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov, detcov = detcov)
   if(textdoc == 'aug_model.txt'){
     datalist$aug <- aug
-  }
-  
-  if(is.null(info1) == F){
-    datalist$info1 <- info1
-    datalist$info2 <- info2
   }
 
   # Specify parameters
@@ -308,15 +326,14 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, info1 = NULL,
 # saveRDS(mod.noaug, file = "mod_noaug.rds")
 # 
 # mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#            textdoc = 'aug_model.txt', aug = nmiss+naug, info1 = uninf[[1]],
-#            info2 = uninf[[2]], burn = 2500, iter = 10000, thin = 10)
+#            textdoc = 'aug_model.txt', aug = nmiss+naug, burn = 2500, iter = 10000,
+#            thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
-# mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss+naug,
-#                       info1 = weakinf[[1]], info2 = weakinf[[2]], burn = 5000,
-#                       iter = 12000, thin = 5)
-# saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
+mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                      textdoc = 'aug_model.txt', aug = nmiss+naug, priors = weakinf,
+                      burn = 5000, iter = 12000, thin = 5)
+saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
 # 
 # mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
 #                       textdoc = 'aug_model.txt', aug = nmiss+naug,
@@ -425,12 +442,12 @@ compare.psi <- function(jag){
 # Detection function
 compare.p <- function(jag){
   p <- plogis(jag$BUGSoutput$sims.list$b0)
-  mean.p <- plogis(jag$BUGSoutput$sims.list$b0.mean)
+  p.mean <- plogis(jag$BUGSoutput$sims.list$b0.mean)
   
   pmat <- data.frame(Observed.Mean = apply(p, 2, mean)[1:17], 
                        Observed.Lo = apply(p, 2, quantile, 0.025)[1:17], 
                        Observed.Hi = apply(p, 2, quantile, 0.975)[1:17],
-                       Tru = sim.dets)
+                       Tru = mean.p)
   
   accur <- pmat$Tru >= pmat$Observed.Lo &
     pmat$Tru <= pmat$Observed.Hi
@@ -522,6 +539,8 @@ richness.comp <- function(jag){
 
 rich.out <- lapply(mod.outputs, richness.comp)
 
+print(rich.out)
+
 # Function looking at observed~true occupancy -------------------------
 error.raster <- function(jag){
   specnames <- as.character(1:(nspec+nmiss))
@@ -560,6 +579,8 @@ error.raster <- function(jag){
 }
 
 error.out <- lapply(mod.outputs, error.raster)
+
+print(error.out)
 
 # Compare true vs. estimated richness ------------------------
 richness.bias <- function(jag){
@@ -625,7 +646,7 @@ erdet <- function(jag){
     {. ->> merged.frame}
 
   for(i in 1:nrow(merged.frame)){
-    merged.frame$Detection[i] <- sim.dets[as.numeric(merged.frame$Species[i])]
+    merged.frame$Detection[i] <- mean.p[as.numeric(merged.frame$Species[i])]
   }
 
   hexplot <- ggplot(data = merged.frame, aes(x = Detection, y = Error))+
@@ -641,3 +662,4 @@ erdet <- function(jag){
 
 erdet.out <- lapply(mod.outputs, erdet)
 
+print(erdet.out)
