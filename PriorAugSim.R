@@ -17,7 +17,7 @@ library(viridis)
 set.seed(15)
 
 # Global variables
-nspec <- 15
+nspec <- 20
 nmiss <- 2 # Species present but not detected during sampling
 naug <- 3 # Hypothetical species not exposed to sampling
 ems <- nmiss + naug # Number of all-zero histories to add to observed data
@@ -27,26 +27,18 @@ nsurvey <- 4
 Ks <- rep(nsurvey, nsite)
 
 # Matrix of covariate responses
-resp2cov <- c(rnorm(n = 6, sd = 0.25),
-              rnorm(n = 5, mean = 2, sd = 0.25),
-              rnorm(n = 6, mean = -2, sd = 0.25))
+resp2cov <- c(rnorm(n = 7, sd = 0.25),
+              rnorm(n = 8, mean = 3, sd = 0.25),
+              rnorm(n = 7, mean = -3, sd = 0.25))
 
 resp2cov <- sample(resp2cov)
-
-detcovresp <- c(rnorm(n = 6, sd = 0.25),
-                rnorm(n = 5, mean = 2, sd = 0.25),
-                rnorm(n = 6, mean = -2, sd = 0.25))
-detcovresp <- sort(detcovresp, decreasing = T)
 
 # Covariate values for sites
 cov <- sort(rnorm(n = nsite))
 
-detcov <- rnorm(n = nsite, mean = 1)
-detcov <- matrix(rep(detcov, 4), ncol = nsurvey)
-
 # Simulate occupancy data -------------------------------------
 # Get probs from a beta distribution
-sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 1)
+sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 3)
 
 # Write function to simulate true occupancy state
 tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
@@ -78,10 +70,10 @@ psi <- rowMeans(tru.mats()[[2]])
 
 # Simulate detection process ---------------------------------
 # Generate mean detection probabilities from beta dist
-mean.p <- rbeta(n = nspec+nmiss, shape1 = 3, shape2 = 8)
+mean.p <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 8)
 mean.p <- sort(mean.p, decreasing = T)
 
-#There's a problem with this function
+# Generate detection histories
 get.obs <- function(mat, specs){
   #Detection intercept and cov responses
   beta0<-logit(mean.p) #put it on logit scale
@@ -91,7 +83,7 @@ get.obs <- function(mat, specs){
   for(i in 1:specs){
     for(j in 1:nsite){
       for(k in 1:nsurvey){
-        logit.p[j,,i] <- beta0[i] + detcovresp[i]*detcov[j,k]
+        logit.p[j,,i] <- beta0[i]
       }
     }
   }
@@ -128,9 +120,34 @@ p <- get.obs(mat = tru, specs = nspec+nmiss)[[2]]
 maxobs <- apply(obs.data, c(1,3), max)
 colSums(maxobs)
 
-#Remove last two specs: these have lowest observations
-#And will represent undetected species
-obs.data <- obs.data[,,1:nspec]
+# Remove species with fewest detections: these will be "undetected" species
+obs.data <- obs.data[,,-c(21:22)]
+
+# Function to reorder true values, if needed
+# reorder <- function(x){
+#   if (length(dim(x)) == 0){
+#     nondets <- which(colSums(maxobs) == 0)
+#     copy <- x[nondets]
+#     x <- x[-nondets]
+#     new <- c(x, copy)
+#     return(new)
+#     }
+#   else {
+#     nondets <- which(colSums(maxobs) == 0)
+#     copy <- x[nondets,]
+#     x <- x[-nondets,]
+#     new <- c(x, copy)
+#     return(new)
+#     }
+# }
+# 
+# sim.occ <- reorder(sim.occ)
+# mean.p <- reorder(mean.p)
+# 
+# resp2cov <- reorder(resp2cov)
+# detcovresp <- reorder(detcovresp)
+# 
+# tru <- reorder(tru)
 
 # Augment the observed dataset ------------------------------------
 ems.array <- array(0, dim = c(nsite, nsurvey, ems))
@@ -144,31 +161,80 @@ uninf <- "#Create priors from hyperpriors
             a0[i] ~ dnorm(a0.mean, tau.a0)
             a1[i] ~ dnorm(a1.mean, tau.a1)
 
-            b0[i] ~ dnorm(b0.mean, tau.b0)
-            b1[i] ~ dnorm(b1.mean, tau.b1)"
+            b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 
 weakinf <- "#Create priors from hyperpriors
-              w[i] ~ dbern(omega)
+              w[1:20] ~ dbern(omega)
+              w[21] ~ dbern(0.75)
+              w[22] ~ dbern(0.75)
+              w[23:25] ~ dbern(omega)
               #indicates whether or not species is exposed to sampling
 
               a0[i] ~ dnorm(a0.mean, tau.a0)
-              a0[16] ~ dnorm(a0.mean, tau.a0)T(,a0.mean)
-              a0[17] ~ dnorm(a0.mean, tau.a0)T(a0.mean,)
+              #a0[21] ~ dnorm(a0.mean, tau.a0)T(,a0.mean)
+              #a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean-(2/sqrt(tau.a0)),
+                                                #a0.mean+(2/sqrt(tau.a0)))
 
               a1[i] ~ dnorm(a1.mean, tau.a1)
-              a1[16] ~ dnorm(a1.mean, tau.a1)T(a1.mean-(2/sqrt(tau.a1)),a1.mean+(2/sqrt(tau.a1)))
-              a1[17] ~ dnorm(a1.mean, tau.a1)T(,a1.mean)
+              #a1[21] ~ dnorm(a1.mean, tau.a1)T(,a1.mean)
+              #a1[22] ~ dnorm(a1.mean, tau.a1)
 
-              b0[i] ~ dnorm(b0.mean, tau.b0)
-              b1[i] ~ dnorm(b1.mean, tau.b1)"
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
 
-modinf <- list(c(rep(0, nspec), sim.occ[16:17]*0.5, rep(0, naug)),
-               c(rep(0, nspec), round(resp2cov[16:17])*0.5, rep(0, naug)))
-weakmisinf <- list(c(rep(0, nspec), sim.occ[16:17]*-0.1, rep(0, naug)),
-                   c(rep(0, nspec), round(resp2cov[16:17])*-0.1, rep(0, naug)))
-modmisinf <- list(c(rep(0, nspec), sim.occ[16:17]*-0.5, rep(0, naug)),
-                  c(rep(0, nspec), round(resp2cov[16:17])*-0.5, rep(0, naug)))
+modinf <- "#Create priors from hyperpriors
+              w[i] ~ dbern(omega)
+              w[21] <- 1
+              w[22] <- 1
+              #indicates whether or not species is exposed to sampling
+
+              a0[i] ~ dnorm(a0.mean, tau.a0)
+              a0[21] ~ dnorm(a0.mean, tau.a0)T(,a0.mean-(2/sqrt(tau.a0)))
+              a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean-(1/sqrt(tau.a0)),
+                                               a0.mean+(1/sqrt(tau.a0)))
+
+              a1[i] ~ dnorm(a1.mean, tau.a1)
+              a1[21] ~ dnorm(a1.mean, tau.a1)T(,a1.mean-(2/sqrt(tau.a1)))
+              a1[22] ~ dnorm(a1.mean, tau.a1)T(a1.mean-(1/sqrt(tau.a1)),
+                                               a1.mean+(1/sqrt(tau.a1)))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
+  
+weakmisinf <- "#Create priors from hyperpriors
+                w[i] ~ dbern(omega)
+                w[21] ~ dbern(0.25)
+                w[22] ~ dbern(0.25)
+                #indicates whether or not species is exposed to sampling
+
+                a0[i] ~ dnorm(a0.mean, tau.a0)
+                a0[21] ~ dnorm(a0.mean, tau.a0)T(a0.mean,)
+                a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean+(1/sqrt(tau.a0)),
+                                                 a0.mean-(1/sqrt(tau.a0)))
+
+                a1[i] ~ dnorm(a1.mean, tau.a1)
+                a1[21] ~ dnorm(a1.mean, tau.a1)T(a1.mean,)
+                a1[22] ~ dnorm(a1.mean, tau.a1)T(a1.mean+(1/sqrt(tau.a1)),
+                                                 a1.mean-(1/sqrt(tau.a1)))
+
+                b0[i] ~ dnorm(b0.mean, tau.b0)"
+  
+modmisinf <- "#Create priors from hyperpriors
+                w[i] ~ dbern(omega)
+                w[21] <- 0
+                w[22] <- 0
+                #indicates whether or not species is exposed to sampling
+
+                a0[i] ~ dnorm(a0.mean, tau.a0)
+                a0[21] ~ dnorm(a0.mean, tau.a0)T(a0.mean+(2/sqrt(tau.a0)),)
+                a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean+(2/sqrt(tau.a0)),
+                                                 a0.mean-(2/sqrt(tau.a0)))
+
+                a1[i] ~ dnorm(a1.mean, tau.a1)
+                a1[21] ~ dnorm(a1.mean, tau.a1)T(a1.mean+(2/sqrt(tau.a1)),)
+                a1[22] ~ dnorm(a1.mean, tau.a1)T(a1.mean+(2/sqrt(tau.a1)),
+                                                 a1.mean-(2/sqrt(tau.a1)))
+
+                b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 # Write Models ----------------------------
 # Model without augmentation
@@ -189,10 +255,6 @@ cat("
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
-
-    mean.b1 ~ dunif(0,1)
-    b1.mean <- log(mean.b1)-log(1-mean.b1)
-    tau.b1 ~ dgamma(0.1, 0.1)
     
     for(i in 1:spec){
     #create priors from distributions above
@@ -201,7 +263,6 @@ cat("
     a1[i] ~ dnorm(a1.mean, tau.a1)
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
-    b1[i] ~ dnorm(b1.mean, tau.b1)
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {
@@ -211,7 +272,7 @@ cat("
     
     #Estimate detection of i at point j during sampling period k
     for(k in 1:K[j]){
-    logit(p[j,k,i]) <-  b0[i] + b1[i]*detcov[j,k]
+    logit(p[j,k,i]) <-  b0[i]
     mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
     #The addition of Z means that detecting a species depends on its occupancy
     obs[j,k,i] ~ dbern(mu.p[j,k,i])
@@ -244,13 +305,9 @@ write.model <- function(priors){
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
-
-    mean.b1 ~ dunif(0,1)
-    b1.mean <- log(mean.b1)-log(1-mean.b1)
-    tau.b1 ~ dgamma(0.1, 0.1)
     
     for(i in 1:(spec+aug)){
-    
+
     ",priors,"
     
     #Estimate occupancy of species i at point j
@@ -261,7 +318,7 @@ write.model <- function(priors){
     
     #Estimate detection of i at point j during sampling period k
     for(k in 1:K[j]){
-    logit(p[j,k,i]) <-  b0[i] + b1[i]*detcov[j,k]
+    logit(p[j,k,i]) <-  b0[i]
     mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
     #The addition of Z means that detecting a species depends on its occupancy
     obs[j,k,i] ~ dbern(mu.p[j,k,i])
@@ -282,17 +339,17 @@ write.model <- function(priors){
 VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf, 
                        burn = 2500, iter = 8000, thin = 10){
   # Write model for augmented datasets
-  if(textdoc == 'augmodel.txt')
+  if(textdoc == 'aug_model.txt')
     write.model(priors = priors)
   
   # Compile data into list
-  datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov, detcov = detcov)
+  datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov)
   if(textdoc == 'aug_model.txt'){
     datalist$aug <- aug
   }
 
   # Specify parameters
-  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1', 'b1','Z')
+  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1','Z')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -301,7 +358,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
     mu.psi.guess <- runif(1, 0.25, 1)
     inits <- list(
          a0 = rnorm(n = (spec+aug)), a1 = rnorm(n = (spec+aug)),
-         b0 = rnorm(n = (spec+aug)), b1 = rnorm(n = (spec+aug)),
+         b0 = rnorm(n = (spec+aug)),
          Z = maxobs
     )
     if(textdoc == 'aug_model.txt'){
@@ -329,30 +386,27 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 #            textdoc = 'aug_model.txt', aug = nmiss+naug, burn = 2500, iter = 10000,
 #            thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
-# 
+
 mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
                       textdoc = 'aug_model.txt', aug = nmiss+naug, priors = weakinf,
                       burn = 5000, iter = 12000, thin = 5)
 saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
-# 
-# mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss+naug,
-#                       info1 = modinf[[1]], info2 = modinf[[2]], burn = 7000,
-#                       iter = 12000, thin = 3)
-# saveRDS(mod.inf, file = "mod_inf.rds")
-# 
-# mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                               spec = nspec, textdoc = 'aug_model.txt',
-#                               aug = nmiss+naug, info1 = weakmisinf[[1]],
-#                               info2 = weakmisinf[[2]], burn = 5000, iter = 10000,
-#                               thin = 5)
-# saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
-# 
-# mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                          textdoc = 'aug_model.txt', aug = nmiss+naug,
-#                          info1 = modmisinf[[1]], info2 = modmisinf[[2]], burn = 2500,
-#                          iter = 10000, thin = 10)
-# saveRDS(mod.misinf, file = "mod_misinf.rds")
+
+mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                      textdoc = 'aug_model.txt', aug = nmiss+naug, priors = modinf,
+                      burn = 7000, iter = 12000, thin = 3)
+saveRDS(mod.inf, file = "mod_inf.rds")
+
+mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+                              spec = nspec, textdoc = 'aug_model.txt',
+                              aug = nmiss+naug, priors = weakmisinf,
+                              burn = 5000, iter = 10000, thin = 5)
+saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
+
+mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                         textdoc = 'aug_model.txt', aug = nmiss+naug,
+                         priors = modmisinf, burn = 2500, iter = 10000, thin = 10)
+saveRDS(mod.misinf, file = "mod_misinf.rds")
 
 # Load models -------------------------------
 mod.noaug <- readRDS(file = "mod_noaug.rds")
@@ -382,6 +436,7 @@ get.ns <- function(jag){
 
   Ns.mode <-getmode(Ns)
   Ns.mean <- mean(Ns)
+  Ns.median <- median(Ns)
 
   Ns.plot <- ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)), 
                                          y = Freq))+
@@ -397,7 +452,7 @@ get.ns <- function(jag){
     theme(axis.text.y = element_blank(), legend.key.height = unit(40, units = 'pt'),
           legend.position = c(0.8, 0.8))
 
-  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean)
+  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean, median = Ns.median)
   
   return(out.list)
 }
@@ -414,16 +469,16 @@ compare.psi <- function(jag){
   psi <- plogis(jag$BUGSoutput$sims.list$a0)
   mean.psi <- plogis(jag$BUGSoutput$sims.list$a0.mean)
 
-  psimat <- data.frame(Observed.Mean = apply(psi, 2, mean)[1:17], 
-                      Observed.Lo = apply(psi, 2, quantile, 0.025)[1:17], 
-                      Observed.Hi = apply(psi, 2, quantile, 0.975)[1:17],
+  psimat <- data.frame(Observed.Mean = apply(psi, 2, mean)[1:22], 
+                      Observed.Lo = apply(psi, 2, quantile, 0.025)[1:22], 
+                      Observed.Hi = apply(psi, 2, quantile, 0.975)[1:22],
                       Tru = sim.occ)
 
   accur <- psimat$Tru >= psimat$Observed.Lo & psimat$Tru <= psimat$Observed.Hi
 
   perc.acc <- sum(accur)/(nspec+naug)
 
-  psiplot <- ggplot(data = psimat, aes(x = factor(1:17), y = Tru))+
+  psiplot <- ggplot(data = psimat, aes(x = factor(1:22), y = Tru))+
     geom_point(aes(y = Observed.Mean, color = "Estimated"), size = 2)+
     geom_errorbar(aes(ymin = Observed.Lo, ymax = Observed.Hi,
                       color = "Estimated"), size = 1.25)+
@@ -439,47 +494,12 @@ compare.psi <- function(jag){
   return(outs)
 }
 
-# Detection function
-compare.p <- function(jag){
-  p <- plogis(jag$BUGSoutput$sims.list$b0)
-  p.mean <- plogis(jag$BUGSoutput$sims.list$b0.mean)
-  
-  pmat <- data.frame(Observed.Mean = apply(p, 2, mean)[1:17], 
-                       Observed.Lo = apply(p, 2, quantile, 0.025)[1:17], 
-                       Observed.Hi = apply(p, 2, quantile, 0.975)[1:17],
-                       Tru = mean.p)
-  
-  accur <- pmat$Tru >= pmat$Observed.Lo &
-    pmat$Tru <= pmat$Observed.Hi
-  
-  perc.acc <- sum(accur)/(nspec+naug)
-  
-  pplot <- ggplot(data = pmat, aes(x = factor(1:17), y = Tru))+
-    geom_point(aes(y = Observed.Mean, color = "Estimated"), size = 2)+
-    geom_errorbar(aes(ymin = Observed.Lo, ymax = Observed.Hi,
-                      color = "Estimated"), size = 1.25)+
-    geom_point(aes(color = "True"), size = 2)+
-    geom_hline(aes(yintercept = mean(mean.p)), alpha = 0.5, linetype = 'dashed')+
-    scale_color_manual(values = c("black", "red"))+
-    labs(x = "Species", y = "Detection Probability")+
-    theme_bw(base_size = 18)+
-    theme(legend.title = element_blank(), panel.grid = element_blank())
-  
-  outs <- list(accuracy = perc.acc, plot = pplot)
-  
-  return(outs)
-}
-
 # Get outputs
 psi.outs <- lapply(mod.outputs, compare.psi)
-p.outs <- lapply(mod.outputs, compare.p)
 
 # View accuracy and plots
 map(psi.outs, 1)
 map(psi.outs, 2)
-
-map(p.outs, 1)
-map(p.outs, 2)
 
 # Function to compare covariate responses ----------------------
 compare.cov <- function(jag){

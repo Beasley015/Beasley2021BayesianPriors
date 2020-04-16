@@ -15,10 +15,6 @@
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
-
-    mean.b1 ~ dunif(0,1)
-    b1.mean <- log(mean.b1)-log(1-mean.b1)
-    tau.b1 ~ dgamma(0.1, 0.1)
     
     for(i in 1:spec){
     #create priors from distributions above
@@ -27,7 +23,6 @@
     a1[i] ~ dnorm(a1.mean, tau.a1)
     
     b0[i] ~ dnorm(b0.mean, tau.b0)
-    b1[i] ~ dnorm(b1.mean, tau.b1)
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {
@@ -37,7 +32,7 @@
     
     #Estimate detection of i at point j during sampling period k
     for(k in 1:K[j]){
-    logit(p[j,k,i]) <-  b0[i] + b1[i]*detcov[j,k]
+    logit(p[j,k,i]) <-  b0[i]
     mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
     #The addition of Z means that detecting a species depends on its occupancy
     obs[j,k,i] ~ dbern(mu.p[j,k,i])
