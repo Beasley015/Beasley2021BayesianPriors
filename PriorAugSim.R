@@ -339,7 +339,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
   }
 
   # Specify parameters
-  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1','Z')
+  parms <- c('N', 'omega','a0.mean', 'b0.mean', 'a0', 'b0', 'a1','Z')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -410,6 +410,7 @@ mod.misinf <- readRDS("wionly/mod_misinf.rds")
 
 # Models with informed covariates
 
+# Put models in a list
 mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf, mod.misinf.weak, mod.misinf)
 
 # Function to compare estimates of N -----------------------------------
@@ -438,12 +439,12 @@ get.ns <- function(jag){
     geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"), size = 1.5)+
     scale_linetype_manual(values = c("Estimated"="dotted", "True"="solid"),
                           name = "", labels = c("Median Estimate", "True"))+
-    labs(x = "Number of Species")+
+    labs(x = "Estimated Species", y = "Frequency")+
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
     theme_classic(base_size = 18)+
-    theme(axis.text.y = element_blank(), legend.key.height = unit(40, units = 'pt'),
-          legend.position = c(0.8, 0.8))
+    theme(axis.text.y = element_blank(), axis.title.y = element_blank(),
+          legend.key.height = unit(40, units = 'pt'))
 
   out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean, median = Ns.median)
   
@@ -457,6 +458,30 @@ map(N.outs, 1)
 map(N.outs, 2)
 map(N.outs, 3)
 map(N.outs, 4)
+
+#Put histograms in single figure
+layout <- 
+  "#AA#
+   BBCC
+   DDEE"
+
+histos <- map(N.outs, 1) 
+
+Ns.megaplot <- histos[[1]]+ ggtitle('A)') +
+  histos[[2]] + ggtitle('B)') +
+  histos[[3]] + ggtitle('C)') +
+  histos[[4]] + ggtitle('D)') +
+  histos[[5]] + ggtitle('E)') +
+  plot_layout(design = layout, guides = 'collect')
+
+#Save figure
+ggsave(Ns.megaplot, file = "Nswionly.jpeg", height = 7,width = 7, units = "in")
+
+
+# Get omegas ------------------------------------------
+get.omega <- function(jag){
+  
+}
 
 # Function to compare mean occupancy & detection probabilities ----------------
 # Occupancy function
