@@ -10,11 +10,11 @@ library(tidyverse)
 library(MASS)
 library(abind)
 library(boot)
-library(AICcmodavg)
 library(viridis)
+library(patchwork)
 
 # Set seed
-set.seed(15)
+set.seed(16)
 
 # Global variables
 nspec <- 20
@@ -26,7 +26,7 @@ nsurvey <- 4
 
 Ks <- rep(nsurvey, nsite)
 
-# Matrix of covariate responses
+# Vector of covariate responses
 resp2cov <- c(rnorm(n = 7, sd = 0.25),
               rnorm(n = 8, mean = 3, sd = 0.25),
               rnorm(n = 7, mean = -3, sd = 0.25))
@@ -121,32 +121,32 @@ maxobs <- apply(obs.data, c(1,3), max)
 colSums(maxobs)
 
 # Remove species with fewest detections: these will be "undetected" species
-obs.data <- obs.data[,,-which(colSums(maxobs)==0)]
+obs.data <- obs.data[,,-c(21:22)]
 
 # Function to reorder true values, if needed
-reorder <- function(x){
-  if (length(dim(x)) == 0){
-    nondets <- which(colSums(maxobs) == 0)
-    copy <- x[nondets]
-    x <- x[-nondets]
-    new <- c(x, copy)
-    return(new)
-    }
-  else {
-    nondets <- which(colSums(maxobs) == 0)
-    copy <- x[nondets,]
-    x <- x[-nondets,]
-    new <- rbind(x, copy)
-    return(new)
-    }
-}
-
-sim.occ <- reorder(sim.occ)
-mean.p <- reorder(mean.p)
-
-resp2cov <- reorder(resp2cov)
-
-tru <- reorder(tru)
+# reorder <- function(x){
+#   if (length(dim(x)) == 0){
+#     nondets <- which(colSums(maxobs) == 0)
+#     copy <- x[nondets]
+#     x <- x[-nondets]
+#     new <- c(x, copy)
+#     return(new)
+#     }
+#   else {
+#     nondets <- which(colSums(maxobs) == 0)
+#     copy <- x[nondets,]
+#     x <- x[-nondets,]
+#     new <- rbind(x, copy)
+#     return(new)
+#     }
+# }
+# 
+# sim.occ <- reorder(sim.occ)
+# mean.p <- reorder(mean.p)
+# 
+# resp2cov <- reorder(resp2cov)
+# 
+# tru <- reorder(tru)
 
 # Augment the observed dataset ------------------------------------
 ems.array <- array(0, dim = c(nsite, nsurvey, ems))
@@ -459,7 +459,7 @@ map(N.outs, 2)
 map(N.outs, 3)
 map(N.outs, 4)
 
-#Put histograms in single figure
+# Put histograms in single figure
 layout <- 
   "#AA#
    BBCC
@@ -474,49 +474,32 @@ Ns.megaplot <- histos[[1]]+ ggtitle('A)') +
   histos[[5]] + ggtitle('E)') +
   plot_layout(design = layout, guides = 'collect')
 
-#Save figure
-ggsave(Ns.megaplot, file = "Nswionly.jpeg", height = 7,width = 7, units = "in")
+# Save figure
+# ggsave(Ns.megaplot, file = "Nswionly.jpeg", height = 7,width = 7, units = "in")
 
 
 # Get omegas ------------------------------------------
 get.omega <- function(jag){
+  os <- jag$BUGSoutput$sims.list$omega
   
-}
-
-# Function to compare mean occupancy & detection probabilities ----------------
-# Occupancy function
-compare.psi <- function(jag){
-  psi <- plogis(jag$BUGSoutput$sims.list$a0)
-  mean.psi <- plogis(jag$BUGSoutput$sims.list$a0.mean)
-
-  psimat <- data.frame(Observed.Mean = apply(psi, 2, mean)[1:22], 
-                      Observed.Lo = apply(psi, 2, quantile, 0.025)[1:22], 
-                      Observed.Hi = apply(psi, 2, quantile, 0.975)[1:22],
-                      Tru = sim.occ)
-  
-  psi <- psi[,1:22]
-  colnames(psi) <- as.factor(c(1:22))
-  psiframe <- gather(as.data.frame(psi), key = "Species", value = "Value")
-
-  ggplot(data = psimat, aes(x = factor(1:22), y = Tru))+
-    geom_violin(aes(y = psiframe$Value))+
-    geom_point(size = 2)+
-    geom_hline(aes(yintercept = mean(mean.psi)), alpha = 0.5, linetype = 'dashed')+
-    labs(x = "Species", y = "Occupancy Probability")+
+  omega.plot <- ggplot()+
+    geom_density(aes(x = os), fill = 'lightgray')+
+    labs(x = "Regional Occurrence Probability", y = "Density")+
+    scale_x_continuous(limits = c(0,1))+
     theme_bw(base_size = 18)+
-    theme(legend.title = element_blank(), panel.grid = element_blank())
+    theme(panel.grid = element_blank())
   
-  outs <- list(accuracy = perc.acc, plot = psiplot)
-  
-  return(outs)
+  return(omega.plot)
 }
 
-# Get outputs
-psi.outs <- lapply(mod.outputs, compare.psi)
+omegas.out <- lapply(mod.outputs, get.omega)
 
-# View accuracy and plots
-map(psi.outs, 1)
-map(psi.outs, 2)
+Os.megaplot <- omegas.out[[1]]+ ggtitle('A)') +
+  omegas.out[[2]] + ggtitle('B)') +
+  omegas.out[[3]] + ggtitle('C)') +
+  omegas.out[[4]] + ggtitle('D)') +
+  omegas.out[[5]] + ggtitle('E)') +
+  plot_layout(design = layout)
 
 # Function to compare covariate responses ----------------------
 compare.cov <- function(jag){
@@ -640,23 +623,11 @@ richness.bias <- function(jag){
     theme_bw(base_size = 18)+
     theme(panel.grid = element_blank())
   
-  # Examine fits of different curves
-  linear <- glm(data = rich.all, Estimated~True)
-  expon <- glm(data = rich.all, Estimated~True.Sq)
-  quad <- glm(data = rich.all, Estimated~True+True.Sq)
-  
-  comparison <- aictab(cand.set = list(linear, expon, quad),
-                       modnames = c("linear", "exponential", "quadratic"))
-  
-  outs <- list(Plot = rich.plot, AIC = comparison, Model = summary(linear))
-  
-  return(outs)
+  return(rich.plot)
 }
 
 bias.out <- lapply(mod.outputs, richness.bias)
-map(bias.out, 1)
-map(bias.out, 2)
-map(bias.out, 3)
+print(bias.out)
 
 # Compare error and detection probability ---------------------------
 erdet <- function(jag){
