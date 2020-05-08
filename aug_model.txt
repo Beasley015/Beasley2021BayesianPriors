@@ -20,20 +20,24 @@
     for(i in 1:(spec+aug)){
 
      #Create priors from hyperpriors
-                w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.0001, omega))
-                #indicates whether or not species is exposed to sampling
+              g <- i - 20
+              a0.lo[1] <- a0.mean-(5/sqrt(tau.a0)) 
+              a0.l0[2] <- a0.mean-(2/sqrt(tau.a0))
+              a0.lo[3] <- a0.mean-(5/sqrt(tau.a0))
+          
+              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
+              #indicates whether or not species is exposed to sampling
 
-                a0[i] ~ dnorm(a0.mean, tau.a0)
-                #a0[21] ~ dnorm(a0.mean, tau.a0)T(a0.mean+(2/sqrt(tau.a0)),)
-                #a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean+(2/sqrt(tau.a0)),
-                                                 #a0.mean-(2/sqrt(tau.a0)))
+              a0[i] ~ dnorm(a0.mean, tau.a0) T(ifelse(g == 1 || g == 2, a0.lo[g], a0.lo[3]), )
+              #a0[21] ~ dnorm(a0.mean, tau.a0)T(,a0.mean)
+              #a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean-(2/sqrt(tau.a0)),
+                                                #a0.mean+(2/sqrt(tau.a0)))
 
-                a1[i] ~ dnorm(a1.mean, tau.a1)
-                #a1[21] ~ dnorm(a1.mean, tau.a1)T(a1.mean+(2/sqrt(tau.a1)),)
-                #a1[22] ~ dnorm(a1.mean, tau.a1)T(a1.mean+(2/sqrt(tau.a1)),
-                                                 #a1.mean-(2/sqrt(tau.a1)))
+              a1[i] ~ dnorm(a1.mean, tau.a1)
+              #a1[21] ~ dnorm(a1.mean, tau.a1)T(,a1.mean)
+              #a1[22] ~ dnorm(a1.mean, tau.a1)
 
-                b0[i] ~ dnorm(b0.mean, tau.b0) 
+              b0[i] ~ dnorm(b0.mean, tau.b0) 
     
     #Estimate occupancy of species i at point j
     for (j in 1:J) {

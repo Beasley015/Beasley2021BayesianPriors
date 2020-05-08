@@ -164,10 +164,15 @@ uninf <- "#Create priors from hyperpriors
 
 
 weakinf <- "#Create priors from hyperpriors
+              g <- i - 20
+              a0.lo[1] <- a0.mean-(5/sqrt(tau.a0)) 
+              a0.l0[2] <- a0.mean-(2/sqrt(tau.a0))
+              a0.lo[3] <- a0.mean-(5/sqrt(tau.a0))
+          
               w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
               #indicates whether or not species is exposed to sampling
 
-              a0[i] ~ dnorm(a0.mean, tau.a0)
+              a0[i] ~ dnorm(a0.mean, tau.a0) T(ifelse(g == 1 || g == 2, a0.lo[g], a0.lo[3]), )
               #a0[21] ~ dnorm(a0.mean, tau.a0)T(,a0.mean)
               #a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean-(2/sqrt(tau.a0)),
                                                 #a0.mean+(2/sqrt(tau.a0)))
@@ -377,10 +382,10 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 #            thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
-# mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss+naug, priors = weakinf,
-#                       burn = 5000, iter = 12000, thin = 5)
-# saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
+mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                      textdoc = 'aug_model.txt', aug = nmiss+naug, priors = weakinf,
+                      burn = 5000, iter = 12000, thin = 5)
+saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
 # 
 # mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
 #                       textdoc = 'aug_model.txt', aug = nmiss+naug, priors = modinf,
