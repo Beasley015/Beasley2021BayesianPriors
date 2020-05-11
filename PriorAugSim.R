@@ -153,7 +153,8 @@ ems.array <- array(0, dim = c(nsite, nsurvey, ems))
 obs.aug <- abind(obs.data, ems.array, along = 3)
 
 # Add prior information --------------------------------
-uninf <- "#Create priors from hyperpriors
+uninf <- "for(i in 1:(spec+aug)){
+          #Create priors from hyperpriors
             w[i] ~ dbern(omega)
             #indicates whether or not species is exposed to sampling
 
@@ -163,19 +164,22 @@ uninf <- "#Create priors from hyperpriors
             b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 
-weakinf <- "#Create priors from hyperpriors
-              g <- i - 20
-              a0.lo[1] <- a0.mean-(5/sqrt(tau.a0)) 
-              a0.l0[2] <- a0.mean-(2/sqrt(tau.a0))
-              a0.lo[3] <- a0.mean-(5/sqrt(tau.a0))
-          
+weakinf <- "#Add info for species-level priors
+            a0.lo1 <- a0.mean-(5/sqrt(tau.a0)) 
+            a0.lo2 <- a0.mean-(2/sqrt(tau.a0))
+            a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
+              
+            a0.lo <- c(a0.lo1, a0.lo2, a0.lo3)
+
+            for(i in 1:(spec+aug)){
+            #Create priors from hyperpriors
+              g[i] <- i - 20
+              
               w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
               #indicates whether or not species is exposed to sampling
 
-              a0[i] ~ dnorm(a0.mean, tau.a0) T(ifelse(g == 1 || g == 2, a0.lo[g], a0.lo[3]), )
-              #a0[21] ~ dnorm(a0.mean, tau.a0)T(,a0.mean)
-              #a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean-(2/sqrt(tau.a0)),
-                                                #a0.mean+(2/sqrt(tau.a0)))
+              # Indexing problem is here
+              a0[i] ~ dnorm(a0.mean, tau.a0) T(ifelse(g[i] == 1, a0.lo[g[i]], a0.lo[3]), )
 
               a1[i] ~ dnorm(a1.mean, tau.a1)
               #a1[21] ~ dnorm(a1.mean, tau.a1)T(,a1.mean)
@@ -300,8 +304,6 @@ write.model <- function(priors){
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
-    
-    for(i in 1:(spec+aug)){
 
     ",priors,"
     
