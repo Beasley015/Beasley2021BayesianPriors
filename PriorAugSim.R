@@ -165,43 +165,62 @@ uninf <- "for(i in 1:(spec+aug)){
 
 
 weakinf <- "#Add info for species-level priors
+            lim <- c(20, 21, 22)    
+            
+            #Intercept information
             a0.lo1 <- a0.mean-(5/sqrt(tau.a0)) 
             a0.lo2 <- a0.mean-(2/sqrt(tau.a0))
             a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
               
-            a0.lo <- c(a0.lo1, a0.lo2, a0.lo3)
+            a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
+            
+            a0.hi1 <- a0.mean+(1/sqrt(tau.a0))
+            a0.hi2 <- a0.mean+(2/sqrt(tau.a0))
+            a0.hi3 <- a0.mean+(5/sqrt(tau.a0))
+            
+            a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
+            
+            #Covariate information
+            a1.lo1 <- a1.mean-(2/sqrt(tau.a1))
+            a1.lo2 <- a1.mean-(1/sqrt(tau.a1))
+            a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
+            
+            a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
+            
+            a1.hi1 <- a1.mean+(2/sqrt(tau.a1))
+            a1.hi2 <- a1.mean+(5/sqrt(tau.a1))
+            a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
+            
+            a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)"
 
-            for(i in 1:(spec+aug)){
-            #Create priors from hyperpriors
-              g[i] <- i - 20
+modinf <- "#Add info for species-level priors
+            lim <- c(20, 21, 22)    
+            
+            #Intercept information
+            a0.lo1 <- a0.mean-(5/sqrt(tau.a0)) 
+            a0.lo2 <- a0.mean-(1/sqrt(tau.a0))
+            a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
               
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
-              #indicates whether or not species is exposed to sampling
-
-              # Indexing problem is here
-              a0[i] ~ dnorm(a0.mean, tau.a0) T(ifelse(g[i] == 1, a0.lo[g[i]], a0.lo[3]), )
-
-              a1[i] ~ dnorm(a1.mean, tau.a1)
-              #a1[21] ~ dnorm(a1.mean, tau.a1)T(,a1.mean)
-              #a1[22] ~ dnorm(a1.mean, tau.a1)
-
-              b0[i] ~ dnorm(b0.mean, tau.b0)"
-
-modinf <- "#Create priors from hyperpriors
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.999, omega))
-              #indicates whether or not species is exposed to sampling
-
-              a0[i] ~ dnorm(a0.mean, tau.a0)
-              #a0[21] ~ dnorm(a0.mean, tau.a0)T(,a0.mean-(2/sqrt(tau.a0)))
-              #a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean-(1/sqrt(tau.a0)),
-                                               #a0.mean+(1/sqrt(tau.a0)))
-
-              a1[i] ~ dnorm(a1.mean, tau.a1)
-              #a1[21] ~ dnorm(a1.mean, tau.a1)T(,a1.mean-(2/sqrt(tau.a1)))
-              #a1[22] ~ dnorm(a1.mean, tau.a1)T(a1.mean-(1/sqrt(tau.a1)),
-                                               #a1.mean+(1/sqrt(tau.a1)))
-
-              b0[i] ~ dnorm(b0.mean, tau.b0)"
+            a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
+            
+            a0.hi1 <- a0.mean+0.001
+            a0.hi2 <- a0.mean+(2/sqrt(tau.a0))
+            a0.hi3 <- a0.mean+(5/sqrt(tau.a0))
+            
+            a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
+            
+            #Covariate information
+            a1.lo1 <- a1.mean-(1/sqrt(tau.a1))
+            #a1.lo2 <- a1.mean-(5/sqrt(tau.a1))
+            a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
+            
+            a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
+            
+            a1.hi1 <- a1.mean+(1/sqrt(tau.a1))
+            a1.hi2 <- a1.mean+(5/sqrt(tau.a1))
+            a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
+            
+            a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)"
   
 weakmisinf <- "#Create priors from hyperpriors
                 w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.25, omega))
@@ -307,18 +326,31 @@ write.model <- function(priors){
 
     ",priors,"
     
-    #Estimate occupancy of species i at point j
-    for (j in 1:J) {
-    logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
-    mu.psi[j,i] <- psi[j,i] * w[i]
-    Z[j,i] ~ dbern(mu.psi[j,i])
+    for(i in 1:(spec+aug)){
+      #Create priors from hyperpriors
+      g[i] ~ dinterval(i, lim)
+              
+      w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
+      #indicates whether or not species is exposed to sampling
+
+      a0[i] ~ dnorm(a0.mean, tau.a0)T(a0.lo[g[i]+1], a0.hi[g[i]+1])
+
+      a1[i] ~ dnorm(a1.mean, tau.a1)T(a1.lo[g[i]+1], a1.hi[g[i]+1])
+
+      b0[i] ~ dnorm(b0.mean, tau.b0)
     
-    #Estimate detection of i at point j during sampling period k
-    for(k in 1:K[j]){
-    logit(p[j,k,i]) <-  b0[i]
-    mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
-    #The addition of Z means that detecting a species depends on its occupancy
-    obs[j,k,i] ~ dbern(mu.p[j,k,i])
+      #Estimate occupancy of species i at point j
+      for (j in 1:J) {
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+        mu.psi[j,i] <- psi[j,i] * w[i]
+        Z[j,i] ~ dbern(mu.psi[j,i])
+    
+        #Estimate detection of i at point j during sampling period k
+        for(k in 1:K[j]){
+          logit(p[j,k,i]) <-  b0[i]
+          mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
+          #The addition of Z means that detecting a species depends on its occupancy
+          obs[j,k,i] ~ dbern(mu.p[j,k,i])
     }
     }
     }
@@ -384,15 +416,16 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 #            thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
-mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-                      textdoc = 'aug_model.txt', aug = nmiss+naug, priors = weakinf,
-                      burn = 5000, iter = 12000, thin = 5)
-saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
+# mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                            spec = nspec,textdoc = 'aug_model.txt', 
+#                            aug = nmiss+naug, priors = weakinf, burn = 5000, 
+#                            iter = 12000, thin = 5)
+# saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
 # 
-# mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss+naug, priors = modinf,
-#                       burn = 7000, iter = 12000, thin = 3)
-# saveRDS(mod.inf, file = "mod_inf.rds")
+mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                      textdoc = 'aug_model.txt', aug = nmiss+naug, priors = modinf,
+                      burn = 7000, iter = 12000, thin = 3)
+saveRDS(mod.inf, file = "mod_inf.rds")
 # 
 # mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
 #                               spec = nspec, textdoc = 'aug_model.txt',
