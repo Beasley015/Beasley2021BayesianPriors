@@ -570,6 +570,84 @@ Os.megaplot <- omegas.out[[1]]+ ggtitle('A)') +
   omegas.out[[5]] + ggtitle('E)') +
   plot_layout(design = layout)
 
+# Compare site-level richness ---------------------------
+# Create list with unaugmented data
+biglist <- list(mod.noaug, mod.uninf, mod.inf.weak, mod.inf, mod.misinf.weak, 
+                mod.misinf)
+
+# Pull Zs from each item in list  
+Zs <- lapply(biglist, function(x) x$BUGSoutput$sims.list$Z)
+
+# Get avg. occurrence matrices  
+Zs.mean <- lapply(Zs, apply, c(2,3), mean)
+
+# Get site-level richness  
+site.rich <- lapply(Zs.mean, rowSums)
+
+# Convert list to data.frame
+rich.frame <- as.data.frame(do.call(cbind, site.rich))
+colnames(rich.frame) <- c('noaug', 'uninf', 'inf.weak', 'inf', 'misinf.weak',
+                          'misinf')
+
+rich.frame$True <- colSums(tru)
+rich.frame$Obs <- rowSums(apply(obs.data, c(1,3), max))
+rich.frame$Rank <- rank(rich.frame$True, ties.method = 'first')
+
+rich.long <- rich.frame %>%
+  pivot_longer(noaug:Obs, names_to = 'model', values_to = 'Richness')
+  
+rich.plot <- ggplot(data = rich.long, aes(x = Rank, y = Richness, color = model))+
+  geom_point()+
+  geom_smooth(aes(fill = model), method = 'lm', alpha = 0.2)+
+  labs(x = "Sites (Ranked)")+
+  expand_limits(y = 0)+
+  scale_color_viridis_d()+
+  scale_fill_viridis_d()+
+  theme_bw(base_size = 18)+
+  theme(panel.grid = element_blank(), legend.title = element_blank())
+
+ggsave(rich.plot, filename = 'richplot.jpeg')
+
+# Compare typical bias of each prior method ---------------------------
+# Get series of site-level estimates from Zs
+Zs.replicates <- lapply(Zs, apply, c(1,2), sum)
+
+# Subtract each replicate vector from the true value
+rich.diffs <- lapply(Zs.replicates, apply, 1, function(x) x-colSums(tru))
+
+# Convert each matrix in list into a giant vector
+rich.vecs <- lapply(rich.diffs, as.vector)
+
+# Get avg deviance from true value
+mean.diff <- unlist(lapply(rich.diffs, mean))
+
+# Create histograms
+make.rich.hists <- function(x){
+  plot <- ggplot()+
+    geom_bar(aes(x = x), fill = 'darkgray')+
+    geom_vline(xintercept = 0)+
+    labs(x = "Richness")+
+    theme_bw(base_size = 18)+
+    theme(axis.title.y = element_blank(), panel.grid = element_blank())
+  
+  return(plot)
+}
+
+rich.hists <- lapply(rich.vecs, make.rich.hists)
+
+layout2 <- "
+AABB
+CCDD
+EEFF"
+
+rich.hists[[1]]+
+  rich.hists[[2]]+
+  rich.hists[[3]]+
+  rich.hists[[4]]+
+  rich.hists[[5]]+
+  rich.hists[[6]]+
+  plot_layout(design = layout2)
+
 # Function to compare covariate responses ----------------------
 compare.cov <- function(jag){
   cov.est <- jag$BUGSoutput$sims.list$a1
@@ -596,39 +674,6 @@ compare.cov <- function(jag){
 cov.out <- lapply(mod.outputs, compare.cov)
 
 print(cov.out)
-
-# Function to compare true/estimated/observed species richness ------------
-richness.comp <- function(jag){
-  Zs <- jag$BUGSoutput$sims.list$Z
-
-  Zs.mean <- apply(Zs, c(2,3), mean)
-
-  site.rich <- rowSums(Zs.mean)
-  tru.rich <- colSums(tru)
-  obs.rich <- rowSums(apply(obs.data, c(1,3), max))
-
-  rich.all <- data.frame(Rank = rank(tru.rich), Estimated = site.rich, 
-                         True = tru.rich,Observed = obs.rich)
-
-  rich.plot <- ggplot(data = rich.all, aes(x = Rank, y = True))+
-    geom_point(aes(color = "True"))+
-    geom_smooth(aes(color = "True"), method = 'lm')+
-    geom_point(aes(y = Estimated, color = "Estimated"))+
-    geom_smooth(aes(y = Estimated, color = "Estimated"), method = 'lm')+
-    geom_point(aes(y = Observed, color = "Observed"))+
-    geom_smooth(aes(y = Observed, color = "Observed"), method = 'lm')+
-    labs(x = "Sites (Ranked)")+
-    expand_limits(y = 0)+
-    scale_color_viridis_d()+
-    theme_bw(base_size = 18)+
-    theme(panel.grid = element_blank(), legend.title = element_blank())
-  
-  return(rich.plot)
-}
-
-rich.out <- lapply(mod.outputs, richness.comp)
-
-print(rich.out)
 
 # Function looking at observed~true occupancy -------------------------
 error.raster <- function(jag){
