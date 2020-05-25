@@ -237,6 +237,7 @@ modinf <- "#Add info for species-level priors
               w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.95, omega))
               #indicates whether or not species is exposed to sampling"
   
+# Inits also need adjusting here
 weakmisinf <- "#Add info for species-level priors
             lim <- c(20, 21, 22)    
             
@@ -254,13 +255,13 @@ weakmisinf <- "#Add info for species-level priors
             a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
             
             #Covariate information
-            a1.lo1 <- a1.mean+(2/sqrt(tau.a1))
+            a1.lo1 <- a1.mean-(5/sqrt(tau.a1))
             a1.lo2 <- a1.mean-(5/sqrt(tau.a1))
             a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
             
             a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
             
-            a1.hi1 <- a1.mean-(2/sqrt(tau.a1))
+            a1.hi1 <- a1.mean+(1/sqrt(tau.a1))
             a1.hi2 <- a1.mean+0.001
             a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
             
@@ -272,22 +273,43 @@ weakmisinf <- "#Add info for species-level priors
               
               w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.25, omega))
               #indicates whether or not species is exposed to sampling"
-  
-modmisinf <- "#Create priors from hyperpriors
-                w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.0001, omega))
-                #indicates whether or not species is exposed to sampling
+ 
+#Inits adjusted here too 
+modmisinf <- "#Add info for species-level priors
+            lim <- c(20, 21, 22)    
+            
+            #Intercept information
+            a0.lo1 <- a0.mean+(1/sqrt(tau.a0))
+            a0.lo2 <- a0.mean-(1/sqrt(tau.a0))
+            a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
+              
+            a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
+            
+            a0.hi1 <- a0.mean+(5/sqrt(tau.a0))
+            a0.hi2 <- a0.mean+(1/sqrt(tau.a0))
+            a0.hi3 <- a0.mean+(5/sqrt(tau.a0))
+            
+            a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
+            
+            #Covariate information
+            a1.lo1 <- a1.mean-(5/sqrt(tau.a1))
+            a1.lo2 <- a1.mean-(5/sqrt(tau.a1))
+            a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
+            
+            a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
+            
+            a1.hi1 <- a1.mean+0.001
+            a1.hi2 <- a1.mean-(1/sqrt(tau.a1))
+            a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
+            
+            a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)
 
-                a0[i] ~ dnorm(a0.mean, tau.a0)
-                #a0[21] ~ dnorm(a0.mean, tau.a0)T(a0.mean+(2/sqrt(tau.a0)),)
-                #a0[22] ~ dnorm(a0.mean, tau.a0)T(a0.mean+(2/sqrt(tau.a0)),
-                                                 #a0.mean-(2/sqrt(tau.a0)))
-
-                a1[i] ~ dnorm(a1.mean, tau.a1)
-                #a1[21] ~ dnorm(a1.mean, tau.a1)T(a1.mean+(2/sqrt(tau.a1)),)
-                #a1[22] ~ dnorm(a1.mean, tau.a1)T(a1.mean+(2/sqrt(tau.a1)),
-                                                 #a1.mean-(2/sqrt(tau.a1)))
-
-                b0[i] ~ dnorm(b0.mean, tau.b0)"
+            for(i in 1:(spec+aug)){
+              #Create priors from hyperpriors
+              g[i] ~ dinterval(i, lim)
+              
+              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.25, omega))
+              #indicates whether or not species is exposed to sampling"
 
 # Write Models ----------------------------
 # Model without augmentation
@@ -414,8 +436,8 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
     omega.guess <- runif(1,0,1)
     mu.psi.guess <- runif(1, 0.25, 1)
     inits <- list(
-         a0 = c(logit(sim.occ)+rnorm(nspec+nmiss,0,0.1),rnorm(naug)), 
-         a1 = c(resp2cov+rnorm(nspec+nmiss, 0, 0.1), rnorm(naug)),
+         a0 = c(-logit(sim.occ)+rnorm(nspec+nmiss,0,0.1),rnorm(naug)), 
+         a1 = c(-resp2cov+rnorm(nspec+nmiss, 0, 0.1), rnorm(naug)),
          b0 = rnorm(n = (spec+aug)),
          Z = maxobs
     )
@@ -456,11 +478,11 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 #                       burn = 7000, iter = 12000, thin = 3)
 # saveRDS(mod.inf, file = "mod_inf.rds")
 # 
-mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-                              spec = nspec, textdoc = 'aug_model.txt',
-                              aug = nmiss+naug, priors = weakmisinf,
-                              burn = 5000, iter = 10000, thin = 5)
-saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
+# mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                               spec = nspec, textdoc = 'aug_model.txt',
+#                               aug = nmiss+naug, priors = weakmisinf,
+#                               burn = 5000, iter = 10000, thin = 5)
+# saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
 # 
 # mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
 #                          textdoc = 'aug_model.txt', aug = nmiss+naug,
@@ -471,13 +493,18 @@ saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
 mod.noaug <- readRDS(file = "mod_noaug.rds")
 
 # Models with uninformed covariates
-mod.uninf <- readRDS("wionly/mod_uninf.rds")
+mod.uninf <- readRDS("mod_uninf.rds")
 mod.inf.weak <- readRDS("wionly/mod_inf_weak.rds")
 mod.inf <- readRDS("wionly/mod_inf.rds")
 mod.misinf.weak <- readRDS("wionly/mod_misinf_weak.rds")
 mod.misinf <- readRDS("wionly/mod_misinf.rds")
 
 # Models with informed covariates
+mod.uninf <- readRDS("mod_uninf.rds")
+mod.inf.weak <- readRDS("mod_inf_weak.rds")
+mod.inf <- readRDS("mod_inf.rds")
+mod.misinf.weak <- readRDS("mod_misinf_weak.rds")
+mod.misinf <- readRDS("mod_misinf.rds")
 
 # Put models in a list
 mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf, mod.misinf.weak, mod.misinf)
@@ -640,40 +667,50 @@ AABB
 CCDD
 EEFF"
 
-rich.hists[[1]]+
-  rich.hists[[2]]+
-  rich.hists[[3]]+
-  rich.hists[[4]]+
-  rich.hists[[5]]+
-  rich.hists[[6]]+
+allthehists <- rich.hists[[1]]+ ggtitle("No Augmentation")+
+  rich.hists[[2]]+ ggtitle("Uninformed")+
+  rich.hists[[3]]+ ggtitle("Weakly Informed")+
+  rich.hists[[4]]+ ggtitle("Informed")+
+  rich.hists[[5]]+ ggtitle("Weakly Misinformed")+
+  rich.hists[[6]]+ ggtitle("Misinformed")+
   plot_layout(design = layout2)
 
+ggsave(allthehists, file = "allthehists.jpeg", height = 8, width = 8, units = 'in')
+
 # Function to compare covariate responses ----------------------
-compare.cov <- function(jag){
-  cov.est <- jag$BUGSoutput$sims.list$a1
+a1s <- lapply(biglist, function(x) x$BUGSoutput$sims.list$a1)
 
-  covmat <- data.frame(Observed.Mean = apply(cov.est, 2, mean)[1:22], 
-                     Observed.Lo = apply(cov.est, 2, quantile, 0.025)[1:22],
-                     Observed.Hi = apply(cov.est, 2, quantile, 0.975)[1:22],
-                     Tru = resp2cov)
+a1.frame <- lapply(a1s, as.data.frame)
 
-  covplot <- ggplot(data = covmat, aes(x = factor(1:22), y = Tru))+
-    geom_point(aes(y = Observed.Mean, color = "Estimated"), size = 2)+
-    geom_errorbar(aes(ymin = Observed.Lo, ymax = Observed.Hi,
-                      color = "Estimated"), size = 1.25)+
-    geom_point(aes(color = "True"), size = 2)+
-    geom_hline(aes(yintercept = 0), alpha = 0.5, linetype = 'dashed')+
-    scale_color_manual(values = c("black", "red"))+
-    labs(x = "Species", y = "Coefficient")+
-    theme_bw(base_size = 18)+
-    theme(legend.title = element_blank(), panel.grid = element_blank())
+specnames <- paste("Spec", c(1:25), sep = "")
 
-  return(covplot)
+a1.frame <- lapply(a1.frame, function(x) setNames(x,specnames[1:ncol(x)]))
+
+# Problem with this function
+# credint <- function(x){
+#   x <- x[x < quantile(x, 0.975) | x > quantile(x, 0.025)]
+# }
+# 
+# a1.frame <- lapply(a1.frame, function(y) apply(y,2,credint))
+
+longggggg.frame <- function(x){
+  y <- x %>%
+    pivot_longer(cols = everything(), names_to = "Spec", values_to = "a1")
+  
+  return(y)
 }
 
-cov.out <- lapply(mod.outputs, compare.cov)
+a1.long <- lapply(a1.frame, longggggg.frame)
 
-print(cov.out)
+make.violins <- function(dat){
+  ggplot(data = dat, aes(x = Spec, y = a1))+
+    geom_violin(fill = 'lightgray')+
+    geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
+    theme_bw(base_size = 18)+
+    theme(axis.title.y = element_blank(), panel.grid = element_blank())
+}
+
+lapply(a1.long, make.violins)
 
 # Function looking at observed~true occupancy -------------------------
 error.raster <- function(jag){
@@ -715,33 +752,6 @@ error.raster <- function(jag){
 error.out <- lapply(mod.outputs, error.raster)
 
 print(error.out)
-
-# Compare true vs. estimated richness ------------------------
-richness.bias <- function(jag){
-  Zs <- jag$BUGSoutput$sims.list$Z
-  
-  Zs.mean <- apply(Zs, c(2,3), mean)
-  
-  site.rich <- rowSums(Zs.mean)
-  tru.rich <- colSums(tru)
-  obs.rich <- rowSums(apply(obs.data, c(1,3), max))
-  
-  rich.all <- data.frame(Estimated = site.rich, True = tru.rich, 
-                         True.Sq = tru.rich^2)
-  
-  #Plot examining relationship
-  rich.plot <- ggplot(data = rich.all, aes(x = True, y = Estimated))+
-    geom_point()+
-    geom_abline(slope = 1, intercept = 0)+
-    geom_smooth(color = "black", method = 'lm')+
-    theme_bw(base_size = 18)+
-    theme(panel.grid = element_blank())
-  
-  return(rich.plot)
-}
-
-bias.out <- lapply(mod.outputs, richness.bias)
-print(bias.out)
 
 # Compare error and detection probability ---------------------------
 erdet <- function(jag){

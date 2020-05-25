@@ -21,8 +21,8 @@
             lim <- c(20, 21, 22)    
             
             #Intercept information
-            a0.lo1 <- a0.mean-0.001 
-            a0.lo2 <- a0.mean-(2/sqrt(tau.a0))
+            a0.lo1 <- a0.mean+(1/sqrt(tau.a0))
+            a0.lo2 <- a0.mean-(1/sqrt(tau.a0))
             a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
               
             a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
@@ -34,14 +34,14 @@
             a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
             
             #Covariate information
-            a1.lo1 <- a1.mean+(2/sqrt(tau.a1))
+            a1.lo1 <- a1.mean-(5/sqrt(tau.a1))
             a1.lo2 <- a1.mean-(5/sqrt(tau.a1))
             a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
             
             a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
             
-            a1.hi1 <- a1.mean-(2/sqrt(tau.a1))
-            a1.hi2 <- a1.mean+0.001
+            a1.hi1 <- a1.mean+0.001
+            a1.hi2 <- a1.mean-(1/sqrt(tau.a1))
             a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
             
             a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)
