@@ -675,7 +675,7 @@ allthehists <- rich.hists[[1]]+ ggtitle("No Augmentation")+
   rich.hists[[6]]+ ggtitle("Misinformed")+
   plot_layout(design = layout2)
 
-ggsave(allthehists, file = "allthehists.jpeg", height = 8, width = 8, units = 'in')
+# ggsave(allthehists, file = "allthehists.jpeg", height = 8, width = 8, units = 'in')
 
 # Function to compare covariate responses ----------------------
 a1s <- lapply(biglist, function(x) x$BUGSoutput$sims.list$a1)
@@ -686,13 +686,6 @@ specnames <- paste("Spec", c(1:25), sep = "")
 
 a1.frame <- lapply(a1.frame, function(x) setNames(x,specnames[1:ncol(x)]))
 
-# Problem with this function
-# credint <- function(x){
-#   x <- x[x < quantile(x, 0.975) | x > quantile(x, 0.025)]
-# }
-# 
-# a1.frame <- lapply(a1.frame, function(y) apply(y,2,credint))
-
 longggggg.frame <- function(x){
   y <- x %>%
     pivot_longer(cols = everything(), names_to = "Spec", values_to = "a1")
@@ -702,15 +695,26 @@ longggggg.frame <- function(x){
 
 a1.long <- lapply(a1.frame, longggggg.frame)
 
+trim <- function(x){
+  a1.trim <- x %>%
+    group_by(Spec) %>%
+    filter(between(a1, quantile(a1, 0.025), quantile(a1, 0.975)))
+
+  return(a1.trim)
+}
+
+a1.trim <- lapply(a1.long, trim)
+
 make.violins <- function(dat){
   ggplot(data = dat, aes(x = Spec, y = a1))+
-    geom_violin(fill = 'lightgray')+
+    geom_violin(fill = 'lightgray', draw_quantiles = c(0.025, 0.975))+
+    #geom_point(aes(y = resp2cov))+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
     theme_bw(base_size = 18)+
     theme(axis.title.y = element_blank(), panel.grid = element_blank())
 }
 
-lapply(a1.long, make.violins)
+lapply(a1.trim, make.violins)
 
 # Function looking at observed~true occupancy -------------------------
 error.raster <- function(jag){
