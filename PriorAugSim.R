@@ -633,7 +633,7 @@ rich.plot <- ggplot(data = rich.long, aes(x = Rank, y = Richness, color = model)
   theme_bw(base_size = 18)+
   theme(panel.grid = element_blank(), legend.title = element_blank())
 
-ggsave(rich.plot, filename = 'richplot.jpeg')
+# ggsave(rich.plot, filename = 'richplot.jpeg')
 
 # Compare typical bias of each prior method ---------------------------
 # Get series of site-level estimates from Zs
@@ -682,9 +682,12 @@ a1s <- lapply(biglist, function(x) x$BUGSoutput$sims.list$a1)
 
 a1.frame <- lapply(a1s, as.data.frame)
 
-specnames <- paste("Spec", c(1:25), sep = "")
+#specnames <- paste("Spec", c(1:25), sep = "")
+specnames <- factor(1:(nspec+nmiss+naug))
 
 a1.frame <- lapply(a1.frame, function(x) setNames(x,specnames[1:ncol(x)]))
+
+a1.frame <- lapply(a1.frame, function(x) if(ncol(x) > 22) x[,1:22] else x)
 
 longggggg.frame <- function(x){
   y <- x %>%
@@ -698,7 +701,9 @@ a1.long <- lapply(a1.frame, longggggg.frame)
 trim <- function(x){
   a1.trim <- x %>%
     group_by(Spec) %>%
-    filter(between(a1, quantile(a1, 0.025), quantile(a1, 0.975)))
+    filter(between(a1, quantile(a1, 0.025), quantile(a1, 0.975))) %>%
+    ungroup() %>%
+    mutate_at('Spec', factor, levels = specnames)
 
   return(a1.trim)
 }
@@ -706,12 +711,15 @@ trim <- function(x){
 a1.trim <- lapply(a1.long, trim)
 
 make.violins <- function(dat){
-  ggplot(data = dat, aes(x = Spec, y = a1))+
-    geom_violin(fill = 'lightgray', draw_quantiles = c(0.025, 0.975))+
+  violin <- ggplot(data = dat, aes(x = Spec, y = a1))+
+    geom_violin(fill = 'lightgray')+
     #geom_point(aes(y = resp2cov))+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
     theme_bw(base_size = 18)+
     theme(axis.title.y = element_blank(), panel.grid = element_blank())
+  
+  violin + 
+    geom_point(aes(x = resp2cov[1:length(unique(factor(Spec)))], y = length(unique(factor(Spec)))))
 }
 
 lapply(a1.trim, make.violins)
