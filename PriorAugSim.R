@@ -710,19 +710,23 @@ trim <- function(x){
 
 a1.trim <- lapply(a1.long, trim)
 
+# Create response table
+resp.table <- data.frame(Spec = specnames, resp = c(resp2cov,NA,NA,NA))
+
+# Make violin plot
 make.violins <- function(dat){
   violin <- ggplot(data = dat, aes(x = Spec, y = a1))+
     geom_violin(fill = 'lightgray')+
-    #geom_point(aes(y = resp2cov))+
+    geom_point(data = resp.table[1:length(unique(factor(dat$Spec))),], 
+               mapping = aes(x = Spec, y = resp), color = "red")+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
     theme_bw(base_size = 18)+
     theme(axis.title.y = element_blank(), panel.grid = element_blank())
-  
-  violin + 
-    geom_point(aes(x = resp2cov[1:length(unique(factor(Spec)))], y = length(unique(factor(Spec)))))
+    
+  return(violin)
 }
 
-lapply(a1.trim, make.violins)
+cov.plots <- lapply(a1.trim, make.violins)
 
 # Function looking at observed~true occupancy -------------------------
 error.raster <- function(jag){
