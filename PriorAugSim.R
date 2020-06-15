@@ -677,12 +677,11 @@ allthehists <- rich.hists[[1]]+ ggtitle("No Augmentation")+
 
 # ggsave(allthehists, file = "allthehists.jpeg", height = 8, width = 8, units = 'in')
 
-# Function to compare covariate responses ----------------------
+# Compare covariate responses ----------------------
 a1s <- lapply(biglist, function(x) x$BUGSoutput$sims.list$a1)
 
 a1.frame <- lapply(a1s, as.data.frame)
 
-#specnames <- paste("Spec", c(1:25), sep = "")
 specnames <- factor(1:(nspec+nmiss+naug))
 
 a1.frame <- lapply(a1.frame, function(x) setNames(x,specnames[1:ncol(x)]))
@@ -720,13 +719,32 @@ make.violins <- function(dat){
     geom_point(data = resp.table[1:length(unique(factor(dat$Spec))),], 
                mapping = aes(x = Spec, y = resp), color = "red")+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
+    labs(x = "Species", y = "Coefficient")+
     theme_bw(base_size = 18)+
-    theme(axis.title.y = element_blank(), panel.grid = element_blank())
+    theme(axis.text.x = element_blank(), panel.grid = element_blank())
     
   return(violin)
 }
 
 cov.plots <- lapply(a1.trim, make.violins)
+
+allthecovs <- cov.plots[[1]]+ ggtitle("No Augmentation")+
+  cov.plots[[2]]+ ggtitle("Uninformed")+
+  cov.plots[[3]]+ ggtitle("Weakly Informed")+
+  cov.plots[[4]]+ ggtitle("Informed")+
+  cov.plots[[5]]+ ggtitle("Weakly Misinformed")+
+  cov.plots[[6]]+ ggtitle("Misinformed")+
+  plot_layout(design = layout2)
+
+# ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10, width = 10,
+#        units = "in")
+
+
+
+
+
+
+
 
 # Function looking at observed~true occupancy -------------------------
 error.raster <- function(jag){
