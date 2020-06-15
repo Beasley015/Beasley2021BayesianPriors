@@ -50,7 +50,7 @@
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
               
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.25, omega))
+              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.05, omega))
               #indicates whether or not species is exposed to sampling 
 
       a0[i] ~ dnorm(a0.mean, tau.a0)T(a0.lo[g[i]+1], a0.hi[g[i]+1])

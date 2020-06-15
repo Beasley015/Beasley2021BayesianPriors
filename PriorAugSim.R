@@ -308,7 +308,7 @@ modmisinf <- "#Add info for species-level priors
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
               
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.25, omega))
+              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.05, omega))
               #indicates whether or not species is exposed to sampling"
 
 # Write Models ----------------------------
@@ -436,8 +436,10 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
     omega.guess <- runif(1,0,1)
     mu.psi.guess <- runif(1, 0.25, 1)
     inits <- list(
-         a0 = c(-logit(sim.occ)+rnorm(nspec+nmiss,0,0.1),rnorm(naug)), 
-         a1 = c(-resp2cov+rnorm(nspec+nmiss, 0, 0.1), rnorm(naug)),
+         a0 = c((-logit(sim.occ))+
+                  rnorm(nspec+nmiss,0,0.1),rnorm(naug)), 
+         a1 = c(-resp2cov+
+                  rnorm(nspec+nmiss, 0, 0.1), rnorm(naug)),
          b0 = rnorm(n = (spec+aug)),
          Z = maxobs
     )
@@ -564,14 +566,15 @@ layout <-
 histos <- map(N.outs, 1) 
 
 Ns.megaplot <- histos[[1]]+ ggtitle('A)') +
-  histos[[2]] + ggtitle('B)') +
-  histos[[3]] + ggtitle('C)') +
-  histos[[4]] + ggtitle('D)') +
-  histos[[5]] + ggtitle('E)') +
-  plot_layout(design = layout, guides = 'collect')
+  histos[[2]] + ggtitle('B)') + guides(linetype = "none")+
+  histos[[3]] + ggtitle('C)') + guides(linetype = "none")+
+  histos[[4]] + ggtitle('D)') + guides(linetype = "none")+
+  histos[[5]] + ggtitle('E)') + guides(linetype = "none")+
+  plot_layout(design = layout, guides = 'collect')&
+  theme(legend.position = "right")
 
 # Save figure
-# ggsave(Ns.megaplot, file = "Nswionly.jpeg", height = 7,width = 7, units = "in")
+# ggsave(Ns.megaplot, file = "Nsplot.jpeg", height = 7,width = 7, units = "in")
 
 
 # Get omegas ------------------------------------------
@@ -728,13 +731,12 @@ make.violins <- function(dat){
 
 cov.plots <- lapply(a1.trim, make.violins)
 
-allthecovs <- cov.plots[[1]]+ ggtitle("No Augmentation")+
-  cov.plots[[2]]+ ggtitle("Uninformed")+
+allthecovs <- cov.plots[[2]]+ ggtitle("Uninformed")+
   cov.plots[[3]]+ ggtitle("Weakly Informed")+
   cov.plots[[4]]+ ggtitle("Informed")+
   cov.plots[[5]]+ ggtitle("Weakly Misinformed")+
   cov.plots[[6]]+ ggtitle("Misinformed")+
-  plot_layout(design = layout2)
+  plot_layout(design = layout)
 
 # ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10, width = 10,
 #        units = "in")
