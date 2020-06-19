@@ -242,7 +242,7 @@ weakmisinf <- "#Add info for species-level priors
             lim <- c(20, 21, 22)    
             
             #Intercept information
-            a0.lo1 <- a0.mean-0.001 
+            a0.lo1 <- a0.mean-(1/sqrt(tau.a0))
             a0.lo2 <- a0.mean-(2/sqrt(tau.a0))
             a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
               
@@ -279,7 +279,7 @@ modmisinf <- "#Add info for species-level priors
             lim <- c(20, 21, 22)    
             
             #Intercept information
-            a0.lo1 <- a0.mean+(1/sqrt(tau.a0))
+            a0.lo1 <- a0.mean-0.001
             a0.lo2 <- a0.mean-(1/sqrt(tau.a0))
             a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
               
@@ -511,6 +511,15 @@ mod.misinf <- readRDS("mod_misinf.rds")
 # Put models in a list
 mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf, mod.misinf.weak, mod.misinf)
 
+# Look at posterior dists for a1 --------------------------
+smol.a1 <- lapply(mod.outputs, function(x) x$BUGSoutput$sims.list$a1)
+
+lapply(smol.a1, function(x) hist(x[,21]))
+
+lapply(smol.a1, function(x) hist(x[,22]))
+
+# a bit too skewed I think
+
 # Function to compare estimates of N -----------------------------------
 # Write function to get Ns
 get.ns <- function(jag){
@@ -740,7 +749,6 @@ allthecovs <- cov.plots[[2]]+ ggtitle("Uninformed")+
 
 # ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10, width = 10,
 #        units = "in")
-
 
 
 

@@ -21,7 +21,7 @@
             lim <- c(20, 21, 22)    
             
             #Intercept information
-            a0.lo1 <- a0.mean+(1/sqrt(tau.a0))
+            a0.lo1 <- a0.mean-0.001
             a0.lo2 <- a0.mean-(1/sqrt(tau.a0))
             a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
               
