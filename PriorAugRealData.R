@@ -11,7 +11,13 @@ library(spData)
 library(sf)
 library(ggsn)
 
-# Load data --------------------------------
+# Mammal data --------------------------------
+mamm.raw <- read.csv("MammRaw2019.csv")
+site.nocaps <- read.csv("AugmentedSites.csv")
+
+mamm.filtered <- mamm.raw %>%
+  select(Site, Day, Abbrev)
+
 # Vegetation data ------------------------
 veg <- read.csv("VegRawData.csv")
 
