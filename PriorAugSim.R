@@ -19,8 +19,6 @@ set.seed(16)
 # Global variables
 nspec <- 20
 nmiss <- 2 # Species present but not detected during sampling
-naug <- 3 # Hypothetical species not exposed to sampling
-ems <- nmiss + naug # Number of all-zero histories to add to observed data
 nsite <- 30
 nsurvey <- 4
 
@@ -116,7 +114,7 @@ get.obs <- function(mat, specs){
 obs.data <- get.obs(mat = tru, specs = nspec+nmiss)[[1]]
 p <- get.obs(mat = tru, specs = nspec+nmiss)[[2]]
 
-#Sanity check: get observed data matrix
+#Checkpoint: get observed data matrix
 maxobs <- apply(obs.data, c(1,3), max)
 colSums(maxobs)
 
@@ -149,15 +147,14 @@ obs.data <- obs.data[,,-c(21:22)]
 # tru <- reorder(tru)
 
 # Augment the observed dataset ------------------------------------
-ems.array <- array(0, dim = c(nsite, nsurvey, ems))
+ems.array <- array(0, dim = c(nsite, nsurvey, nmiss))
 obs.aug <- abind(obs.data, ems.array, along = 3)
 
 # Add prior information --------------------------------
 uninf <- "for(i in 1:(spec+aug)){
           #Create priors from hyperpriors
             w[i] ~ dbern(omega)
-            #indicates whether or not species is exposed to sampling
-
+            
             a0[i] ~ dnorm(a0.mean, tau.a0)
             a1[i] ~ dnorm(a1.mean, tau.a1)
 
@@ -165,151 +162,232 @@ uninf <- "for(i in 1:(spec+aug)){
 
 
 weakinf <- "#Add info for species-level priors
-            lim <- c(20, 21, 22)    
             
-            #Intercept information
-            a0.lo1 <- a0.mean-(5/sqrt(tau.a0)) 
-            a0.lo2 <- a0.mean-(2/sqrt(tau.a0))
-            a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
-              
-            a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
+            lim <- c(20, 21, 22)
+
+            inf.mean0 <- c(0, -3,0, 0)
+            inf.mean1 <- c(0, 0,3, 0)
             
-            a0.hi1 <- a0.mean+(1/sqrt(tau.a0))
-            a0.hi2 <- a0.mean+(2/sqrt(tau.a0))
-            a0.hi3 <- a0.mean+(5/sqrt(tau.a0))
+            inf.var0 <- c(1, tau.a0,(2*tau.a0), 1)
+            inf.var1 <- c(1, (2*tau.a1),tau.a1, 1)
             
-            a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
-            
-            #Covariate information
-            a1.lo1 <- a1.mean-(2/sqrt(tau.a1))
-            a1.lo2 <- a1.mean-(1/sqrt(tau.a1))
-            a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
-            
-            a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
-            
-            a1.hi1 <- a1.mean+(2/sqrt(tau.a1))
-            a1.hi2 <- a1.mean+(5/sqrt(tau.a1))
-            a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
-            
-            a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)
+            weights <- c(0.75, 0.25)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
+              w[i] ~ dbern(omega)
               
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
-              #indicates whether or not species is exposed to sampling"
+              lb0[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[2]/(1/tau.a1)
+              
+              pooled.tau0[i] <- 1/sum(lb0)
+              pooled.tau1[i] <- 1/sum(lb1)
+              
+              pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
+                                 *pooled.tau0[i]
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
+                                 *pooled.tau1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
+                            ifelse(i==21 || i==22, pooled.tau0[i], tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
+                            ifelse(i==21 || i ==22, pooled.tau1[i], tau.a1))
 
-# Note: strongly informed priors below need inits close to the true value to work
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
+
 modinf <- "#Add info for species-level priors
-            lim <- c(20, 21, 22)    
             
-            #Intercept information
-            a0.lo1 <- a0.mean-(5/sqrt(tau.a0)) 
-            a0.lo2 <- a0.mean-(1/sqrt(tau.a0))
-            a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
-              
-            a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
+            lim <- c(20, 21, 22)
+
+            inf.mean0 <- c(0, -3,0, 0)
+            inf.mean1 <- c(0, 0,3, 0)
             
-            a0.hi1 <- a0.mean+0.001
-            a0.hi2 <- a0.mean+(2/sqrt(tau.a0))
-            a0.hi3 <- a0.mean+(5/sqrt(tau.a0))
+            inf.var0 <- c(1, tau.a0,(2*tau.a0), 1)
+            inf.var1 <- c(1, (2*tau.a1),tau.a1, 1)
             
-            a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
-            
-            #Covariate information
-            a1.lo1 <- a1.mean-(2/sqrt(tau.a1))
-            a1.lo2 <- a1.mean-0.001
-            a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
-            
-            a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
-            
-            a1.hi1 <- a1.mean+(2/sqrt(tau.a1))
-            a1.hi2 <- a1.mean+(5/sqrt(tau.a1))
-            a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
-            
-            a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)
+            weights <- c(0.5, 0.5)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
+              w[i] ~ dbern(omega)
               
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.95, omega))
-              #indicates whether or not species is exposed to sampling"
+              lb0[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[2]/(1/tau.a1)
+              
+              pooled.tau0[i] <- 1/sum(lb0)
+              pooled.tau1[i] <- 1/sum(lb1)
+              
+              pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
+                                 *pooled.tau0[i]
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
+                                 *pooled.tau1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
+                            ifelse(i==21 || i==22, pooled.tau0[i], tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
+                            ifelse(i==21 || i ==22, pooled.tau1[i], tau.a1))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
+
+stronginf <- "#Add info for species-level priors
+            
+            lim <- c(20, 21, 22)
+
+            inf.mean0 <- c(0, -3,0, 0)
+            inf.mean1 <- c(0, 0,3, 0)
+            
+            inf.var0 <- c(1, tau.a0,(2*tau.a0), 1)
+            inf.var1 <- c(1, (2*tau.a1),tau.a1, 1)
+            
+            weights <- c(0.25, 0.75)
+
+            for(i in 1:(spec+aug)){
+              #Create priors from hyperpriors
+              g[i] ~ dinterval(i, lim)
+              w[i] ~ dbern(omega)
+              
+              lb0[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[2]/(1/tau.a1)
+              
+              pooled.tau0[i] <- 1/sum(lb0)
+              pooled.tau1[i] <- 1/sum(lb1)
+              
+              pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
+                                 *pooled.tau0[i]
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
+                                 *pooled.tau1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
+                            ifelse(i==21 || i==22, pooled.tau0[i], tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
+                            ifelse(i==21 || i ==22, pooled.tau1[i], tau.a1))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
   
-# Inits also need adjusting here
 weakmisinf <- "#Add info for species-level priors
-            lim <- c(20, 21, 22)    
             
-            #Intercept information
-            a0.lo1 <- a0.mean-(1/sqrt(tau.a0))
-            a0.lo2 <- a0.mean-(2/sqrt(tau.a0))
-            a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
-              
-            a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
+            lim <- c(20, 21, 22)
+
+            inf.mean0 <- c(0, 3,3, 0)
+            inf.mean1 <- c(0, -3,-3, 0)
             
-            a0.hi1 <- a0.mean+(5/sqrt(tau.a0))
-            a0.hi2 <- a0.mean+(1/sqrt(tau.a0))
-            a0.hi3 <- a0.mean+(5/sqrt(tau.a0))
+            inf.var0 <- c(1, tau.a0,tau.a0, 1)
+            inf.var1 <- c(1, tau.a1,tau.a1, 1)
             
-            a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
-            
-            #Covariate information
-            a1.lo1 <- a1.mean-(5/sqrt(tau.a1))
-            a1.lo2 <- a1.mean-(5/sqrt(tau.a1))
-            a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
-            
-            a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
-            
-            a1.hi1 <- a1.mean+(1/sqrt(tau.a1))
-            a1.hi2 <- a1.mean+0.001
-            a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
-            
-            a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)
+            weights <- c(0.75, 0.25)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
+              w[i] ~ dbern(omega)
               
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.25, omega))
-              #indicates whether or not species is exposed to sampling"
+              lb0[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[2]/(1/tau.a1)
+              
+              pooled.tau0[i] <- 1/sum(lb0)
+              pooled.tau1[i] <- 1/sum(lb1)
+              
+              pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
+                                 *pooled.tau0[i]
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
+                                 *pooled.tau1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
+                            ifelse(i==21 || i==22, pooled.tau0[i], tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
+                            ifelse(i==21 || i ==22, pooled.tau1[i], tau.a1))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
  
-#Inits adjusted here too 
 modmisinf <- "#Add info for species-level priors
-            lim <- c(20, 21, 22)    
             
-            #Intercept information
-            a0.lo1 <- a0.mean-0.001
-            a0.lo2 <- a0.mean-(1/sqrt(tau.a0))
-            a0.lo3 <- a0.mean-(5/sqrt(tau.a0))
-              
-            a0.lo <- c(a0.lo3, a0.lo1, a0.lo2, a0.lo3)
+            lim <- c(20, 21, 22)
+
+            inf.mean0 <- c(0, 3,3, 0)
+            inf.mean1 <- c(0, -3,-3, 0)
             
-            a0.hi1 <- a0.mean+(5/sqrt(tau.a0))
-            a0.hi2 <- a0.mean+(1/sqrt(tau.a0))
-            a0.hi3 <- a0.mean+(5/sqrt(tau.a0))
+            inf.var0 <- c(1, tau.a0,tau.a0, 1)
+            inf.var1 <- c(1, tau.a1,tau.a1, 1)
             
-            a0.hi <- c(a0.hi3, a0.hi1, a0.hi2, a0.hi3)
-            
-            #Covariate information
-            a1.lo1 <- a1.mean-(5/sqrt(tau.a1))
-            a1.lo2 <- a1.mean-(5/sqrt(tau.a1))
-            a1.lo3 <- a1.mean-(5/sqrt(tau.a1))
-            
-            a1.lo <- c(a1.lo3, a1.lo1, a1.lo2, a1.lo3)
-            
-            a1.hi1 <- a1.mean+0.001
-            a1.hi2 <- a1.mean-(1/sqrt(tau.a1))
-            a1.hi3 <- a1.mean+(5/sqrt(tau.a1))
-            
-            a1.hi <- c(a1.hi3, a1.hi1, a1.hi2, a1.hi3)
+            weights <- c(0.5, 0.5)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
+              w[i] ~ dbern(omega)
               
-              w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.05, omega))
-              #indicates whether or not species is exposed to sampling"
+              lb0[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[2]/(1/tau.a1)
+              
+              pooled.tau0[i] <- 1/sum(lb0)
+              pooled.tau1[i] <- 1/sum(lb1)
+              
+              pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
+                                 *pooled.tau0[i]
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
+                                 *pooled.tau1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
+                            ifelse(i==21 || i==22, pooled.tau0[i], tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
+                            ifelse(i==21 || i ==22, pooled.tau1[i], tau.a1))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
+
+strongmisinf <- "#Add info for species-level priors
+            
+            lim <- c(20, 21, 22)
+
+            inf.mean0 <- c(0, 3,3, 0)
+            inf.mean1 <- c(0, -3,-3, 0)
+            
+            inf.var0 <- c(1, tau.a0,tau.a0, 1)
+            inf.var1 <- c(1, tau.a1,tau.a1, 1)
+            
+            weights <- c(0.25, 0.75)
+
+            for(i in 1:(spec+aug)){
+              #Create priors from hyperpriors
+              g[i] ~ dinterval(i, lim)
+              w[i] ~ dbern(omega)
+              
+              lb0[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[2]/(1/tau.a1)
+              
+              pooled.tau0[i] <- 1/sum(lb0)
+              pooled.tau1[i] <- 1/sum(lb1)
+              
+              pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
+                                 *pooled.tau0[i]
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
+                                 *pooled.tau1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
+                            ifelse(i==21 || i==22, pooled.tau0[i], tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
+                            ifelse(i==21 || i ==22, pooled.tau1[i], tau.a1))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 # Write Models ----------------------------
 # Model without augmentation
@@ -383,12 +461,6 @@ write.model <- function(priors){
 
     ",priors,"
 
-      a0[i] ~ dnorm(a0.mean, tau.a0)T(a0.lo[g[i]+1], a0.hi[g[i]+1])
-
-      a1[i] ~ dnorm(a1.mean, tau.a1)T(a1.lo[g[i]+1], a1.hi[g[i]+1])
-
-      b0[i] ~ dnorm(b0.mean, tau.b0)
-    
       #Estimate occupancy of species i at point j
       for (j in 1:J) {
         logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
@@ -428,7 +500,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
   }
 
   # Specify parameters
-  parms <- c('N', 'omega','a0.mean', 'b0.mean', 'a0', 'b0', 'a1','Z')
+  parms <- c('a0.mean', 'b0.mean', 'a0', 'b0', 'a1','Z')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -436,10 +508,8 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
     omega.guess <- runif(1,0,1)
     mu.psi.guess <- runif(1, 0.25, 1)
     inits <- list(
-         a0 = c((-logit(sim.occ))+
-                  rnorm(nspec+nmiss,0,0.1),rnorm(naug)), 
-         a1 = c(-resp2cov+
-                  rnorm(nspec+nmiss, 0, 0.1), rnorm(naug)),
+         a0 = rnorm(n = (spec+aug)),
+         a1 = rnorm(n = (spec+aug)),
          b0 = rnorm(n = (spec+aug)),
          Z = maxobs
     )
@@ -465,43 +535,46 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 # saveRDS(mod.noaug, file = "mod_noaug.rds")
 # 
 # mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#            textdoc = 'aug_model.txt', aug = nmiss+naug, burn = 2500, iter = 10000,
-#            thin = 10)
+#                         textdoc = 'aug_model.txt', aug = nmiss, burn = 2500, 
+#                         iter = 10000, thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
-# mod.inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+# inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
 #                            spec = nspec,textdoc = 'aug_model.txt',
-#                            aug = nmiss+naug, priors = weakinf, burn = 5000,
-#                            iter = 12000, thin = 5)
-# saveRDS(mod.inf.weak, file = "mod_inf_weak.rds")
+#                            aug = nmiss, priors = weakinf, burn = 2500, 
+#                            iter = 10000, thin = 5)
+# saveRDS(inf.weak, file = "inf_weak.rds")
 # 
-# mod.inf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss+naug, priors = modinf,
+# inf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+#                       textdoc = 'aug_model.txt', aug = nmiss, priors = modinf,
 #                       burn = 7000, iter = 12000, thin = 3)
-# saveRDS(mod.inf, file = "mod_inf.rds")
+# saveRDS(inf.mod, file = "inf_mod.rds")
 # 
-# mod.misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                               spec = nspec, textdoc = 'aug_model.txt',
-#                               aug = nmiss+naug, priors = weakmisinf,
-#                               burn = 5000, iter = 10000, thin = 5)
-# saveRDS(mod.misinf.weak, file = "mod_misinf_weak.rds")
+# inf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+#                       textdoc = 'aug_model.txt', aug = nmiss, priors = stronginf,
+#                       burn = 7000, iter = 12000, thin = 3)
+# saveRDS(inf.mod, file = "inf_strong.rds")
 # 
-# mod.misinf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                          textdoc = 'aug_model.txt', aug = nmiss+naug,
+# misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                           spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
+#                           priors = weakmisinf, burn = 5000, iter = 10000, thin = 5)
+# saveRDS(misinf.weak, file = "misinf_weak.rds")
+# 
+# misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+#                          textdoc = 'aug_model.txt', aug = nmiss, 
 #                          priors = modmisinf, burn = 2500, iter = 10000, thin = 10)
-# saveRDS(mod.misinf, file = "mod_misinf.rds")
+# saveRDS(misinf.mod, file = "misinf_mod.rds")
+# 
+# misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, 
+#                             spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
+#                             priors = strongmisinf, burn = 2500, iter = 10000, 
+#                             thin = 10)
+# saveRDS(misinf.strong, file = "misinf_strong.rds")
 
 # Load models -------------------------------
 mod.noaug <- readRDS(file = "mod_noaug.rds")
 
-# Models with uninformed covariates
-mod.uninf <- readRDS("mod_uninf.rds")
-mod.inf.weak <- readRDS("wionly/mod_inf_weak.rds")
-mod.inf <- readRDS("wionly/mod_inf.rds")
-mod.misinf.weak <- readRDS("wionly/mod_misinf_weak.rds")
-mod.misinf <- readRDS("wionly/mod_misinf.rds")
-
-# Models with informed covariates
+# Augmented models
 mod.uninf <- readRDS("mod_uninf.rds")
 mod.inf.weak <- readRDS("mod_inf_weak.rds")
 mod.inf <- readRDS("mod_inf.rds")
@@ -839,3 +912,71 @@ erdet <- function(jag){
 erdet.out <- lapply(mod.outputs, erdet)
 
 print(erdet.out)
+
+# Try mixed priors for augs ------------------------------
+mod <- paste("
+    model{
+      
+    # Define hyperprior distributions: intercepts
+    omega ~ dunif(0,1)
+    
+    #Intercepts
+    mean.a0 ~ dunif(0,1)
+    a0.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a0 ~ dgamma(0.1, 0.1)
+    
+    mean.a1 ~ dunif(0,1)
+    a1.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a1 ~ dgamma(0.1, 0.1)
+    
+    mean.b0 ~ dunif(0,1)
+    b0.mean <- log(mean.b0)-log(1-mean.b0)
+    tau.b0 ~ dgamma(0.1, 0.1)
+    
+    lim <- c(20,21,22)
+
+    for(i in 1:(spec+aug)){
+      #Create priors from hyperpriors
+      sel[i] <- 
+      
+      w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
+      #indicates whether or not species is exposed to sampling
+      
+      # Add informed distribution means
+      a0.mean.inf <- 
+      
+      # Probability of selecting informed distribution
+      prob[i] <- ifelse(i == 21 || i == 22, runif(0,1), 1)
+      g[i] <- dbern(prob)
+      
+      dist.occ <- c(dnorm(a0.mean.inf, tau.a0),
+                    dnorm(a0.mean, tau.a0))
+      
+      a0[i] ~ dist.occ[g[i]+1]
+      
+      a1[i] ~ dnorm(a1.mean, tau.a1)
+      
+      b0[i] ~ dnorm(b0.mean, tau.b0)
+    
+      #Estimate occupancy of species i at point j
+      for (j in 1:J) {
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+        mu.psi[j,i] <- psi[j,i] * w[i]
+        Z[j,i] ~ dbern(mu.psi[j,i])
+    
+        #Estimate detection of i at point j during sampling period k
+        for(k in 1:K[j]){
+          logit(p[j,k,i]) <-  b0[i]
+          mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
+          #The addition of Z means that detecting a species depends on its occupancy
+          obs[j,k,i] ~ dbern(mu.p[j,k,i])
+    }
+    }
+    }
+    
+    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
+    n0<-sum(w[(spec+1):(spec+aug)])
+    N<-spec+n0
+    
+    }
+    ")
