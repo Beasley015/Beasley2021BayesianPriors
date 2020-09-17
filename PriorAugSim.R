@@ -535,13 +535,13 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 # saveRDS(mod.noaug, file = "mod_noaug.rds")
 # 
 # mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                         textdoc = 'aug_model.txt', aug = nmiss, burn = 2500, 
+#                         textdoc = 'aug_model.txt', aug = nmiss, burn = 2500,
 #                         iter = 10000, thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
 # inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
 #                            spec = nspec,textdoc = 'aug_model.txt',
-#                            aug = nmiss, priors = weakinf, burn = 2500, 
+#                            aug = nmiss, priors = weakinf, burn = 2500,
 #                            iter = 10000, thin = 5)
 # saveRDS(inf.weak, file = "inf_weak.rds")
 # 
@@ -561,13 +561,13 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 # saveRDS(misinf.weak, file = "misinf_weak.rds")
 # 
 # misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                          textdoc = 'aug_model.txt', aug = nmiss, 
+#                          textdoc = 'aug_model.txt', aug = nmiss,
 #                          priors = modmisinf, burn = 2500, iter = 10000, thin = 10)
 # saveRDS(misinf.mod, file = "misinf_mod.rds")
 # 
-# misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, 
+# misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
 #                             spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
-#                             priors = strongmisinf, burn = 2500, iter = 10000, 
+#                             priors = strongmisinf, burn = 2500, iter = 10000,
 #                             thin = 10)
 # saveRDS(misinf.strong, file = "misinf_strong.rds")
 
