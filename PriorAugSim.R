@@ -500,7 +500,8 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
   }
 
   # Specify parameters
-  parms <- c('a0.mean', 'b0.mean', 'a0', 'b0', 'a1','Z')
+  parms <- c('a0.mean', 'tau.a0', 'a1.mean', 'tau.a1', 'b0.mean', 'a0', 'b0', 
+             'a1','Z')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -539,37 +540,37 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 #                         iter = 10000, thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
-# inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                            spec = nspec,textdoc = 'aug_model.txt',
-#                            aug = nmiss, priors = weakinf, burn = 2500,
-#                            iter = 10000, thin = 5)
-# saveRDS(inf.weak, file = "inf_weak.rds")
-# 
-# inf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss, priors = modinf,
-#                       burn = 7000, iter = 12000, thin = 3)
-# saveRDS(inf.mod, file = "inf_mod.rds")
-# 
-# inf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss, priors = stronginf,
-#                       burn = 7000, iter = 12000, thin = 3)
-# saveRDS(inf.mod, file = "inf_strong.rds")
-# 
-# misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                           spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
-#                           priors = weakmisinf, burn = 5000, iter = 10000, thin = 5)
-# saveRDS(misinf.weak, file = "misinf_weak.rds")
-# 
-# misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                          textdoc = 'aug_model.txt', aug = nmiss,
-#                          priors = modmisinf, burn = 2500, iter = 10000, thin = 10)
-# saveRDS(misinf.mod, file = "misinf_mod.rds")
-# 
-# misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                             spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
-#                             priors = strongmisinf, burn = 2500, iter = 10000,
-#                             thin = 10)
-# saveRDS(misinf.strong, file = "misinf_strong.rds")
+inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+                           spec = nspec,textdoc = 'aug_model.txt',
+                           aug = nmiss, priors = weakinf, burn = 2500,
+                           iter = 10000, thin = 5)
+saveRDS(inf.weak, file = "inf_weak.rds")
+
+inf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                      textdoc = 'aug_model.txt', aug = nmiss, priors = modinf,
+                      burn = 7000, iter = 12000, thin = 3)
+saveRDS(inf.mod, file = "inf_mod.rds")
+
+inf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                      textdoc = 'aug_model.txt', aug = nmiss, priors = stronginf,
+                      burn = 7000, iter = 12000, thin = 3)
+saveRDS(inf.mod, file = "inf_strong.rds")
+
+misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+                          spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
+                          priors = weakmisinf, burn = 5000, iter = 10000, thin = 5)
+saveRDS(misinf.weak, file = "misinf_weak.rds")
+
+misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
+                         textdoc = 'aug_model.txt', aug = nmiss,
+                         priors = modmisinf, burn = 2500, iter = 10000, thin = 10)
+saveRDS(misinf.mod, file = "misinf_mod.rds")
+
+misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+                            spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
+                            priors = strongmisinf, burn = 2500, iter = 10000,
+                            thin = 10)
+saveRDS(misinf.strong, file = "misinf_strong.rds")
 
 # Load models -------------------------------
 mod.noaug <- readRDS(file = "mod_noaug.rds")
@@ -584,14 +585,7 @@ mod.misinf <- readRDS("mod_misinf.rds")
 # Put models in a list
 mod.outputs <- list(mod.uninf, mod.inf.weak, mod.inf, mod.misinf.weak, mod.misinf)
 
-# Look at posterior dists for a1 --------------------------
-smol.a1 <- lapply(mod.outputs, function(x) x$BUGSoutput$sims.list$a1)
-
-lapply(smol.a1, function(x) hist(x[,21]))
-
-lapply(smol.a1, function(x) hist(x[,22]))
-
-# a bit too skewed I think
+# Compare community posterior to undetected species posterior ------------
 
 # Function to compare estimates of N -----------------------------------
 # Write function to get Ns
