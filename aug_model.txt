@@ -24,8 +24,8 @@
             inf.mean0 <- c(0, 3,3, 0)
             inf.mean1 <- c(0, -3,-3, 0)
             
-            inf.var0 <- c(1, tau.a0,tau.a0, 1)
-            inf.var1 <- c(1, tau.a1,tau.a1, 1)
+            inf.var0 <- c(1, 1/tau.a0,1/tau.a0, 1)
+            inf.var1 <- c(1, 1/tau.a1,1/tau.a1, 1)
             
             weights <- c(0.25, 0.75)
 
@@ -34,24 +34,24 @@
               g[i] ~ dinterval(i, lim)
               w[i] ~ dbern(omega)
               
-              lb0[i,2] <- weights[2]/inf.var1[g[i]+1]
-              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
+              lb0[i,1] <- weights[1]/inf.var0[g[i]+1]
               lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
-              lb1[i,2] <- weights[2]/(1/tau.a1)
+              lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
               
-              pooled.tau0[i] <- 1/sum(lb0)
-              pooled.tau1[i] <- 1/sum(lb1)
+              pooled.var0[i] <- 1/sum(lb0)
+              pooled.var1[i] <- 1/sum(lb1)
               
               pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
-                                 *pooled.tau0[i]
+                                 *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
-                                 *pooled.tau1[i]
+                                 *pooled.var1[i]
               
               a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
-                            ifelse(i==21 || i==22, pooled.tau0[i], tau.a0))
+                            ifelse(i==21 || i==22, 1/pooled.var0[i], tau.a0))
                              
               a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
-                            ifelse(i==21 || i ==22, pooled.tau1[i], tau.a1))
+                            ifelse(i==21 || i ==22, 1/pooled.var1[i], tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0) 
 
