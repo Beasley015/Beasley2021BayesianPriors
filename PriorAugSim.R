@@ -13,6 +13,7 @@ library(boot)
 library(viridis)
 library(patchwork)
 library(fitdistrplus)
+library(grid)
 
 # Set seed
 set.seed(16)
@@ -169,10 +170,10 @@ weakinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, -4,0, 0)
             inf.mean1 <- c(0, 0,3, 0)
             
-            inf.var0 <- c(1, (1/tau.a0),(1/(2*tau.a0)), 1)
-            inf.var1 <- c(1, (1/(2*tau.a1)),(1/tau.a1), 1)
+            inf.var0 <- c(1, 0.5,0.5, 1)
+            inf.var1 <- c(1, 0.5,0.5, 1)
             
-            weights <- c(0.75, 0.25)
+            weights <- c(0.85, 0.15)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
@@ -180,23 +181,27 @@ weakinf <- "#Add info for species-level priors
               w[i] ~ dbern(omega)
               
               lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
-              lb0[i,1] <- weights[1]/inf.var0[g[i]+1]
-              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/(1/tau.a1)
               lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
               
-              pooled.var0[i] <- 1/sum(lb0)
-              pooled.var1[i] <- 1/sum(lb1)
+              pooled.var0[i] <- 1/sum(lb0[i,])
+              pooled.var1[i] <- 1/sum(lb1[i,])
               
               pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
                                  *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
                                  *pooled.var1[i]
               
-              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
-                            ifelse(i==21 || i==22, (1/pooled.var0[i]), tau.a0))
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
+                            a0.mean), 
+                            ifelse(i==21 || i==22, (1/pooled.var0[i]), 
+                            tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
-                            ifelse(i==21 || i ==22, (1/pooled.var1[i]), tau.a1))
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==21 || i ==22, (1/pooled.var1[i]), 
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
@@ -207,8 +212,8 @@ modinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, -4,0, 0)
             inf.mean1 <- c(0, 0,3, 0)
             
-            inf.var0 <- c(1, 1/tau.a0,1/(2*tau.a0), 1)
-            inf.var1 <- c(1, 1/(2*tau.a1),1/tau.a1, 1)
+            inf.var0 <- c(1, 0.5,0.5, 1)
+            inf.var1 <- c(1, 0.5,0.5, 1)
             
             weights <- c(0.5, 0.5)
 
@@ -218,23 +223,27 @@ modinf <- "#Add info for species-level priors
               w[i] ~ dbern(omega)
               
               lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
-              lb0[i,1] <- weights[1]/inf.var0[g[i]+1]
-              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/(1/tau.a1)
               lb1[i,2] <- weights[2]/inf.var1[g[1]+1]
               
-              pooled.var0[i] <- 1/sum(lb0)
-              pooled.var1[i] <- 1/sum(lb1)
+              pooled.var0[i] <- 1/sum(lb0[i,])
+              pooled.var1[i] <- 1/sum(lb1[i,])
               
               pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
                                  *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
                                  *pooled.var1[i]
               
-              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
-                            ifelse(i==21 || i==22, 1/pooled.var0[i], tau.a0))
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
+                            a0.mean), 
+                            ifelse(i==21 || i==22, 1/pooled.var0[i], 
+                            tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
-                            ifelse(i==21 || i ==22, 1/pooled.var1[i], tau.a1))
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==21 || i ==22, 1/pooled.var1[i], 
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
@@ -245,10 +254,10 @@ stronginf <- "#Add info for species-level priors
             inf.mean0 <- c(0, -4,0, 0)
             inf.mean1 <- c(0, 0,3, 0)
             
-            inf.var0 <- c(1, 1/tau.a0,1/(2*tau.a0), 1)
-            inf.var1 <- c(1, 1/(2*tau.a1),1/tau.a1, 1)
+            inf.var0 <- c(1, 0.5,0.5, 1)
+            inf.var1 <- c(1, 0.5,0.5, 1)
             
-            weights <- c(0.25, 0.75)
+            weights <- c(0.15, 0.85)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
@@ -256,23 +265,27 @@ stronginf <- "#Add info for species-level priors
               w[i] ~ dbern(omega)
               
               lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
-              lb0[i,1] <- weights[1]/inf.var0[g[i]+1]
-              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[1]/(1/tau.a1)
               lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
               
-              pooled.var0[i] <- 1/sum(lb0)
-              pooled.var1[i] <- 1/sum(lb1)
+              pooled.var0[i] <- 1/sum(lb0[i,])
+              pooled.var1[i] <- 1/sum(lb1[i,])
               
               pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
                                  *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
                                  *pooled.var1[i]
               
-              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
-                            ifelse(i==21 || i==22, 1/pooled.var0[i], tau.a0))
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
+                            a0.mean), 
+                            ifelse(i==21 || i==22, 1/pooled.var0[i], 
+                            tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
-                            ifelse(i==21 || i ==22, 1/pooled.var1[i], tau.a1))
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==21 || i ==22, 1/pooled.var1[i], 
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
   
@@ -283,10 +296,10 @@ weakmisinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, 3,3, 0)
             inf.mean1 <- c(0, -3,-3, 0)
             
-            inf.var0 <- c(1, 1/tau.a0,1/tau.a0, 1)
-            inf.var1 <- c(1, 1/tau.a1,1/tau.a1, 1)
+            inf.var0 <- c(1, 0.5,0.5, 1)
+            inf.var1 <- c(1, 0.5,0.5, 1)
             
-            weights <- c(0.75, 0.25)
+            weights <- c(0.85, 0.15)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
@@ -294,23 +307,27 @@ weakmisinf <- "#Add info for species-level priors
               w[i] ~ dbern(omega)
               
               lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
-              lb0[i,1] <- weights[1]/inf.var0[g[i]+1]
-              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
-              lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
+              lb1[i,1] <- weights[2]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[1]/(1/tau.a1)
               
-              pooled.var0[i] <- 1/sum(lb0)
-              pooled.var1[i] <- 1/sum(lb1)
+              pooled.var0[i] <- 1/sum(lb0[i,])
+              pooled.var1[i] <- 1/sum(lb1[i,])
               
               pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
                                  *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
                                  *pooled.var1[i]
               
-              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
-                            ifelse(i==21 || i==22, 1/pooled.var0[i], tau.a0))
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
+                            a0.mean), 
+                            ifelse(i==21 || i==22, 1/pooled.var0[i], 
+                            tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
-                            ifelse(i==21 || i ==22, 1/pooled.var1[i], tau.a1))
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==21 || i ==22, 1/pooled.var1[i], 
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
  
@@ -321,8 +338,8 @@ modmisinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, 3,3, 0)
             inf.mean1 <- c(0, -3,-3, 0)
             
-            inf.var0 <- c(1, 1/tau.a0,1/tau.a0, 1)
-            inf.var1 <- c(1, 1/tau.a1,1/tau.a1, 1)
+            inf.var0 <- c(1, 0.5,0.5, 1)
+            inf.var1 <- c(1, 0.5,0.5, 1)
             
             weights <- c(0.5, 0.5)
 
@@ -331,24 +348,28 @@ modmisinf <- "#Add info for species-level priors
               g[i] ~ dinterval(i, lim)
               w[i] ~ dbern(omega)
               
-              lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
+              lb0[i,2] <- weights[2]/(1/tau.a0)
               lb0[i,1] <- weights[1]/inf.var0[g[i]+1]
               lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
-              lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb1[i,2] <- weights[2]/(1/tau.a1)
               
-              pooled.var0[i] <- 1/sum(lb0)
-              pooled.var1[i] <- 1/sum(lb1)
+              pooled.var0[i] <- 1/sum(lb0[i,])
+              pooled.var1[i] <- 1/sum(lb1[i,])
               
               pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
                                  *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
                                  *pooled.var1[i]
               
-              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
-                            ifelse(i==21 || i==22, 1/pooled.var0[i], tau.a0))
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
+                            a0.mean), 
+                            ifelse(i==21 || i==22, 1/pooled.var0[i], 
+                            tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
-                            ifelse(i==21 || i ==22, 1/pooled.var1[i], tau.a1))
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==21 || i ==22, 1/pooled.var1[i], 
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
@@ -359,34 +380,38 @@ strongmisinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, 3,3, 0)
             inf.mean1 <- c(0, -3,-3, 0)
             
-            inf.var0 <- c(1, 1/tau.a0,1/tau.a0, 1)
-            inf.var1 <- c(1, 1/tau.a1,1/tau.a1, 1)
+            inf.var0 <- c(1, 0.5,0.5, 1)
+            inf.var1 <- c(1, 0.5,0.5, 1)
             
-            weights <- c(0.25, 0.75)
+            weights <- c(0.15, 0.85)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
               w[i] ~ dbern(omega)
               
+              lb0[i,1] <- weights[1]/(1/tau.a0)
               lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
-              lb0[i,1] <- weights[1]/inf.var0[g[i]+1]
-              lb1[i,1] <- weights[1]/inf.var1[g[i]+1]
               lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb1[i,1] <- weights[1]/(1/tau.a1)
               
-              pooled.var0[i] <- 1/sum(lb0)
-              pooled.var1[i] <- 1/sum(lb1)
+              pooled.var0[i] <- 1/sum(lb0[i,])
+              pooled.var1[i] <- 1/sum(lb1[i,])
               
               pooled.mean0[i] <- sum(lb0[i,]*c(a0.mean,inf.mean0[g[i]+1]))
                                  *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
                                  *pooled.var1[i]
               
-              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], a0.mean), 
-                            ifelse(i==21 || i==22, 1/pooled.var0[i], tau.a0))
+              a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
+                            a0.mean), 
+                            ifelse(i==21 || i==22, 1/pooled.var0[i], 
+                            tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], a1.mean), 
-                            ifelse(i==21 || i ==22, 1/pooled.var1[i], tau.a1))
+              a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==21 || i ==22, 1/pooled.var1[i], 
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
@@ -488,8 +513,9 @@ write.model <- function(priors){
 }
 
 # Write function for sending model to gibbs sampler --------------------------------
-VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf, 
-                       burn = 2500, iter = 8000, thin = 10){
+VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, 
+                       priors = uninf, burn = 2500, iter = 8000, 
+                       thin = 10){
   # Write model for augmented datasets
   if(textdoc == 'aug_model.txt')
     write.model(priors = priors)
@@ -501,8 +527,9 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
   }
 
   # Specify parameters
-  parms <- c('a0.mean', 'tau.a0', 'a1.mean', 'tau.a1', 'b0.mean', 'a0', 'b0', 
-             'a1','Z', 'pooled.mean0', 'pooled.var0', 'pooled.mean1', 'pooled.var1')
+  parms <- c('a0.mean', 'tau.a0', 'a1.mean', 'tau.a1', 'a0', 'psi',
+             'b0', 'a1','Z', 'pooled.mean0', 'pooled.var0', 
+             'pooled.mean1', 'pooled.var1', 'N')
 
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
@@ -525,20 +552,21 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 
   #JAGS command
   model <- jags(model.file = textdoc, data = datalist, n.chains = 3,
-                parameters.to.save = parms, inits = init.values, n.burnin = burn,
-                n.iter = iter, n.thin = thin)
+                parameters.to.save = parms, inits = init.values, 
+                n.burnin = burn, n.iter = iter, n.thin = thin)
     
   return(model)
 }
 
 # Run sims ------------------------------------
-# mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, spec = nspec,
-#            textdoc = 'noaug.txt')
+# mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, 
+#                         spec = nspec, textdoc = 'noaug.txt')
 # saveRDS(mod.noaug, file = "mod_noaug.rds")
 # 
-# mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                         textdoc = 'aug_model.txt', aug = nmiss, burn = 2500,
-#                         iter = 10000, thin = 10)
+# mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                         spec = nspec,textdoc = 'aug_model.txt',
+#                         aug = nmiss, burn = 2500, iter = 10000, 
+#                         thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
 # inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
@@ -547,31 +575,34 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, priors = uninf,
 #                            iter = 10000, thin = 5)
 # saveRDS(inf.weak, file = "inf_weak.rds")
 # 
-# inf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                       textdoc = 'aug_model.txt', aug = nmiss, priors = modinf,
-#                       burn = 7000, iter = 12000, thin = 3)
+# inf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                       spec = nspec, textdoc = 'aug_model.txt',
+#                       aug = nmiss, priors = modinf, burn = 7000,
+#                       iter = 12000, thin = 3)
 # saveRDS(inf.mod, file = "inf_mod.rds")
 # 
-# inf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, 
-#                          spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
-#                          priors = stronginf, burn = 7000, iter = 12000, thin = 3)
+# inf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                          spec = nspec, textdoc = 'aug_model.txt',
+#                          aug = nmiss, priors = stronginf, burn = 7000,
+#                          iter = 12000, thin = 3)
 # saveRDS(inf.mod, file = "inf_strong.rds")
 # 
 # misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                           spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
-#                           priors = weakmisinf, burn = 5000, iter = 10000, 
-#                           thin = 5)
+#                           spec = nspec, textdoc = 'aug_model.txt',
+#                           aug = nmiss, priors = weakmisinf, burn = 5000,
+#                           iter = 10000, thin = 5)
 # saveRDS(misinf.weak, file = "misinf_weak.rds")
 # 
-# misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov, spec = nspec,
-#                          textdoc = 'aug_model.txt', aug = nmiss,
-#                          priors = modmisinf, burn = 2500, iter = 10000, thin = 10)
+# misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
+#                          spec = nspec, textdoc = 'aug_model.txt',
+#                          aug = nmiss, priors = modmisinf, burn = 2500,
+#                          iter = 10000, thin = 10)
 # saveRDS(misinf.mod, file = "misinf_mod.rds")
 # 
 # misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                             spec = nspec, textdoc = 'aug_model.txt', aug = nmiss,
-#                             priors = strongmisinf, burn = 2500, iter = 10000,
-#                             thin = 10)
+#                             spec = nspec, textdoc = 'aug_model.txt',
+#                             aug = nmiss, priors = strongmisinf,
+#                             burn = 2500, iter = 10000, thin = 10)
 # saveRDS(misinf.strong, file = "misinf_strong.rds")
 
 # Load models -------------------------------
@@ -587,128 +618,118 @@ misinf.mod <- readRDS("misinf_mod.rds")
 misinf.strong <- readRDS("misinf_strong.rds")
 
 # Put models in a list
-mod.outputs <- list(inf.weak, inf.mod, inf.strong, misinf.weak, misinf.mod,
-                    misinf.strong)
+mod.outputs <- list(inf.weak, inf.mod, inf.strong, misinf.weak, 
+                    misinf.mod, misinf.strong)
+names(mod.outputs) <- c("inf.weak", "inf.mod", "inf.strong", 
+                        "misinf.weak", "misinf.mod", "misinf.strong")
 
-# Compare community posterior to undetected species posterior ------------
-prior.post0 <- function(x, spec.ID){
-  pooled.mean0 <- mean(x$BUGSoutput$sims.list$pooled.mean0[,spec.ID])
-  pooled.sd0 <- mean(sqrt(1/x$BUGSoutput$sims.list$pooled.tau0[,spec.ID]))
+# Compare priors and posteriors ------------
+# Write function to pull priors/posteriors and plot
+prior.agg0 <- function(x, spec.ID, inf.means){
+  pooled.mean <- mean(x$BUGSoutput$sims.list$pooled.mean0[,spec.ID])
+  pooled.sd <- mean(sqrt(x$BUGSoutput$sims.list$pooled.var0[,spec.ID]))
 
-  spec.a0 <- x$BUGSoutput$sims.list$a0[,spec.ID]
+  inf.mean <- inf.means[spec.ID-20]
+  inf.var <- 0.5
+  
+  comm.mean <- mean(x$BUGSoutput$sims.list$a0.mean)
+  comm.sd <- mean(sqrt(1/x$BUGSoutput$sims.list$tau.a0))
+  
+  post.mean <- mean(x$BUGSoutput$sims.list$a0[,spec.ID])
+  post.sd <- sd(x$BUGSoutput$sims.list$a0[,spec.ID])
 
-  plot <- ggplot(mapping = aes(x = spec.a0))+
-    stat_function(fun = dnorm, n = 100, 
-                  args = list(mean = pooled.mean0, sd = pooled.sd0),
-                  linetype = "dashed", size = 1)+
-    geom_density(size = 1)+
-    xlim(c(-30, 25))+
-    labs(x = "a0", y = "Density")+
-    theme_bw(base_size = 18)+
-    theme(panel.grid = element_blank())
-
+  plot <- ggplot()+
+    stat_function(fun = dnorm, n = 1000, 
+                  args = list(mean = pooled.mean, sd = pooled.sd),
+                  size = 1)+
+    stat_function(fun = dnorm, n = 1000, 
+                  args = list(mean = inf.mean, sd = sqrt(inf.var)),
+                  size = 1, linetype = "dashed")+
+    stat_function(fun = dnorm, n = 1000, 
+                  args = list(mean = comm.mean, sd = comm.sd),
+                  size = 1, linetype = "dotted")+
+    stat_function(fun = dnorm, n = 1000, 
+                  args = list(mean = post.mean, sd = post.sd),
+                  size = 1, color = "red")+
+    xlim(c(-6, 5))+
+    labs(y = "Density")+
+    theme_bw(base_size = 16)+
+    theme(panel.grid = element_blank(), 
+          axis.title.x = element_blank())
+  
   return(plot)
 }
 
-a0.21 <- lapply(mod.outputs, prior.post, spec.ID = 21)
-(a0.21[[1]]+a0.21[[2]]+a0.21[[3]])/(a0.21[[4]]+a0.21[[5]]+a0.21[[6]])
+# Create subplots for patchwork
+a0.21.inf <- lapply(mod.outputs[1:3], prior.agg0, 
+                    spec.ID = 21, inf.means = c(-4, 0))
+a0.21.misinf <- lapply(mod.outputs[4:6], prior.agg0, spec.ID = 21, 
+                       inf.means = c(3,3))
 
-a0.22 <- lapply(mod.outputs, prior.post, spec.ID = 22)
-(a0.22[[1]]+a0.22[[2]]+a0.22[[3]])/(a0.22[[4]]+a0.22[[5]]+a0.22[[6]])
-  
-# Function to compare estimates of N -----------------------------------
-# Write function to get Ns
-get.ns <- function(jag){
-  getmode <- function(x) {
-    uniqx <- unique(x)
-    uniqx[which.max(tabulate(match(x, uniqx)))]
-  }
+# Create patchwork objects
+a021inf <- (a0.21.inf[[1]]+a0.21.inf[[2]]+a0.21.inf[[3]])
+a021misinf <- (a0.21.misinf[[1]]+a0.21.misinf[[2]]+
+                 a0.21.misinf[[3]])
 
-  Ns <- as.vector(jag$BUGSoutput$sims.list$N)
-  Ns %>%
-    table() %>%
-    data.frame() %>%
-    {. ->> ns.frame}
-  colnames(ns.frame) <- c("N_Species", "Freq")
+# Create layout and add tags
+a021patch <- a021inf/a021misinf
 
-  Ns.mode <-getmode(Ns)
-  Ns.mean <- mean(Ns)
-  Ns.median <- median(Ns)
+a021patch[[1]] <- a021patch[[1]]+plot_layout(tag_level = 'new') 
+a021patch[[2]] <- a021patch[[2]]+plot_layout(tag_level = 'new')
 
-  Ns.plot <- ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)), 
-                                         y = Freq))+
-    geom_col()+
-    geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"), size = 1.5)+
-    geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"), size = 1.5)+
-    scale_linetype_manual(values = c("Estimated"="dotted", "True"="solid"),
-                          name = "", labels = c("Median Estimate", "True"))+
-    labs(x = "Estimated Species", y = "Frequency")+
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_classic(base_size = 18)+
-    theme(axis.text.y = element_blank(), axis.title.y = element_blank(),
-          legend.key.height = unit(40, units = 'pt'))
+# Final plot
+a021plot <- a021patch+
+  plot_annotation(tag_levels = c('A', '1'))
 
-  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean, median = Ns.median)
-  
-  return(out.list)
-}
+# Save that sonofabitch
+# ggsave(filename = "a021plot.jpeg", a021plot, width = 8, 
+#        height = 5)
 
-N.outs <- lapply(mod.outputs, get.ns)
+# Do it again with the other species
+# a0.22.inf <- lapply(mod.outputs[1:3], prior.agg0, 
+#                     spec.ID = 22, inf.means = c(-4, 0))
+# a0.22.misinf <- lapply(mod.outputs[4:6], prior.agg0, spec.ID = 22, 
+#                        inf.means = c(3,3))
+# 
+# a022inf <- (a0.22.inf[[1]]+a0.22.inf[[2]]+a0.22.inf[[3]])
+# a022misinf <- (a0.22.misinf[[1]]+a0.22.misinf[[2]]+
+#                  a0.22.misinf[[3]])
+# 
+# a022patch <- a022inf/a022misinf
+# 
+# a022patch[[1]] <- a022patch[[1]]+plot_layout(tag_level = 'new') 
+# a022patch[[2]] <- a022patch[[2]]+plot_layout(tag_level = 'new')
+# 
+# a022plot <- a022patch+
+#   plot_annotation(tag_levels = c('A', '1'))
 
-#View plots
-map(N.outs, 1)
-map(N.outs, 2)
-map(N.outs, 3)
-map(N.outs, 4)
+# Use psi to get regional richness estimates -----------------
+psis <- inf.mod$BUGSoutput$sims.list$psi
 
-# Put histograms in single figure
-layout <- 
-  "#AA#
-   BBCC
-   DDEE"
+reverse.psi <- 1-psis
 
-histos <- map(N.outs, 1) 
+at.least.one <- apply(reverse.psi[,,21:22], c(1,3), prod)
 
-Ns.megaplot <- histos[[1]]+ ggtitle('A)') +
-  histos[[2]] + ggtitle('B)') + guides(linetype = "none")+
-  histos[[3]] + ggtitle('C)') + guides(linetype = "none")+
-  histos[[4]] + ggtitle('D)') + guides(linetype = "none")+
-  histos[[5]] + ggtitle('E)') + guides(linetype = "none")+
-  plot_layout(design = layout, guides = 'collect')&
-  theme(legend.position = "right")
+stat <- data.frame(low = apply(at.least.one, 2, quantile, 0.025),
+                   high = apply(at.least.one, 2, quantile, 0.975),
+                   mean = apply(at.least.one, 2, mean),
+                   species = as.character(c(1,2)),
+                   true = sim.occ[c(21,22)])
 
-# Save figure
-# ggsave(Ns.megaplot, file = "Nsplot.jpeg", height = 7,width = 7, units = "in")
+ggplot(data = stat, aes(y = species))+
+  geom_point(aes(x = mean))+
+  geom_errorbar(aes(xmin = low, xmax = high))+
+  geom_point(aes(x = rev(true)), color = "red")+
+  labs(x = "Occupancy Probability", y = "Species")+
+  theme_bw(base_size = 19)+
+  theme(panel.grid = element_blank())
 
 
-# Get omegas ------------------------------------------
-get.omega <- function(jag){
-  os <- jag$BUGSoutput$sims.list$omega
-  
-  omega.plot <- ggplot()+
-    geom_density(aes(x = os), fill = 'lightgray')+
-    labs(x = "Regional Occurrence Probability", y = "Density")+
-    scale_x_continuous(limits = c(0,1))+
-    theme_bw(base_size = 18)+
-    theme(panel.grid = element_blank())
-  
-  return(omega.plot)
-}
-
-omegas.out <- lapply(mod.outputs, get.omega)
-
-Os.megaplot <- omegas.out[[1]]+ ggtitle('A)') +
-  omegas.out[[2]] + ggtitle('B)') +
-  omegas.out[[3]] + ggtitle('C)') +
-  omegas.out[[4]] + ggtitle('D)') +
-  omegas.out[[5]] + ggtitle('E)') +
-  plot_layout(design = layout)
-
-# Compare site-level richness ---------------------------
-# Create list with unaugmented data
-biglist <- list(mod.noaug, mod.uninf, mod.inf.weak, mod.inf, mod.misinf.weak, 
-                mod.misinf)
+# Compare site-level richness and covariate ----------------------
+# Create list with uninformed priors
+biglist <- list(uninf, inf.weak, inf.mod, 
+                inf.strong, misinf.weak, misinf.mod, 
+                misinf.strong)
 
 # Pull Zs from each item in list  
 Zs <- lapply(biglist, function(x) x$BUGSoutput$sims.list$Z)
@@ -721,29 +742,41 @@ site.rich <- lapply(Zs.mean, rowSums)
 
 # Convert list to data.frame
 rich.frame <- as.data.frame(do.call(cbind, site.rich))
-colnames(rich.frame) <- c('noaug', 'uninf', 'inf.weak', 'inf', 'misinf.weak',
-                          'misinf')
+colnames(rich.frame) <- c('uninf', 'inf.weak', 'inf.mod', 
+                          'inf.strong', 'misinf.weak', 
+                          'misinf.mod', 'misinf.strong')
 
 rich.frame$True <- colSums(tru)
 rich.frame$Obs <- rowSums(apply(obs.data, c(1,3), max))
-rich.frame$Rank <- rank(rich.frame$True, ties.method = 'first')
+rich.frame$Cov <- cov
 
 rich.long <- rich.frame %>%
-  pivot_longer(noaug:Obs, names_to = 'model', values_to = 'Richness')
+  pivot_longer(uninf:Obs, names_to = 'model', 
+               values_to = 'Richness') %>%
+  mutate(mod.type = case_when(startsWith(model,"un")~"Uninformed",
+                            startsWith(model,"mis")~"Misinformed",
+                            startsWith(model,"inf")~"Informed",
+                            model == "True"~"True",
+                            model == "Obs"~"Observed"))
   
-rich.plot <- ggplot(data = rich.long, aes(x = Rank, y = Richness, color = model))+
+rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
+                                         color = mod.type))+
   geom_point()+
-  geom_smooth(aes(fill = model), method = 'lm', alpha = 0.2)+
-  labs(x = "Sites (Ranked)")+
+  geom_smooth(aes(fill = mod.type), method = 'lm', alpha = 0.2)+
+  labs(x = "Covariate")+
   expand_limits(y = 0)+
   scale_color_viridis_d()+
   scale_fill_viridis_d()+
   theme_bw(base_size = 18)+
-  theme(panel.grid = element_blank(), legend.title = element_blank())
+  theme(panel.grid = element_blank(), 
+        legend.title = element_blank())
 
 # ggsave(rich.plot, filename = 'richplot.jpeg')
 
-# Compare typical bias of each prior method ---------------------------
+
+
+
+# Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs
 Zs.replicates <- lapply(Zs, apply, c(1,2), sum)
 
