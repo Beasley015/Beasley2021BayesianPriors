@@ -559,13 +559,13 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc,
 }
 
 # Run sims ------------------------------------
-# mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov, 
+# mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,
 #                         spec = nspec, textdoc = 'noaug.txt')
 # saveRDS(mod.noaug, file = "mod_noaug.rds")
 # 
 # mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
 #                         spec = nspec,textdoc = 'aug_model.txt',
-#                         aug = nmiss, burn = 2500, iter = 10000, 
+#                         aug = nmiss, burn = 2500, iter = 10000,
 #                         thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
@@ -703,34 +703,73 @@ a021plot <- a021patch+
 # a022plot <- a022patch+
 #   plot_annotation(tag_levels = c('A', '1'))
 
-# Use psi to get regional richness estimates -----------------
-psis <- inf.mod$BUGSoutput$sims.list$psi
-
-reverse.psi <- 1-psis
-
-at.least.one <- apply(reverse.psi[,,21:22], c(1,3), prod)
-
-stat <- data.frame(low = apply(at.least.one, 2, quantile, 0.025),
-                   high = apply(at.least.one, 2, quantile, 0.975),
-                   mean = apply(at.least.one, 2, mean),
-                   species = as.character(c(1,2)),
-                   true = sim.occ[c(21,22)])
-
-ggplot(data = stat, aes(y = species))+
-  geom_point(aes(x = mean))+
-  geom_errorbar(aes(xmin = low, xmax = high))+
-  geom_point(aes(x = rev(true)), color = "red")+
-  labs(x = "Occupancy Probability", y = "Species")+
-  theme_bw(base_size = 19)+
-  theme(panel.grid = element_blank())
-
-
-# Compare site-level richness and covariate ----------------------
-# Create list with uninformed priors
-biglist <- list(uninf, inf.weak, inf.mod, 
+# Compare Ns -----------------
+# Create list that includes uninformed priors
+biglist <- list(mod.uninf, inf.weak, inf.mod, 
                 inf.strong, misinf.weak, misinf.mod, 
                 misinf.strong)
 
+# Write function to get Ns
+get.ns <- function(jag){
+  getmode <- function(x) {
+    uniqx <- unique(x)
+    uniqx[which.max(tabulate(match(x, uniqx)))]
+  }
+  
+  Ns <- as.vector(jag$BUGSoutput$sims.list$N)
+  Ns %>%
+    table() %>%
+    data.frame() %>%
+    {. ->> ns.frame}
+  colnames(ns.frame) <- c("N_Species", "Freq")
+  
+  Ns.mode <-getmode(Ns)
+  Ns.mean <- mean(Ns)
+  Ns.median <- median(Ns)
+  
+  Ns.plot <- ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)), 
+                                         y = Freq))+
+    geom_col(width = 1, color = 'lightgray')+
+    geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"), size = 1.5)+
+    geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"), size = 1.5)+
+    scale_linetype_manual(values = c("Estimated"="dotted", "True"="solid"),
+                          name = "", labels = c("Median Estimate", "True"))+
+    labs(x = "Estimated Species", y = "Frequency")+
+    scale_y_continuous(expand = c(0,0))+
+    theme_classic(base_size = 18)+
+    theme(axis.text = element_blank(), axis.title.y = element_blank(),
+          legend.key.height = unit(40, units = 'pt'))
+  
+  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean, median = Ns.median)
+  
+  return(out.list)
+}
+
+N.outs <- lapply(biglist, get.ns)
+
+# Put histograms in single figure
+layout <- 
+  "#AA#
+   BBEE
+   CCFF
+   DDGG"
+
+histos <- map(N.outs, 1) 
+
+Ns.megaplot <- histos[[1]]+ 
+  histos[[2]] + guides(linetype = "none")+
+  histos[[3]] + guides(linetype = "none")+
+  histos[[4]] + guides(linetype = "none")+
+  histos[[5]] + guides(linetype = "none")+
+  histos[[6]] + guides(linetype = "none")+
+  histos[[7]] + guides(linetype = "none")+
+  plot_layout(design = layout, guides = 'collect')&
+  theme(legend.position = "right")
+
+# ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 7,
+#        height = 10, units = 'in')
+
+# Compare site-level richness and covariate ----------------------
 # Pull Zs from each item in list  
 Zs <- lapply(biglist, function(x) x$BUGSoutput$sims.list$Z)
 
