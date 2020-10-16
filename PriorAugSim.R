@@ -705,7 +705,7 @@ a021plot <- a021patch+
 
 # Compare Ns -----------------
 # Create list that includes uninformed priors
-biglist <- list(mod.uninf, inf.weak, inf.mod, 
+biglist <- list(uninf, inf.weak, inf.mod, 
                 inf.strong, misinf.weak, misinf.mod, 
                 misinf.strong)
 
@@ -727,20 +727,27 @@ get.ns <- function(jag){
   Ns.mean <- mean(Ns)
   Ns.median <- median(Ns)
   
-  Ns.plot <- ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)), 
-                                         y = Freq))+
+  Ns.plot <- ggplot(data = ns.frame, 
+                    aes(x = as.integer(as.character(N_Species)),
+                                       y = Freq))+
     geom_col(width = 1, color = 'lightgray')+
-    geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"), size = 1.5)+
-    geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"), size = 1.5)+
-    scale_linetype_manual(values = c("Estimated"="dotted", "True"="solid"),
-                          name = "", labels = c("Median Estimate", "True"))+
+    geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"),
+               size = 1.5)+
+    geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"),
+               size = 1.5)+
+    scale_linetype_manual(values = c("Estimated"="dotted", 
+                                     "True"="solid"),
+                          name = "", 
+                          labels = c("Median Estimate", "True"))+
     labs(x = "Estimated Species", y = "Frequency")+
     scale_y_continuous(expand = c(0,0))+
     theme_classic(base_size = 18)+
-    theme(axis.text = element_blank(), axis.title.y = element_blank(),
+    theme(axis.text = element_blank(), 
+          axis.title.y = element_blank(),
           legend.key.height = unit(40, units = 'pt'))
   
-  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean, median = Ns.median)
+  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean,
+                   median = Ns.median)
   
   return(out.list)
 }
@@ -764,7 +771,8 @@ Ns.megaplot <- histos[[1]]+
   histos[[6]] + guides(linetype = "none")+
   histos[[7]] + guides(linetype = "none")+
   plot_layout(design = layout, guides = 'collect')&
-  theme(legend.position = "right")
+  theme(legend.position = "right")&
+  xlim(c(19.5,22.5))
 
 # ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 7,
 #        height = 10, units = 'in')
@@ -812,8 +820,61 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
 
 # ggsave(rich.plot, filename = 'richplot.jpeg')
 
+# Compare covariate responses ----------------------
+get.cov <- function(jag){
+  # Extract covariate estimates from jags object
+  a1s <- jag$BUGSoutput$sims.list$a1
+  
+  a1s <- as.data.frame(a1s[,21:22])
+  
+  specnames <- logical()
+  for(i in 21:22){
+    specnames[i-20] <- paste("Spec", i, sep = "")
+  }
+  
+  colnames(a1s) <- specnames
 
+  # Pivot data frame for plotting
+  a1.long <- a1s %>%
+    pivot_longer(cols = everything(), names_to = "Spec", 
+                 values_to = "a1")
+  
+  a1.long$Spec <- factor(a1.long$Spec, levels = specnames)
 
+  a1.stat <- a1.long %>%
+    group_by(Spec) %>%
+    summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
+              hi = quantile(a1, 0.975)) %>%
+    mutate(tru.resp = resp2cov[21:22])
+
+  # Make interval plot
+  plot <- ggplot(data = a1.stat, aes(x = Spec, y = mean))+
+    geom_point(size = 2)+
+    geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
+                  size = 1.5, width = 0.2)+
+    geom_point(aes(y = tru.resp), color = "red", size = 2)+
+    geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
+    scale_y_continuous(limits = c(-10, 10))+
+    labs(x = "Species", y = "Coefficient")+
+    theme_bw(base_size = 18)+
+    theme(axis.text = element_blank(), 
+          panel.grid = element_blank())
+  
+  return(plot)
+}
+
+cov.plots <- lapply(biglist, get.cov)
+
+plot.uninf <- plot_spacer()+cov.plots[[1]]+plot_spacer()+
+  plot_layout(widths = c(1,2,1))
+plot.inf <- cov.plots[[2]]/cov.plots[[3]]/cov.plots[[4]]
+plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]
+
+allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
+  plot_layout(heights = c(1,5))
+
+# ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10, 
+#        width = 8, units = "in")
 
 # Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs
@@ -842,11 +903,6 @@ make.rich.hists <- function(x){
 
 rich.hists <- lapply(rich.vecs, make.rich.hists)
 
-layout2 <- "
-AABB
-CCDD
-EEFF"
-
 allthehists <- rich.hists[[1]]+ ggtitle("No Augmentation")+
   rich.hists[[2]]+ ggtitle("Uninformed")+
   rich.hists[[3]]+ ggtitle("Weakly Informed")+
@@ -855,68 +911,8 @@ allthehists <- rich.hists[[1]]+ ggtitle("No Augmentation")+
   rich.hists[[6]]+ ggtitle("Misinformed")+
   plot_layout(design = layout2)
 
-# ggsave(allthehists, file = "allthehists.jpeg", height = 8, width = 8, units = 'in')
-
-# Compare covariate responses ----------------------
-a1s <- lapply(biglist, function(x) x$BUGSoutput$sims.list$a1)
-
-a1.frame <- lapply(a1s, as.data.frame)
-
-specnames <- factor(1:(nspec+nmiss+naug))
-
-a1.frame <- lapply(a1.frame, function(x) setNames(x,specnames[1:ncol(x)]))
-
-a1.frame <- lapply(a1.frame, function(x) if(ncol(x) > 22) x[,1:22] else x)
-
-longggggg.frame <- function(x){
-  y <- x %>%
-    pivot_longer(cols = everything(), names_to = "Spec", values_to = "a1")
-  
-  return(y)
-}
-
-a1.long <- lapply(a1.frame, longggggg.frame)
-
-trim <- function(x){
-  a1.trim <- x %>%
-    group_by(Spec) %>%
-    filter(between(a1, quantile(a1, 0.025), quantile(a1, 0.975))) %>%
-    ungroup() %>%
-    mutate_at('Spec', factor, levels = specnames)
-
-  return(a1.trim)
-}
-
-a1.trim <- lapply(a1.long, trim)
-
-# Create response table
-resp.table <- data.frame(Spec = specnames, resp = c(resp2cov,NA,NA,NA))
-
-# Make violin plot
-make.violins <- function(dat){
-  violin <- ggplot(data = dat, aes(x = Spec, y = a1))+
-    geom_violin(fill = 'lightgray')+
-    geom_point(data = resp.table[1:length(unique(factor(dat$Spec))),], 
-               mapping = aes(x = Spec, y = resp), color = "red")+
-    geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
-    labs(x = "Species", y = "Coefficient")+
-    theme_bw(base_size = 18)+
-    theme(axis.text.x = element_blank(), panel.grid = element_blank())
-    
-  return(violin)
-}
-
-cov.plots <- lapply(a1.trim, make.violins)
-
-allthecovs <- cov.plots[[2]]+ ggtitle("Uninformed")+
-  cov.plots[[3]]+ ggtitle("Weakly Informed")+
-  cov.plots[[4]]+ ggtitle("Informed")+
-  cov.plots[[5]]+ ggtitle("Weakly Misinformed")+
-  cov.plots[[6]]+ ggtitle("Misinformed")+
-  plot_layout(design = layout)
-
-# ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10, width = 10,
-#        units = "in")
+# ggsave(allthehists, file = "allthehists.jpeg", height = 8, 
+#        width = 8, units = 'in')
 
 
 
@@ -924,7 +920,8 @@ allthecovs <- cov.plots[[2]]+ ggtitle("Uninformed")+
 
 
 
-# Function looking at observed~true occupancy -------------------------
+
+# Function looking at observed~true occupancy --------------------
 error.raster <- function(jag){
   specnames <- as.character(1:(nspec+nmiss))
 
@@ -965,113 +962,3 @@ error.out <- lapply(mod.outputs, error.raster)
 
 print(error.out)
 
-# Compare error and detection probability ---------------------------
-erdet <- function(jag){
-  specnames <- as.character(1:(nspec+nmiss))
-
-  Zs <- jag$BUGSoutput$sims.list$Z
-
-  Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,1:22])
-  colnames(Zs.mean) <- specnames
-  Zs.mean$Site <- 1:nrow(Zs.mean)
-
-  tru.frame <-as.data.frame(t(tru))
-  colnames(tru.frame) <- specnames
-  tru.frame$Site <- 1:nrow(tru.frame)
-
-  tru.frame %>%
-    gather('1':'17', key = "Species", value = "Occ") %>%
-    {. ->> tru.frame}
-
-  Zs.mean %>%
-    gather('1':'17', key = "Species", value = "Occ") %>%
-    left_join(tru.frame, by = c("Site", "Species")) %>%
-    mutate(Error = Occ.y - Occ.x) %>%
-    {. ->> merged.frame}
-
-  for(i in 1:nrow(merged.frame)){
-    merged.frame$Detection[i] <- mean.p[as.numeric(merged.frame$Species[i])]
-  }
-
-  hexplot <- ggplot(data = merged.frame, aes(x = Detection, y = Error))+
-    stat_binhex()+ 
-    geom_hline(yintercept = 0)+
-    scale_fill_viridis(name = "Count")+
-    labs(x = "Detection Probability")+
-    theme_bw(base_size = 20)+
-    theme(panel.grid = element_blank())
-  
-  return(hexplot)
-}
-
-erdet.out <- lapply(mod.outputs, erdet)
-
-print(erdet.out)
-
-# Try mixed priors for augs ------------------------------
-mod <- paste("
-    model{
-      
-    # Define hyperprior distributions: intercepts
-    omega ~ dunif(0,1)
-    
-    #Intercepts
-    mean.a0 ~ dunif(0,1)
-    a0.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a0 ~ dgamma(0.1, 0.1)
-    
-    mean.a1 ~ dunif(0,1)
-    a1.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a1 ~ dgamma(0.1, 0.1)
-    
-    mean.b0 ~ dunif(0,1)
-    b0.mean <- log(mean.b0)-log(1-mean.b0)
-    tau.b0 ~ dgamma(0.1, 0.1)
-    
-    lim <- c(20,21,22)
-
-    for(i in 1:(spec+aug)){
-      #Create priors from hyperpriors
-      sel[i] <- 
-      
-      w[i] ~ dbern(ifelse(i == 21 || i == 22, 0.75, omega))
-      #indicates whether or not species is exposed to sampling
-      
-      # Add informed distribution means
-      a0.mean.inf <- 
-      
-      # Probability of selecting informed distribution
-      prob[i] <- ifelse(i == 21 || i == 22, runif(0,1), 1)
-      g[i] <- dbern(prob)
-      
-      dist.occ <- c(dnorm(a0.mean.inf, tau.a0),
-                    dnorm(a0.mean, tau.a0))
-      
-      a0[i] ~ dist.occ[g[i]+1]
-      
-      a1[i] ~ dnorm(a1.mean, tau.a1)
-      
-      b0[i] ~ dnorm(b0.mean, tau.b0)
-    
-      #Estimate occupancy of species i at point j
-      for (j in 1:J) {
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
-        mu.psi[j,i] <- psi[j,i] * w[i]
-        Z[j,i] ~ dbern(mu.psi[j,i])
-    
-        #Estimate detection of i at point j during sampling period k
-        for(k in 1:K[j]){
-          logit(p[j,k,i]) <-  b0[i]
-          mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
-          #The addition of Z means that detecting a species depends on its occupancy
-          obs[j,k,i] ~ dbern(mu.p[j,k,i])
-    }
-    }
-    }
-    
-    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-    n0<-sum(w[(spec+1):(spec+aug)])
-    N<-spec+n0
-    
-    }
-    ")
