@@ -534,8 +534,6 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc,
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
   init.values<-function(){
-    omega.guess <- runif(1,0,1)
-    mu.psi.guess <- runif(1, 0.25, 1)
     inits <- list(
          a0 = rnorm(n = (spec+aug)),
          a1 = rnorm(n = (spec+aug)),
@@ -585,7 +583,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc,
 #                          spec = nspec, textdoc = 'aug_model.txt',
 #                          aug = nmiss, priors = stronginf, burn = 7000,
 #                          iter = 12000, thin = 3)
-# saveRDS(inf.mod, file = "inf_strong.rds")
+# saveRDS(inf.strong, file = "inf_strong.rds")
 # 
 # misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
 #                           spec = nspec, textdoc = 'aug_model.txt',
@@ -873,84 +871,81 @@ plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]
 allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
   plot_layout(heights = c(1,5))
 
-# ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10, 
+# ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10,
 #        width = 8, units = "in")
 
 # Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs
-Zs.replicates <- lapply(Zs, apply, c(1,2), sum)
+rich.bias <- function(jag){
+  # Get site-level richness
+  Zs <- jag$BUGSoutput$sims.list$Z
 
-# Subtract each replicate vector from the true value
-rich.diffs <- lapply(Zs.replicates, apply, 1, function(x) x-colSums(tru))
+  Zs.replicates <- apply(Zs, c(1,2), sum)
 
-# Convert each matrix in list into a giant vector
-rich.vecs <- lapply(rich.diffs, as.vector)
+  # Subtract each replicate vector from the true value
+  rich.diffs <- apply(Zs.replicates, 1, function(x) x-colSums(tru))
+  
+  # Convert to vector
+  diffs.vec <- as.vector(rich.diffs)
 
-# Get avg deviance from true value
-mean.diff <- unlist(lapply(rich.diffs, mean))
-
-# Create histograms
-make.rich.hists <- function(x){
+  # Create histograms
   plot <- ggplot()+
-    geom_bar(aes(x = x), fill = 'darkgray')+
-    geom_vline(xintercept = 0)+
-    labs(x = "Richness")+
-    theme_bw(base_size = 18)+
-    theme(axis.title.y = element_blank(), panel.grid = element_blank())
+      geom_bar(aes(x = diffs.vec), fill = 'darkgray')+
+      geom_vline(xintercept = 0)+
+      labs(x = "Richness")+
+      theme_bw(base_size = 18)+
+      theme(axis.title.y = element_blank(), 
+            panel.grid = element_blank())
   
   return(plot)
 }
 
-rich.hists <- lapply(rich.vecs, make.rich.hists)
+rich.hists <- lapply(biglist, rich.bias)
 
-allthehists <- rich.hists[[1]]+ ggtitle("No Augmentation")+
-  rich.hists[[2]]+ ggtitle("Uninformed")+
-  rich.hists[[3]]+ ggtitle("Weakly Informed")+
-  rich.hists[[4]]+ ggtitle("Informed")+
-  rich.hists[[5]]+ ggtitle("Weakly Misinformed")+
-  rich.hists[[6]]+ ggtitle("Misinformed")+
-  plot_layout(design = layout2)
+plot.uninf <- plot_spacer()+rich.hists[[1]]+plot_spacer()+
+  plot_layout(widths = c(1,2,1))
+rich.hists.inf <- rich.hists[[2]]/rich.hists[[3]]/rich.hists[[4]]
+rich.hists.misinf <- rich.hists[[5]]/rich.hists[[6]]/rich.hists[[7]]
 
-# ggsave(allthehists, file = "allthehists.jpeg", height = 8, 
+allthehists <- plot.uninf/(rich.hists.inf|rich.hists.misinf)+
+  plot_layout(heights = c(1,5))
+
+# ggsave(allthehists, file = "allthehists.jpeg", height = 10,
 #        width = 8, units = 'in')
 
-
-
-
-
-
-
-
-# Function looking at observed~true occupancy --------------------
+# Function looking at undetected spec error --------------------
 error.raster <- function(jag){
-  specnames <- as.character(1:(nspec+nmiss))
-
   Zs <- jag$BUGSoutput$sims.list$Z
+  
+  spec.names <- c("Spec21", "Spec22")
 
-  Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,1:22])
-  colnames(Zs.mean) <- specnames
-  Zs.mean$Site <- 1:nrow(Zs.mean)
+  Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,21:22])
+  colnames(Zs.mean) <- spec.names
+  Zs.mean$Site <- c(1:30)
 
-  tru.frame <-as.data.frame(t(tru))
-  colnames(tru.frame) <- specnames
-  tru.frame$Site <- 1:nrow(tru.frame)
+  tru.frame <-as.data.frame(t(tru))[,21:22]
+  colnames(tru.frame) <- spec.names
+  tru.frame$Site <- c(1:30)
 
   tru.frame %>%
-    gather('1':'17', key = "Species", value = "Occ") %>%
+    gather("Spec21":"Spec22", key = "Species", value = "Occ") %>%
     {. ->> tru.frame}
 
   Zs.mean %>%
-    gather('1':'17', key = "Species", value = "Occ") %>%
+    gather("Spec21":"Spec22", key = "Species", value = "Occ") %>%
     left_join(tru.frame, by = c("Site", "Species")) %>%
     mutate(Error = Occ.y - Occ.x) %>%
     {. ->> merged.frame}
 
-  merged.frame$Species = factor(merged.frame$Species, levels = specnames)
+  merged.frame$Species = factor(merged.frame$Species, 
+                                levels = spec.names)
 
-  rast <- ggplot(data = merged.frame, aes(x = Species, y = Site, fill = Error))+
+  rast <- ggplot(data = merged.frame, 
+                 aes(x = Species, y = Site, fill = Error))+
     geom_tile()+
     scale_fill_distiller(type = "div", 
-                         limit = max(abs(merged.frame$Error)) * c(-1, 1))+
+                         limit = max(abs(merged.frame$Error)) *
+                           c(-1, 1))+
     scale_y_continuous(expand = c(0,0))+
     scale_x_discrete(expand = c(0,0))+
     theme_bw(base_size = 18)
@@ -958,7 +953,19 @@ error.raster <- function(jag){
   return(rast)
 }
 
-error.out <- lapply(mod.outputs, error.raster)
+error.out <- lapply(biglist, error.raster)
 
-print(error.out)
+plot.uninf <- plot_spacer() + error.out[[1]]+ plot_spacer()+
+  plot_layout(widths = c(1,2,1))
 
+plot.inf <- (error.out[[2]]/error.out[[3]]/error.out[[4]])&
+  guides(fill = "none")
+
+plot.misinf <- (error.out[[5]]/error.out[[6]]/error.out[[7]])&
+  guides(fill = "none")
+
+error.plots <- plot.uninf/(plot.inf|plot.misinf)+
+  plot_layout(heights = c(1,5), guides = "collect")
+
+# ggsave(error.plots, file = "error_plots.jpeg", height = 10, 
+#        width = 8, units = "in")

@@ -35,7 +35,7 @@ mamm.allsite$Abbrev[is.na(mamm.allsite$Abbrev)] <- "PELE"
 mamm.wide <- mamm.allsite %>%
   complete(Site, Abbrev, Day) %>%
   pivot_wider(names_from = "Day", values_from = "Occ", 
-              values_fn = list(Occ = "sum"))
+              values_fn = list(Occ = "sum")) 
 
 # Fill missing values with 0
 mamm.wide[is.na(mamm.wide)] <- 0
@@ -50,7 +50,8 @@ J <- length(sites)
 K <- rep(3, J)
 
 # Coerce mammal data into array
-mamm.array <- abind(split(mamm.wide, mamm.wide$Abbrev), along = 3)
+mamm.array <- abind(split(mamm.wide, desc(mamm.wide$Abbrev)), 
+                    along = 3)
 
 # Clean it up
 mamm.array <- mamm.array[,-(1:2),]
@@ -63,20 +64,28 @@ undetected <- array(0, dim = c(J, max(K), 2))
 # Put arrays together
 mamm.aug <- abind(mamm.array, undetected, along = 3)
 
+# Change to presence/absence data
+mamm.aug[mamm.aug > 1] <- 1
+
 # Vegetation data ------------------------
 veg <- read.csv("VegRawData.csv")
 
 veg %>%
-  select(c(Site, Habitat, Weins10:Weins60)) %>%
+  select(c(Site, Habitat, Canopy:X.DeadVeg)) %>%
   group_by(Site, Habitat) %>%
   summarise_all(mean) %>%
   {. ->> filtered.veg}
 
 # Run PCA
-vegpca <- prcomp(filtered.veg[,3:8])
+vegpca <- prcomp(filtered.veg[3:15])
+#PC1: + grass/forb, - deadveg
+#PC2: + forb/bare, - grass/deadveg
+#PC3: + forb, - bare
 
-vegdat <- data.frame(Site = filtered.veg$Site, Habitat = filtered.veg$Habitat, 
-                     PC1 = vegpca$x[,1], PC2 = vegpca$x[,2])
+vegdat <- data.frame(Site = filtered.veg$Site, 
+                     Habitat = filtered.veg$Habitat, 
+                     PC1 = vegpca$x[,1], PC2 = vegpca$x[,2],
+                     PC3 = vegpca$x[,3])
 
 # Plot
 ggplot(data = vegdat, aes(x = PC1, y = PC2, color = Habitat))+
@@ -85,17 +94,30 @@ ggplot(data = vegdat, aes(x = PC1, y = PC2, color = Habitat))+
   theme_bw(base_size = 18)+
   theme(panel.grid = element_blank())
 
-# PC1 (lack of structure) explains most 86% of variability- we'll keep that
-vegcov <- vegdat$PC1
-# Standardize veg covariate
-vegcov <- as.vector(scale(vegcov))
+# ggsave("PC12.jpeg")
+
+ggplot(data = vegdat, aes(x = PC2, y = PC3, color = Habitat))+
+  geom_point(size = 3)+
+  scale_color_viridis_d()+
+  theme_bw(base_size = 18)+
+  theme(panel.grid = element_blank())
+
+# PC1 (separates forest & everything else) explains 47.5% 
+forests <- vegdat$PC1
+# Standardize
+forests <- as.vector(scale(forests))
+
+# PC2 (separates forby & grassy farms/fields) explains 16%
+farmfield <- vegdat$PC2
+# Standardize
+farmfield <- as.vector(scale(farmfield))
 
 # Write base model script ------------------------------
 # Priors
 
 # Model text
-write.model <- function(priors=NULL){
-  mod <- paste("
+uninf.model <- function(){
+  mod <- "
     model{
       
     # Define hyperprior distributions: intercepts
@@ -107,24 +129,29 @@ write.model <- function(priors=NULL){
     tau.a0 ~ dgamma(0.1, 0.1)
     
     mean.a1 ~ dunif(0,1)
-    a1.mean <- log(mean.a0)-log(1-mean.a0)
+    a1.mean <- log(mean.a1)-log(1-mean.a1)
     tau.a1 ~ dgamma(0.1, 0.1)
+    
+    mean.a2 ~ dunif(0,1)
+    a2.mean <- log(mean.a2)-log(1-mean.a2)
+    tau.a2 ~ dgamma(0.1, 0.1)
     
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
-
-    ",priors,"
+    
     for(i in 1:(spec+aug)){
+      w[i] ~ dbern(omega)
+      
       a0[i] ~ dnorm(a0.mean, tau.a0)
-
       a1[i] ~ dnorm(a1.mean, tau.a1)
+      a2[i] ~ dnorm(a2.mean, tau.a2)
 
       b0[i] ~ dnorm(b0.mean, tau.b0)
     
       #Estimate occupancy of species i at point j
       for (j in 1:J) {
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j] + a2[i]*cov2[j]
         Z[j,i] ~ dbern(psi[j,i]*w[i])
     
         #Estimate detection of i at point j during sampling period k
@@ -141,48 +168,50 @@ write.model <- function(priors=NULL){
     N<-spec+n0
     
     }
-    ")
-  writeLines(mod, "realdat_model.txt") 
+    "
+  writeLines(mod, "realdat_uninf.txt") 
 }
 
-# Send model to JAGS ------------------------------------------------
+# Send model to JAGS --------------------------------------------
 # Write JAGS function
-VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, cov=vegcov, priors = NULL, 
-                       burn = 1000, iter = 5000, thin = 3){
+VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, 
+                       cov1 = forests, cov2 = farmfield,
+                       textdoc, burn = 2000, iter = 6000, 
+                       thin = 5){
   
   # write the model file
-  textdoc <- write.model()
   
   # Compile data into list
-  datalist <- list(J = J, K = K, obs = obs, spec = spec, aug = aug, cov = vegcov)
-  
-  # Specify parameters
-  parms <- c('N', 'omega','a0.mean', 'b0.mean', 'a0', 'b0', 'a1','Z')
+  datalist <- list(J = J, K = K, obs = obs, spec = spec, aug = aug,
+                   cov1 = forests, cov2 = farmfield)
   
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
-  init.values<-function(){
-      omega.guess <- runif(1,0,1)
-      mu.psi.guess <- runif(1, 0.25, 1)
-      inits <- list(
-      a0 = rnorm(n = spec+aug), 
-      a1 = rnorm(n = spec+aug),
-      b0 = rnorm(n = spec+aug),
+  init.values <- function(){
+    omega.guess <- runif(1,0,1)
+    inits <- list(
+      w = c(rep(1,spec), rbinom(n = aug, size=1, prob=omega.guess)),
       Z = maxobs
     )
   }
   
+  # Specify parameters
+  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1')
+  
   #JAGS command
-  model <- jags(model.file = 'realdat_model.txt', data = datalist, n.chains = 3,
-                parameters.to.save = parms, inits = init.values, n.burnin = burn,
+  model <- jags(model.file = textdoc, data = datalist, 
+                n.chains = 3, parameters.to.save = parms, 
+                n.burnin = burn, inits = init.values,
                 n.iter = iter, n.thin = thin)
   
   return(model)
 }
 
-mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, cov = vegcov)
+# uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, 
+#                   textdoc = 'realdat_uninf.txt')
+# saveRDS(uninf.mod, "real_uninf.rds")
 
-# Shapefile --------------------------
+# Site map --------------------------
 traplines <- readOGR(dsn = "UpdatedTracks.kml")
 
 # Convert to sf object
@@ -240,3 +269,45 @@ ggplot(data = VT)+
   theme(axis.title = element_blank(), axis.text = element_blank())
 
 ggsave(file = "sitemap.jpeg")
+
+# Get Ns -----------------------
+get.ns <- function(jag){
+  getmode <- function(x) {
+    uniqx <- unique(x)
+    uniqx[which.max(tabulate(match(x, uniqx)))]
+  }
+  
+  Ns <- as.vector(jag$BUGSoutput$sims.list$N)
+  Ns %>%
+    table() %>%
+    data.frame() %>%
+    {. ->> ns.frame}
+  colnames(ns.frame) <- c("N_Species", "Freq")
+  
+  Ns.mode <-getmode(Ns)
+  Ns.mean <- mean(Ns)
+  Ns.median <- median(Ns)
+  
+  Ns.plot <- ggplot(data = ns.frame, 
+                    aes(x = as.integer(as.character(N_Species)),
+                        y = Freq))+
+    geom_col(width = 1, color = 'lightgray')+
+    geom_vline(xintercept = Ns.median, linetype = 'dashed', size = 2)+
+    labs(x = "Estimated Species", y = "Frequency")+
+    scale_y_continuous(expand = c(0,0))+
+    theme_classic(base_size = 18)+
+    theme(axis.text = element_blank(), 
+          axis.title.y = element_blank(),
+          legend.key.height = unit(40, units = 'pt'))
+  
+  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean,
+                   median = Ns.median)
+  
+  return(out.list)
+}
+
+get.ns(jag = uninf.mod)
+
+# Site-level richness -------------------
+
+# Covariate responses -------------------
