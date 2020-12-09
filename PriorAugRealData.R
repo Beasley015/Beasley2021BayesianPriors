@@ -59,7 +59,7 @@ row.names(mamm.array) <- sites
 mamm.array <- array(as.numeric(mamm.array), dim = dim(mamm.array))
 
 # Create array for augmented species
-undetected <- array(0, dim = c(J, max(K), 2))
+undetected <- array(0, dim = c(J, max(K), 1))
 
 # Put arrays together
 mamm.aug <- abind(mamm.array, undetected, along = 3)
@@ -114,6 +114,44 @@ farmfield <- as.vector(scale(farmfield))
 
 # Write base model script ------------------------------
 # Priors
+weakinf <- "#Add info for species-level priors
+            
+            inf.mean0 <- c()
+            inf.mean1 <- 
+            
+            inf.var0 <- c()
+            inf.var1 <- 
+            
+            weights0 <- c()
+            weights1 <- c(0.85, 0.15)
+
+            for(i in 1:(spec+aug)){
+              #Create priors from hyperpriors
+              w[i] ~ dbern(omega)
+              
+              lb0[3] <- weights0[3]/inf.var0
+              lb0[2] <- weights0[2]/inf.var0
+              lb0[1] <- weights0[1]/(1/tau.a0)
+              
+              lb1[1] <- weights1[1]/(1/tau.a1)
+              lb1[2] <- weights1[2]/inf.var1
+              
+              pooled.var0[i] <- 1/sum(lb0)
+              pooled.var1[i] <- 1/sum(lb1)
+              
+              pooled.mean0[i] <- sum(lb0*c(a0.mean,inf.mean0))
+                                 *pooled.var0
+              pooled.mean1[i] <- sum(lb1*c(a1.mean,inf.mean1))
+                                 *pooled.var1
+              
+              a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean), 
+                            ifelse(i==11, (1/pooled.var0), tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
+                            ifelse(i==11, (1/pooled.var1), tau.a1))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
+
 
 # Model text
 uninf.model <- function(){
@@ -132,10 +170,6 @@ uninf.model <- function(){
     a1.mean <- log(mean.a1)-log(1-mean.a1)
     tau.a1 ~ dgamma(0.1, 0.1)
     
-    mean.a2 ~ dunif(0,1)
-    a2.mean <- log(mean.a2)-log(1-mean.a2)
-    tau.a2 ~ dgamma(0.1, 0.1)
-    
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
@@ -145,13 +179,12 @@ uninf.model <- function(){
       
       a0[i] ~ dnorm(a0.mean, tau.a0)
       a1[i] ~ dnorm(a1.mean, tau.a1)
-      a2[i] ~ dnorm(a2.mean, tau.a2)
 
       b0[i] ~ dnorm(b0.mean, tau.b0)
     
       #Estimate occupancy of species i at point j
       for (j in 1:J) {
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j] + a2[i]*cov2[j]
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j]
         Z[j,i] ~ dbern(psi[j,i]*w[i])
     
         #Estimate detection of i at point j during sampling period k
@@ -172,18 +205,65 @@ uninf.model <- function(){
   writeLines(mod, "realdat_uninf.txt") 
 }
 
+# Informed model
+write.model <- function(priors){
+  mod <- paste("
+    model{
+      
+    # Define hyperprior distributions: intercepts
+    omega ~ dunif(0,1)
+    
+    #Intercepts
+    mean.a0 ~ dunif(0,1)
+    a0.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a0 ~ dgamma(0.1, 0.1)
+    
+    mean.a1 ~ dunif(0,1)
+    a1.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a1 ~ dgamma(0.1, 0.1)
+    
+    mean.b0 ~ dunif(0,1)
+    b0.mean <- log(mean.b0)-log(1-mean.b0)
+    tau.b0 ~ dgamma(0.1, 0.1)
+
+    ",priors,"
+
+      #Estimate occupancy of species i at point j
+      for (j in 1:J) {
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+        mu.psi[j,i] <- psi[j,i] * w[i]
+        Z[j,i] ~ dbern(mu.psi[j,i])
+    
+        #Estimate detection of i at point j during sampling period k
+        for(k in 1:K[j]){
+          logit(p[j,k,i]) <-  b0[i]
+          mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
+          #The addition of Z means that detecting a species depends on its occupancy
+          obs[j,k,i] ~ dbern(mu.p[j,k,i])
+    }
+    }
+    }
+    
+    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
+    n0<-sum(w[(spec+1):(spec+aug)])
+    N<-spec+n0
+    
+    }
+    ")
+  writeLines(mod, "aug_model.txt") 
+}
+
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
 VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, 
-                       cov1 = forests, cov2 = farmfield,
-                       textdoc, burn = 2000, iter = 6000, 
-                       thin = 5){
+                       cov1 = forests, textdoc, burn = 2000, 
+                       iter = 6000, thin = 5){
   
   # write the model file
   
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, aug = aug,
-                   cov1 = forests, cov2 = farmfield)
+                   cov1 = forests)
   
   # Initial values
   maxobs <- apply(obs, c(1,3), max)
