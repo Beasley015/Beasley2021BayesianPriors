@@ -116,33 +116,31 @@ farmfield <- as.vector(scale(farmfield))
 # Priors
 weakinf <- "#Add info for species-level priors
             
-            inf.mean0 <- c()
-            inf.mean1 <- 
+            inf.mean0 <- -1.4
+            inf.mean1 <- -1
             
-            inf.var0 <- c()
-            inf.var1 <- 
+            inf.var0 <- 0.5
+            inf.var1 <- 0.5
             
-            weights0 <- c()
-            weights1 <- c(0.85, 0.15)
+            weights <- c(0.85, 0.15)
+            
+            lb0[2] <- weights[2]/inf.var0
+            lb0[1] <- weights[1]/(1/tau.a0)
+              
+            lb1[1] <- weights[1]/(1/tau.a1)
+            lb1[2] <- weights[2]/inf.var1
+              
+            pooled.var0 <- 1/sum(lb0)
+            pooled.var1 <- 1/sum(lb1)
+              
+            pooled.mean0 <- sum(lb0*c(a0.mean,inf.mean0))
+                               *pooled.var0
+            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
+                               *pooled.var1
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               w[i] ~ dbern(omega)
-              
-              lb0[3] <- weights0[3]/inf.var0
-              lb0[2] <- weights0[2]/inf.var0
-              lb0[1] <- weights0[1]/(1/tau.a0)
-              
-              lb1[1] <- weights1[1]/(1/tau.a1)
-              lb1[2] <- weights1[2]/inf.var1
-              
-              pooled.var0[i] <- 1/sum(lb0)
-              pooled.var1[i] <- 1/sum(lb1)
-              
-              pooled.mean0[i] <- sum(lb0*c(a0.mean,inf.mean0))
-                                 *pooled.var0
-              pooled.mean1[i] <- sum(lb1*c(a1.mean,inf.mean1))
-                                 *pooled.var1
               
               a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean), 
                             ifelse(i==11, (1/pooled.var0), tau.a0))
@@ -152,6 +150,41 @@ weakinf <- "#Add info for species-level priors
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
+modinf <- "#Add info for species-level priors
+            
+            inf.mean0 <- -1.4
+            inf.mean1 <- -1
+            
+            inf.var0 <- 0.5
+            inf.var1 <- 0.5
+            
+            weights <- c(0.5, 0.5)
+            
+            lb0[2] <- weights[2]/inf.var0
+            lb0[1] <- weights[1]/(1/tau.a0)
+              
+            lb1[1] <- weights[1]/(1/tau.a1)
+            lb1[2] <- weights[2]/inf.var1
+              
+            pooled.var0 <- 1/sum(lb0)
+            pooled.var1 <- 1/sum(lb1)
+              
+            pooled.mean0 <- sum(lb0*c(a0.mean,inf.mean0))
+                               *pooled.var0
+            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
+                               *pooled.var1
+
+            for(i in 1:(spec+aug)){
+              #Create priors from hyperpriors
+              w[i] ~ dbern(omega)
+              
+              a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean), 
+                            ifelse(i==11, (1/pooled.var0), tau.a0))
+                             
+              a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
+                            ifelse(i==11, (1/pooled.var1), tau.a1))
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 # Model text
 uninf.model <- function(){
@@ -230,7 +263,7 @@ write.model <- function(priors){
 
       #Estimate occupancy of species i at point j
       for (j in 1:J) {
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j]
         mu.psi[j,i] <- psi[j,i] * w[i]
         Z[j,i] ~ dbern(mu.psi[j,i])
     
@@ -250,16 +283,21 @@ write.model <- function(priors){
     
     }
     ")
-  writeLines(mod, "aug_model.txt") 
+  writeLines(mod, "realdat_inf.txt") 
 }
 
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
-VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, 
+VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
                        cov1 = forests, textdoc, burn = 2000, 
                        iter = 6000, thin = 5){
   
   # write the model file
+  if(textdoc == "realdat_uninf.txt"){
+    uninf.model()
+  } else{
+    write.model(priors)
+  }
   
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, aug = aug,
@@ -276,7 +314,7 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2,
   }
   
   # Specify parameters
-  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1')
+  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1', 'Z')
   
   #JAGS command
   model <- jags(model.file = textdoc, data = datalist, 
@@ -287,9 +325,25 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2,
   return(model)
 }
 
-# uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, 
+# uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
 #                   textdoc = 'realdat_uninf.txt')
 # saveRDS(uninf.mod, "real_uninf.rds")
+
+# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
+#                           priors = weakinf, textdoc = "realdat_inf.txt")
+# saveRDS(weakinf.mod, "real_weakinf.rds")
+
+# modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
+#                           priors = modinf, textdoc = "realdat_inf.txt")
+# saveRDS(modinf.mod, "real_modinf.rds")
+
+# Read in models
+uninf.mod <- readRDS("real_uninf.rds")
+weakinf.mod <- readRDS("real_weakinf.rds")
+modinf.mod <- readRDS("real_modinf.rds")
+
+# Put models in list
+modlist <- list(uninf.mod, weakinf.mod, modinf.mod)
 
 # Site map --------------------------
 traplines <- readOGR(dsn = "UpdatedTracks.kml")
@@ -386,7 +440,7 @@ get.ns <- function(jag){
   return(out.list)
 }
 
-get.ns(jag = uninf.mod)
+lapply(modlist, get.ns)
 
 # Site-level richness -------------------
 
