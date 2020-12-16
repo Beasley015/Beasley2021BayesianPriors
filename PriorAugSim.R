@@ -541,8 +541,8 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc,
          Z = maxobs
     )
     if(textdoc == 'aug_model.txt'){
-      inits$omega <- omega.guess
-      inits$w <- c(rep(1,spec), rbinom(n = aug, size=1, prob=omega.guess))
+      inits$w <- c(rep(1,spec), rbinom(n = aug, size=1, 
+                                       prob = runif(1,0,1)))
     }
     
     return(inits)
@@ -600,7 +600,7 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc,
 # misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
 #                             spec = nspec, textdoc = 'aug_model.txt',
 #                             aug = nmiss, priors = strongmisinf,
-#                             burn = 2500, iter = 10000, thin = 10)
+#                             burn = 2000, iter = 10000, thin = 5)
 # saveRDS(misinf.strong, file = "misinf_strong.rds")
 
 # Load models -------------------------------
@@ -740,8 +740,9 @@ get.ns <- function(jag){
     labs(x = "Estimated Species", y = "Frequency")+
     scale_y_continuous(expand = c(0,0))+
     theme_classic(base_size = 18)+
-    theme(axis.text = element_blank(), 
-          axis.title.y = element_blank(),
+    theme(axis.text.y = element_blank(), 
+          axis.title.y = element_blank(), 
+          axis.title.x = element_blank(),
           legend.key.height = unit(40, units = 'pt'))
   
   out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean,
