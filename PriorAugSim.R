@@ -758,8 +758,9 @@ N.outs <- lapply(biglist, get.ns)
 histos <- map(N.outs, 1) 
 
 # Create patchwork objects
-histos.uninf <- plot_spacer()|histos[[1]]|plot_spacer()&
-  theme(plot.margin = unit(c(5.5, 5.5, 0, 5.5), units = "point"))
+histos.uninf <- histos[[1]]+
+  plot_annotation(tag_levels = "A")&
+  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
 histos.inf <- (histos[[2]]/histos[[3]]/histos[[4]])&
   theme(plot.margin = unit(c(5.5, 0, 5.5, 5.5), units = "point"))
 histos.misinf <- (histos[[5]]/histos[[6]]/histos[[7]])&
@@ -768,12 +769,11 @@ histos.misinf <- (histos[[5]]/histos[[6]]/histos[[7]])&
 # Final plot
 Ns.megaplot <- histos.uninf/(histos.inf|histos.misinf)+
   plot_annotation(tag_levels = "A")+
-  plot_layout(guides = "collect", heights = c(1,3),
-              widths = c(3,1)) &
+  plot_layout(guides = "collect", heights = c(1,3.5)) &
   xlim(19.5, 22.5)
   
-ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 7,
-       height = 10, units = 'in')
+# ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 7,
+#        height = 10, units = 'in')
 
 # Compare site-level richness and covariate ----------------------
 # Pull Zs from each item in list  
