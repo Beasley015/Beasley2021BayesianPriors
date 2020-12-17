@@ -728,7 +728,7 @@ get.ns <- function(jag){
   Ns.plot <- ggplot(data = ns.frame, 
                     aes(x = as.integer(as.character(N_Species)),
                                        y = Freq))+
-    geom_col(width = 1, color = 'lightgray')+
+    geom_col(width = 0.95, color = 'lightgray')+
     geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"),
                size = 1.5)+
     geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"),
@@ -743,7 +743,8 @@ get.ns <- function(jag){
     theme(axis.text.y = element_blank(), 
           axis.title.y = element_blank(), 
           axis.title.x = element_blank(),
-          legend.key.height = unit(40, units = 'pt'))
+          legend.key.height = unit(40, units = 'pt'),
+          aspect.ratio = 1/1)
   
   out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean,
                    median = Ns.median)
@@ -754,27 +755,25 @@ get.ns <- function(jag){
 N.outs <- lapply(biglist, get.ns)
 
 # Put histograms in single figure
-layout <- 
-  "#AA#
-   BBEE
-   CCFF
-   DDGG"
-
 histos <- map(N.outs, 1) 
 
-Ns.megaplot <- histos[[1]]+ 
-  histos[[2]] + guides(linetype = "none")+
-  histos[[3]] + guides(linetype = "none")+
-  histos[[4]] + guides(linetype = "none")+
-  histos[[5]] + guides(linetype = "none")+
-  histos[[6]] + guides(linetype = "none")+
-  histos[[7]] + guides(linetype = "none")+
-  plot_layout(design = layout, guides = 'collect')&
-  theme(legend.position = "right")&
-  xlim(c(19.5,22.5))
+# Create patchwork objects
+histos.uninf <- plot_spacer()|histos[[1]]|plot_spacer()&
+  theme(plot.margin = unit(c(5.5, 5.5, 0, 5.5), units = "point"))
+histos.inf <- (histos[[2]]/histos[[3]]/histos[[4]])&
+  theme(plot.margin = unit(c(5.5, 0, 5.5, 5.5), units = "point"))
+histos.misinf <- (histos[[5]]/histos[[6]]/histos[[7]])&
+  theme(plot.margin = unit(c(5.5, 5.5, 5.5, 0), units = "point"))
 
-# ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 7,
-#        height = 10, units = 'in')
+# Final plot
+Ns.megaplot <- histos.uninf/(histos.inf|histos.misinf)+
+  plot_annotation(tag_levels = "A")+
+  plot_layout(guides = "collect", heights = c(1,3),
+              widths = c(3,1)) &
+  xlim(19.5, 22.5)
+  
+ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 7,
+       height = 10, units = 'in')
 
 # Compare site-level richness and covariate ----------------------
 # Pull Zs from each item in list  
