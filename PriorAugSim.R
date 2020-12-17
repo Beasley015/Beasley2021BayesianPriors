@@ -803,6 +803,9 @@ rich.long <- rich.frame %>%
                             startsWith(model,"inf")~"Informed",
                             model == "True"~"True",
                             model == "Obs"~"Observed"))
+
+order <- c("Observed", "True", "Uninformed", "Informed", "Misinformed")
+rich.long$mod.type <- factor(rich.long$mod.type, levels = order)
   
 rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
                                          color = mod.type))+
@@ -812,7 +815,7 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
   expand_limits(y = 0)+
   scale_color_viridis_d()+
   scale_fill_viridis_d()+
-  theme_bw(base_size = 18)+
+  theme_bw(base_size = 16)+
   theme(panel.grid = element_blank(), 
         legend.title = element_blank())
 
@@ -847,29 +850,27 @@ get.cov <- function(jag){
 
   # Make interval plot
   plot <- ggplot(data = a1.stat, aes(x = Spec, y = mean))+
-    geom_point(size = 2)+
+    geom_point(size = 1.5)+
     geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
-                  size = 1.5, width = 0.2)+
-    geom_point(aes(y = tru.resp), color = "red", size = 2)+
-    geom_hline(yintercept = 0, linetype = "dashed", size = 1.5)+
+                  size = 1, width = 0.2)+
+    geom_point(aes(y = tru.resp), color = "red", size = 1.5)+
+    geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
     scale_y_continuous(limits = c(-10, 10))+
     labs(x = "Species", y = "Coefficient")+
-    theme_bw(base_size = 18)+
-    theme(axis.text = element_blank(), 
-          panel.grid = element_blank())
+    theme_bw(base_size = 14)+
+    theme(panel.grid = element_blank())
   
   return(plot)
 }
 
 cov.plots <- lapply(biglist, get.cov)
 
-plot.uninf <- plot_spacer()+cov.plots[[1]]+plot_spacer()+
-  plot_layout(widths = c(1,2,1))
+plot.uninf <- cov.plots[[1]]
 plot.inf <- cov.plots[[2]]/cov.plots[[3]]/cov.plots[[4]]
 plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]
 
-allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
-  plot_layout(heights = c(1,5))
+plot.uninf/(plot.inf|plot.misinf)+
+  plot_layout(heights = c(1,4))
 
 # ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10,
 #        width = 8, units = "in")
