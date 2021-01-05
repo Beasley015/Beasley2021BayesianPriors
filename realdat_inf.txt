@@ -28,7 +28,7 @@
             det.mean <- 0.539
             det.var <- 0.5
             
-            weights <- c(0.5, 0.5)
+            weights <- c(0.85, 0.15)
             
             lb0[2] <- weights[2]/inf.var0
             lb0[1] <- weights[1]/(1/tau.a0)

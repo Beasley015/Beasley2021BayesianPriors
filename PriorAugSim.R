@@ -865,15 +865,20 @@ get.cov <- function(jag){
 
 cov.plots <- lapply(biglist, get.cov)
 
-plot.uninf <- cov.plots[[1]]
-plot.inf <- cov.plots[[2]]/cov.plots[[3]]/cov.plots[[4]]
-plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]
+plot.uninf <- (plot_spacer()|cov.plots[[1]]|plot_spacer())+
+  plot_layout(widths = c(1,2,1))+
+  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
+plot.inf <- cov.plots[[2]]/cov.plots[[3]]/cov.plots[[4]]+
+  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
+plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]+
+  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
 
-plot.uninf/(plot.inf|plot.misinf)+
+allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
+  plot_annotation(tag_levels = "A")+
   plot_layout(heights = c(1,4))
 
 # ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10,
-#        width = 8, units = "in")
+#        width = 7, units = "in")
 
 # Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs

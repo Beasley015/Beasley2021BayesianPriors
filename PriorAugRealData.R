@@ -347,9 +347,10 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
 #                   textdoc = 'realdat_uninf.txt')
 # saveRDS(uninf.mod, "real_uninf.rds")
 
-# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 3,
-#                           priors = weakinf, textdoc = "realdat_inf.txt")
-# saveRDS(weakinf.mod, "real_weakinf.rds")
+weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
+                          burn = 2500, iter = 7000, priors = weakinf,
+                          textdoc = "realdat_inf.txt")
+saveRDS(weakinf.mod, "real_weakinf.rds")
 
 # modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 3,
 #                           priors = modinf, textdoc = "realdat_inf.txt")
@@ -448,7 +449,7 @@ get.ns <- function(jag){
     labs(x = "Estimated Species", y = "Frequency")+
     scale_y_continuous(expand = c(0,0))+
     theme_classic(base_size = 18)+
-    theme(axis.text = element_blank(), 
+    theme(axis.text.y = element_blank(), 
           axis.title.y = element_blank(),
           legend.key.height = unit(40, units = 'pt'))
   
@@ -461,5 +462,85 @@ get.ns <- function(jag){
 lapply(modlist, get.ns)
 
 # Site-level richness -------------------
+# Pull Zs from each item in list  
+Zs <- lapply(modlist, function(x) x$BUGSoutput$sims.list$Z)
+
+# Get avg. occurrence matrices  
+Zs.mean <- lapply(Zs, apply, c(2,3), mean)
+
+# Get site-level richness  
+site.rich <- lapply(Zs.mean, rowSums)
+
+# Convert list to data.frame
+rich.frame <- as.data.frame(do.call(cbind, site.rich))
+colnames(rich.frame) <- c('uninf', 'inf.weak', 'inf.mod')
+
+rich.frame$Obs <- rowSums(apply(mamm.aug, c(1,3), max))
+rich.frame$Cov <- forests
+
+rich.long <- rich.frame %>%
+  pivot_longer(uninf:Obs, names_to = 'model', 
+               values_to = 'Richness') %>%
+  mutate(mod.type = case_when(startsWith(model,"un")~"Uninformed",
+                              endsWith(model,"weak")~"Weakly Informed",
+                              endsWith(model,"mod")~"Moderately Informed",
+                              model == "Obs"~"Observed"))
+
+order <- c("Observed", "True", "Uninformed", "Weakly Informed",
+           "Moderately Informed")
+rich.long$mod.type <- factor(rich.long$mod.type, levels = order)
+
+rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
+                                          color = mod.type))+
+  geom_point()+
+  geom_smooth(aes(fill = mod.type), method = 'lm', alpha = 0.2)+
+  labs(x = "PC1")+
+  expand_limits(y = 0)+
+  scale_color_viridis_d()+
+  scale_fill_viridis_d()+
+  theme_bw(base_size = 16)+
+  theme(panel.grid = element_blank(), 
+        legend.title = element_blank())
+
+# Run individual regressions for fun
+mod.names <- unique(rich.long$mod.type)
+
+for(i in seq_along(mod.names)){
+  x <- subset(rich.long, rich.long$mod.type == mod.names[i])
+  print(summary(lm(data = x, Richness~Cov)))
+}
 
 # Covariate responses -------------------
+get.cov <- function(jag){
+  # Extract covariate estimates from jags object
+  a1s <- jag$BUGSoutput$sims.list$a1
+  
+  a1s <- as.data.frame(a1s)
+  
+  colnames(a1s) <- c(specs, "SYFL")
+  
+  # Pivot data frame for plotting
+  a1.long <- a1s %>%
+    pivot_longer(cols = everything(), names_to = "Spec", 
+                 values_to = "a1")
+  
+  a1.stat <- a1.long %>%
+    group_by(Spec) %>%
+    summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
+              hi = quantile(a1, 0.975))
+  
+  # Make interval plot
+  plot <- ggplot(data = a1.stat, aes(x = Spec, y = mean))+
+    geom_point(size = 1.5)+
+    geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
+                  size = 1, width = 0.2)+
+    geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
+    scale_y_continuous(limits = c(-10, 10))+
+    labs(x = "Species", y = "Coefficient")+
+    theme_bw(base_size = 14)+
+    theme(panel.grid = element_blank())
+  
+  return(plot)
+}
+
+lapply(modlist, get.cov)
