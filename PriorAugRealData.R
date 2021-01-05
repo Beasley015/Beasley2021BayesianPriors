@@ -120,10 +120,7 @@ weakinf <- "#Add info for species-level priors
             inf.mean1 <- -1
             
             inf.var0 <- 0.5
-            inf.var1 <- 1
-            
-            det.mean <- 0.539
-            det.var <- 0.5
+            inf.var1 <- 0.5
             
             weights <- c(0.85, 0.15)
             
@@ -132,19 +129,14 @@ weakinf <- "#Add info for species-level priors
               
             lb1[1] <- weights[1]/(1/tau.a1)
             lb1[2] <- weights[2]/inf.var1
-            
-            lbdet[1] <- weights[1]/(1/tau.b0)
-            lbdet[2] <- weights[2]/det.var
               
             pooled.var0 <- 1/sum(lb0)
             pooled.var1 <- 1/sum(lb1)
-            pooled.vardet <- 1/sum(lbdet)
               
             pooled.mean0 <- sum(lb0*c(a0.mean,inf.mean0))
                                *pooled.var0
             pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
                                *pooled.var1
-            pooled.det <- sum(lbdet*c(b0.mean,det.mean))*pooled.vardet
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
@@ -156,8 +148,7 @@ weakinf <- "#Add info for species-level priors
               a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
                             ifelse(i==11, (1/pooled.var1), tau.a1))
 
-              b0[i] ~ dnorm(ifelse(i==11, pooled.det, b0.mean), 
-                            ifelse(i==11, (1/pooled.vardet), tau.b0))"
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 modinf <- "#Add info for species-level priors
             
@@ -165,10 +156,7 @@ modinf <- "#Add info for species-level priors
             inf.mean1 <- -1
             
             inf.var0 <- 0.5
-            inf.var1 <- 1
-            
-            det.mean <- 0.539
-            det.var <- 0.5
+            inf.var1 <- 0.5
             
             weights <- c(0.5, 0.5)
             
@@ -177,19 +165,14 @@ modinf <- "#Add info for species-level priors
               
             lb1[1] <- weights[1]/(1/tau.a1)
             lb1[2] <- weights[2]/inf.var1
-            
-            lbdet[1] <- weights[1]/(1/tau.b0)
-            lbdet[2] <- weights[2]/det.var
               
             pooled.var0 <- 1/sum(lb0)
             pooled.var1 <- 1/sum(lb1)
-            pooled.vardet <- 1/sum(lbdet)
               
             pooled.mean0 <- sum(lb0*c(a0.mean,inf.mean0))
                                *pooled.var0
             pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
                                *pooled.var1
-            pooled.det <- sum(lbdet*c(b0.mean,det.mean))*pooled.vardet
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
@@ -201,8 +184,7 @@ modinf <- "#Add info for species-level priors
               a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
                             ifelse(i==11, (1/pooled.var1), tau.a1))
 
-              b0[i] ~ dnorm(ifelse(i==11, pooled.det, b0.mean), 
-                            ifelse(i==11, (1/pooled.vardet), tau.b0))"
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 # Model text
 uninf.model <- function(){
@@ -342,17 +324,16 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
   
   return(model)
 }
-
+# Run models and save outputs
 # uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
 #                   textdoc = 'realdat_uninf.txt')
 # saveRDS(uninf.mod, "real_uninf.rds")
 
-weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
-                          burn = 2500, iter = 7000, priors = weakinf,
-                          textdoc = "realdat_inf.txt")
-saveRDS(weakinf.mod, "real_weakinf.rds")
+# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
+#                           priors = weakinf,textdoc = "realdat_inf.txt")
+# saveRDS(weakinf.mod, "real_weakinf.rds")
 
-# modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 3,
+# modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
 #                           priors = modinf, textdoc = "realdat_inf.txt")
 # saveRDS(modinf.mod, "real_modinf.rds")
 
@@ -535,7 +516,7 @@ get.cov <- function(jag){
     geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
                   size = 1, width = 0.2)+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
-    scale_y_continuous(limits = c(-10, 10))+
+    scale_y_continuous(limits = c(-5,5))+
     labs(x = "Species", y = "Coefficient")+
     theme_bw(base_size = 14)+
     theme(panel.grid = element_blank())
