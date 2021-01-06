@@ -78,9 +78,9 @@ veg %>%
 
 # Run PCA
 vegpca <- prcomp(filtered.veg[3:15])
-#PC1: + grass/forb, - deadveg
-#PC2: + forb/bare, - grass/deadveg
-#PC3: + forb, - bare
+#PC1: - grass, + deadveg
+#PC2: - forb/bare, + grass
+#PC3: - forb, + bare
 
 vegdat <- data.frame(Site = filtered.veg$Site, 
                      Habitat = filtered.veg$Habitat, 
@@ -116,18 +116,18 @@ farmfield <- as.vector(scale(farmfield))
 # Priors
 weakinf <- "#Add info for species-level priors
             
-            inf.mean0 <- -1.4
             inf.mean1 <- -1
+            
+            inf.var1 <- 0.5
             
             weights <- c(0.85, 0.15)
             
             lb1[1] <- weights[1]/(1/tau.a1)
-            lb1[2] <- weights[2]/(1/tau.a1)
+            lb1[2] <- weights[2]/inf.var1
               
             pooled.var1 <- 1/sum(lb1)
             
-            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
-                               *pooled.var1
+            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))*pooled.var1
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
@@ -149,12 +149,11 @@ modinf <- "#Add info for species-level priors
             weights <- c(0.5, 0.5)
               
             lb1[1] <- weights[1]/(1/tau.a1)
-            lb1[2] <- weights[2]/(1/tau.a1)
+            lb1[2] <- weights[2]/inf.var1
               
             pooled.var1 <- 1/sum(lb1)
             
-            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
-                               *pooled.var1
+            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))*pooled.var1
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
@@ -245,15 +244,12 @@ write.model <- function(priors){
       #Estimate occupancy of species i at point j
       for (j in 1:J){
         logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j]
-        mu.psi[j,i] <- psi[j,i] * w[i]
-        Z[j,i] ~ dbern(mu.psi[j,i])
+        Z[j,i] ~ dbern(psi[j,i]*w[i])
     
         #Estimate detection of i at point j during sampling period k
         for(k in 1:K[j]){
           logit(p[j,k,i]) <-  b0[i]
-          mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
-          #The addition of Z means that detecting a species depends on its occupancy
-          obs[j,k,i] ~ dbern(mu.p[j,k,i])
+          obs[j,k,i] ~ dbern(p[j,k,i]*Z[j,i])
     }
     }
     }
@@ -311,7 +307,7 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
 # saveRDS(uninf.mod, "real_uninf.rds")
 # 
 # weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
-#                           priors = weakinf,textdoc = "realdat_inf.txt")
+#                           priors = weakinf, textdoc = "realdat_inf.txt")
 # saveRDS(weakinf.mod, "real_weakinf.rds")
 # 
 # modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
