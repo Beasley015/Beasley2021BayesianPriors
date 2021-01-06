@@ -119,22 +119,13 @@ weakinf <- "#Add info for species-level priors
             inf.mean0 <- -1.4
             inf.mean1 <- -1
             
-            inf.var0 <- 0.5
-            inf.var1 <- 0.5
-            
             weights <- c(0.85, 0.15)
             
-            lb0[2] <- weights[2]/inf.var0
-            lb0[1] <- weights[1]/(1/tau.a0)
-              
             lb1[1] <- weights[1]/(1/tau.a1)
-            lb1[2] <- weights[2]/inf.var1
+            lb1[2] <- weights[2]/(1/tau.a1)
               
-            pooled.var0 <- 1/sum(lb0)
             pooled.var1 <- 1/sum(lb1)
-              
-            pooled.mean0 <- sum(lb0*c(a0.mean,inf.mean0))
-                               *pooled.var0
+            
             pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
                                *pooled.var1
             
@@ -142,8 +133,7 @@ weakinf <- "#Add info for species-level priors
               #Create priors from hyperpriors
               w[i] ~ dbern(omega)
               
-              a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean), 
-                            ifelse(i==11, (1/pooled.var0), tau.a0))
+              a0[i] ~ dnorm(a0.mean, tau.a0)
                              
               a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
                             ifelse(i==11, (1/pooled.var1), tau.a1))
@@ -152,25 +142,17 @@ weakinf <- "#Add info for species-level priors
 
 modinf <- "#Add info for species-level priors
             
-            inf.mean0 <- -1.4
             inf.mean1 <- -1
             
-            inf.var0 <- 0.5
             inf.var1 <- 0.5
             
             weights <- c(0.5, 0.5)
-            
-            lb0[2] <- weights[2]/inf.var0
-            lb0[1] <- weights[1]/(1/tau.a0)
               
             lb1[1] <- weights[1]/(1/tau.a1)
-            lb1[2] <- weights[2]/inf.var1
+            lb1[2] <- weights[2]/(1/tau.a1)
               
-            pooled.var0 <- 1/sum(lb0)
             pooled.var1 <- 1/sum(lb1)
-              
-            pooled.mean0 <- sum(lb0*c(a0.mean,inf.mean0))
-                               *pooled.var0
+            
             pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))
                                *pooled.var1
             
@@ -178,8 +160,7 @@ modinf <- "#Add info for species-level priors
               #Create priors from hyperpriors
               w[i] ~ dbern(omega)
               
-              a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean), 
-                            ifelse(i==11, (1/pooled.var0), tau.a0))
+              a0[i] ~ dnorm(a0.mean, tau.a0)
                              
               a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
                             ifelse(i==11, (1/pooled.var1), tau.a1))
@@ -328,11 +309,11 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
 # uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
 #                   textdoc = 'realdat_uninf.txt')
 # saveRDS(uninf.mod, "real_uninf.rds")
-
+# 
 # weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
 #                           priors = weakinf,textdoc = "realdat_inf.txt")
 # saveRDS(weakinf.mod, "real_weakinf.rds")
-
+# 
 # modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
 #                           priors = modinf, textdoc = "realdat_inf.txt")
 # saveRDS(modinf.mod, "real_modinf.rds")
