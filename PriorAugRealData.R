@@ -59,7 +59,7 @@ row.names(mamm.array) <- sites
 mamm.array <- array(as.numeric(mamm.array), dim = dim(mamm.array))
 
 # Create array for augmented species
-undetected <- array(0, dim = c(J, max(K), 1))
+undetected <- array(0, dim = c(J, max(K), 2))
 
 # Put arrays together
 mamm.aug <- abind(mamm.array, undetected, along = 3)
@@ -116,53 +116,79 @@ farmfield <- as.vector(scale(farmfield))
 # Priors
 weakinf <- "#Add info for species-level priors
             
-            inf.mean1 <- -1
+            inf.mean0 <- -1.4
+            inf.mean1 <- c(0, -1,1, 0)
             
-            inf.var1 <- 0.5
+            inf.var <- 0.5
             
             weights <- c(0.85, 0.15)
+            lim <- c(10, 11, 12)
             
-            lb1[1] <- weights[1]/(1/tau.a1)
-            lb1[2] <- weights[2]/inf.var1
-              
-            pooled.var1 <- 1/sum(lb1)
+            #a0 only has one species, so it can go outside the loop
+            lb0[1] <- weights[1]/(1/tau.a1)
+            lb0[2] <- weights[2]/inf.var
             
-            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))*pooled.var1
+            pooled.var0 <- 1/sum(lb0)
+            pooled.mean0 <- sum(lb0*c(a0.mean, inf.mean0))*pooled.var0
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               w[i] ~ dbern(omega)
               
-              a0[i] ~ dnorm(a0.mean, tau.a0)
+              g[i] ~ dinterval(i, lim)
+              
+              lb1[i,1] <- weights[1]/(1/tau.a1)
+              lb1[i,2] <- weights[2]/inf.var
+              
+              pooled.var1[i] <- 1/sum(lb1[i,])
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))*pooled.var1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean),
+                            ifelse(i==11, (1/pooled.var0), tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
-                            ifelse(i==11, (1/pooled.var1), tau.a1))
+              a1[i] ~ dnorm(ifelse(i==11 || i==12, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==11 || i==12, (1/pooled.var1[i]),
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 modinf <- "#Add info for species-level priors
             
-            inf.mean1 <- -1
+            inf.mean0 <- -1.4
+            inf.mean1 <- c(0, -1,1, 0)
             
-            inf.var1 <- 0.5
+            inf.var <- 0.5
             
             weights <- c(0.5, 0.5)
-              
-            lb1[1] <- weights[1]/(1/tau.a1)
-            lb1[2] <- weights[2]/inf.var1
-              
-            pooled.var1 <- 1/sum(lb1)
+            lim <- c(10, 11, 12)
             
-            pooled.mean1 <- sum(lb1*c(a1.mean,inf.mean1))*pooled.var1
+            #a0 only has one species, so it can go outside the loop
+            lb0[1] <- weights[1]/(1/tau.a0)
+            lb0[2] <- weights[2]/inf.var
+            
+            pooled.var0 <- 1/sum(lb0)
+            pooled.mean0 <- sum(lb0*c(a0.mean, inf.mean0))*pooled.var0
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               w[i] ~ dbern(omega)
               
-              a0[i] ~ dnorm(a0.mean, tau.a0)
+              g[i] ~ dinterval(i, lim)
+              
+              lb1[i,1] <- weights[1]/(1/tau.a1)
+              lb1[i,2] <- weights[2]/inf.var
+              
+              pooled.var1[i] <- 1/sum(lb1[i,])
+              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))*pooled.var1[i]
+              
+              a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean),
+                            ifelse(i==11, (1/pooled.var0), tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
-                            ifelse(i==11, (1/pooled.var1), tau.a1))
+              a1[i] ~ dnorm(ifelse(i==11 || i==12, pooled.mean1[i], 
+                            a1.mean), 
+                            ifelse(i==11 || i==12, (1/pooled.var1[i]),
+                            tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
@@ -265,7 +291,7 @@ write.model <- function(priors){
 
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
-VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
+VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
                        cov1 = forests, textdoc, burn = 2000, 
                        iter = 6000, thin = 5){
   
@@ -475,7 +501,7 @@ get.cov <- function(jag){
   
   a1s <- as.data.frame(a1s)
   
-  colnames(a1s) <- c(specs, "SYFL")
+  colnames(a1s) <- c(specs, "SYFL", "SOCI")
   
   # Pivot data frame for plotting
   a1.long <- a1s %>%
@@ -493,7 +519,7 @@ get.cov <- function(jag){
     geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
                   size = 1, width = 0.2)+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
-    scale_y_continuous(limits = c(-5,5))+
+    scale_y_continuous(limits = c(-10,10))+
     labs(x = "Species", y = "Coefficient")+
     theme_bw(base_size = 14)+
     theme(panel.grid = element_blank())
