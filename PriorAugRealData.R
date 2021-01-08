@@ -12,6 +12,10 @@ library(rgdal)
 library(spData)
 library(sf)
 library(ggsn)
+library(patchwork)
+
+# Set seed
+set.seed(15)
 
 # Mammal data --------------------------------
 # Read in data and sites with no captures
@@ -59,7 +63,7 @@ row.names(mamm.array) <- sites
 mamm.array <- array(as.numeric(mamm.array), dim = dim(mamm.array))
 
 # Create array for augmented species
-undetected <- array(0, dim = c(J, max(K), 2))
+undetected <- array(0, dim = c(J, max(K), 1))
 
 # Put arrays together
 mamm.aug <- abind(mamm.array, undetected, along = 3)
@@ -112,139 +116,84 @@ farmfield <- vegdat$PC2
 # Standardize
 farmfield <- as.vector(scale(farmfield))
 
-# Write base model script ------------------------------
+# Write model script ------------------------------
 # Priors
+uninf <- "#Add info for species-level priors
+            for(i in 1:(spec+aug)){
+              #Create priors from hyperpriors
+              w[i] ~ dbern(omega)
+              
+              a0[i] ~ dnorm(a0.mean, tau.a0)
+                             
+              a1[i] ~ dnorm(a1.mean, tau.a1)
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)"
+
 weakinf <- "#Add info for species-level priors
             
-            inf.mean0 <- -1.4
-            inf.mean1 <- c(0, -1,1, 0)
+            inf.mean0 <- -1.3
+            inf.mean1 <- -1
             
             inf.var <- 0.5
             
             weights <- c(0.85, 0.15)
-            lim <- c(10, 11, 12)
             
-            #a0 only has one species, so it can go outside the loop
-            lb0[1] <- weights[1]/(1/tau.a1)
+            lb0[1] <- weights[1]/(1/tau.a0)
             lb0[2] <- weights[2]/inf.var
+            lb1[1] <- weights[1]/(1/tau.a1)
+            lb1[2] <- weights[2]/inf.var
             
             pooled.var0 <- 1/sum(lb0)
             pooled.mean0 <- sum(lb0*c(a0.mean, inf.mean0))*pooled.var0
+            
+            pooled.var1 <- 1/sum(lb1)
+            pooled.mean1 <- sum(lb1*c(a1.mean, inf.mean1))*pooled.var1
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               w[i] ~ dbern(omega)
               
-              g[i] ~ dinterval(i, lim)
-              
-              lb1[i,1] <- weights[1]/(1/tau.a1)
-              lb1[i,2] <- weights[2]/inf.var
-              
-              pooled.var1[i] <- 1/sum(lb1[i,])
-              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))*pooled.var1[i]
-              
               a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean),
                             ifelse(i==11, (1/pooled.var0), tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==11 || i==12, pooled.mean1[i], 
-                            a1.mean), 
-                            ifelse(i==11 || i==12, (1/pooled.var1[i]),
-                            tau.a1))
+              a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
+                            ifelse(i==11, (1/pooled.var1), tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 modinf <- "#Add info for species-level priors
             
-            inf.mean0 <- -1.4
-            inf.mean1 <- c(0, -1,1, 0)
+            inf.mean0 <- -1.3
+            inf.mean1 <- -1
             
             inf.var <- 0.5
             
             weights <- c(0.5, 0.5)
-            lim <- c(10, 11, 12)
             
-            #a0 only has one species, so it can go outside the loop
             lb0[1] <- weights[1]/(1/tau.a0)
             lb0[2] <- weights[2]/inf.var
+            lb1[1] <- weights[1]/(1/tau.a1)
+            lb1[2] <- weights[2]/inf.var
             
             pooled.var0 <- 1/sum(lb0)
             pooled.mean0 <- sum(lb0*c(a0.mean, inf.mean0))*pooled.var0
+            
+            pooled.var1 <- 1/sum(lb1)
+            pooled.mean1 <- sum(lb1*c(a1.mean, inf.mean1))*pooled.var1
             
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               w[i] ~ dbern(omega)
               
-              g[i] ~ dinterval(i, lim)
-              
-              lb1[i,1] <- weights[1]/(1/tau.a1)
-              lb1[i,2] <- weights[2]/inf.var
-              
-              pooled.var1[i] <- 1/sum(lb1[i,])
-              pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))*pooled.var1[i]
-              
               a0[i] ~ dnorm(ifelse(i==11, pooled.mean0, a0.mean),
                             ifelse(i==11, (1/pooled.var0), tau.a0))
                              
-              a1[i] ~ dnorm(ifelse(i==11 || i==12, pooled.mean1[i], 
-                            a1.mean), 
-                            ifelse(i==11 || i==12, (1/pooled.var1[i]),
-                            tau.a1))
+              a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
+                            ifelse(i==11, (1/pooled.var1), tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 # Model text
-uninf.model <- function(){
-  mod <- "
-    model{
-      
-    # Define hyperprior distributions: intercepts
-    omega ~ dunif(0,1)
-    
-    #Intercepts
-    mean.a0 ~ dunif(0,1)
-    a0.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a0 ~ dgamma(0.1, 0.1)
-    
-    mean.a1 ~ dunif(0,1)
-    a1.mean <- log(mean.a1)-log(1-mean.a1)
-    tau.a1 ~ dgamma(0.1, 0.1)
-    
-    mean.b0 ~ dunif(0,1)
-    b0.mean <- log(mean.b0)-log(1-mean.b0)
-    tau.b0 ~ dgamma(0.1, 0.1)
-    
-    for(i in 1:(spec+aug)){
-      w[i] ~ dbern(omega)
-      
-      a0[i] ~ dnorm(a0.mean, tau.a0)
-      a1[i] ~ dnorm(a1.mean, tau.a1)
-
-      b0[i] ~ dnorm(b0.mean, tau.b0)
-    
-      #Estimate occupancy of species i at point j
-      for (j in 1:J) {
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j]
-        Z[j,i] ~ dbern(psi[j,i]*w[i])
-    
-        #Estimate detection of i at point j during sampling period k
-        for(k in 1:K[j]){
-          logit(p[j,k,i]) <-  b0[i]
-          obs[j,k,i] ~ dbern(p[j,k,i]*Z[j,i])
-          #The addition of Z means that detecting a species depends on its occupancy
-    }
-    }
-    }
-    
-    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-    n0<-sum(w[(spec+1):(spec+aug)])
-    N<-spec+n0
-    
-    }
-    "
-  writeLines(mod, "realdat_uninf.txt") 
-}
-
-# Informed model
 write.model <- function(priors){
   mod <- paste("
     model{
@@ -280,27 +229,23 @@ write.model <- function(priors){
     }
     }
     
-    #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
+    #Estimate total richness by adding observed and unobserved species
     n0<-sum(w[(spec+1):(spec+aug)])
     N<-spec+n0
     
     }
     ")
-  writeLines(mod, "realdat_inf.txt") 
+  writeLines(mod, "realdat.txt") 
 }
 
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
-VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
-                       cov1 = forests, textdoc, burn = 2000, 
-                       iter = 6000, thin = 5){
+VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
+                       cov1 = forests, textdoc = "realdat.txt", 
+                       burn = 2000, iter = 6000, thin = 5){
   
   # write the model file
-  if(textdoc == "realdat_uninf.txt"){
-    uninf.model()
-  } else{
-    write.model(priors)
-  }
+  write.model(priors)
   
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, aug = aug,
@@ -317,7 +262,8 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
   }
   
   # Specify parameters
-  parms <- c('N', 'a0.mean', 'b0.mean', 'a0', 'b0', 'a1', 'Z')
+  parms <- c('N', 'a0.mean', 'a1.mean', 'b0.mean', 'a0', 'b0', 'a1', 
+             'Z')
   
   #JAGS command
   model <- jags(model.file = textdoc, data = datalist, 
@@ -327,17 +273,17 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
   
   return(model)
 }
+
 # Run models and save outputs
-# uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
-#                   textdoc = 'realdat_uninf.txt')
+# uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf)
 # saveRDS(uninf.mod, "real_uninf.rds")
 # 
-# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
-#                           priors = weakinf, textdoc = "realdat_inf.txt")
+# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
+#                           priors = weakinf)
 # saveRDS(weakinf.mod, "real_weakinf.rds")
 # 
-# modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
-#                           priors = modinf, textdoc = "realdat_inf.txt")
+# modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
+#                           priors = modinf)
 # saveRDS(modinf.mod, "real_modinf.rds")
 
 # Read in models
@@ -501,7 +447,7 @@ get.cov <- function(jag){
   
   a1s <- as.data.frame(a1s)
   
-  colnames(a1s) <- c(specs, "SYFL", "SOCI")
+  colnames(a1s) <- c(specs, "SYFL")
   
   # Pivot data frame for plotting
   a1.long <- a1s %>%
@@ -524,7 +470,36 @@ get.cov <- function(jag){
     theme_bw(base_size = 14)+
     theme(panel.grid = element_blank())
   
-  return(plot)
+  outs <- list(stat = a1.stat, plot = plot)
+  return(outs)
 }
 
-lapply(modlist, get.cov)
+covslist <- lapply(modlist, get.cov)
+
+covs <- map(covslist, 1)
+
+get.sigs <- function(outs){
+  rows <- logical()
+  for(i in 1:nrow(outs)){
+    rows[i] <- between(0, outs$lo[i], outs$hi[i])
+  }
+
+  sigs <- outs$Spec[which(rows == FALSE)]
+}
+
+cov.sig <- lapply(covs, get.sigs)
+
+# Plot covariate responses
+covplots <- map(covslist, 2)
+
+big.covplot <- (covplots[[1]]+
+    geom_point(aes(x = cov.sig[[1]], y = 6), shape = 8))/
+  (covplots[[2]]+
+     geom_point(aes(x = cov.sig[[2]][1], y = 6), shape = 8)+
+     geom_point(aes(x = cov.sig[[2]][2], y = 6), shape = 8))/
+  (covplots[[3]]+
+    geom_point(aes(x = cov.sig[[3]][1], y = 6), shape = 8)+
+    geom_point(aes(x = cov.sig[[3]][2], y = 6), shape = 8))
+
+ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 6,
+       units = 'in')
