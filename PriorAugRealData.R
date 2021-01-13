@@ -62,14 +62,14 @@ mamm.array <- mamm.array[,-(1:2),]
 row.names(mamm.array) <- sites
 mamm.array <- array(as.numeric(mamm.array), dim = dim(mamm.array))
 
+# Change to presence-absence data
+mamm.array[mamm.array > 1] <- 1
+
 # Create array for augmented species
 undetected <- array(0, dim = c(J, max(K), 1))
 
 # Put arrays together
 mamm.aug <- abind(mamm.array, undetected, along = 3)
-
-# Change to presence/absence data
-mamm.aug[mamm.aug > 1] <- 1
 
 # Vegetation data ------------------------
 veg <- read.csv("VegRawData.csv")
@@ -132,7 +132,7 @@ uninf <- "#Add info for species-level priors
 weakinf <- "#Add info for species-level priors
             
             inf.mean0 <- -1.3
-            inf.mean1 <- -1
+            inf.mean1 <- -2
             
             inf.var <- 0.5
             
@@ -164,7 +164,7 @@ weakinf <- "#Add info for species-level priors
 modinf <- "#Add info for species-level priors
             
             inf.mean0 <- -1.3
-            inf.mean1 <- -1
+            inf.mean1 <- -2
             
             inf.var <- 0.5
             
@@ -238,6 +238,50 @@ write.model <- function(priors){
   writeLines(mod, "realdat.txt") 
 }
 
+# Write non-augmented model for testing purposes
+cat("
+    model{
+      
+    # Define hyperprior distributions: intercepts
+    omega ~ dunif(0,1)
+    
+    #Intercepts
+    mean.a0 ~ dunif(0,1)
+    a0.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a0 ~ dgamma(0.1, 0.1)
+    
+    mean.a1 ~ dunif(0,1)
+    a1.mean <- log(mean.a0)-log(1-mean.a0)
+    tau.a1 ~ dgamma(0.1, 0.1)
+    
+    mean.b0 ~ dunif(0,1)
+    b0.mean <- log(mean.b0)-log(1-mean.b0)
+    tau.b0 ~ dgamma(0.1, 0.1)
+    
+    #Add info for species-level priors
+            for(i in 1:spec){
+              #Create priors from hyperpriors
+              a0[i] ~ dnorm(a0.mean, tau.a0)
+                             
+              a1[i] ~ dnorm(a1.mean, tau.a1)
+
+              b0[i] ~ dnorm(b0.mean, tau.b0)
+    
+      #Estimate occupancy of species i at point j
+      for (j in 1:J){
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j]
+        Z[j,i] ~ dbern(psi[j,i])
+    
+        #Estimate detection of i at point j during sampling period k
+        for(k in 1:K[j]){
+          logit(p[j,k,i]) <-  b0[i]
+          obs[j,k,i] ~ dbern(p[j,k,i]*Z[j,i])
+    }
+    }
+    }
+    
+    }", file = "noaug.txt")
+
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
 VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
@@ -273,6 +317,17 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
   
   return(model)
 }
+
+# Test model with no augmented species
+# data <- list(J = J, K = K, obs = mamm.array, spec = nspec,
+#              cov1 = forests)
+# parms <- c('a0.mean', 'a1.mean', 'b0.mean', 'a0', 'b0', 'a1')
+# init.values <- function(){
+#   inits <- list(Z = apply(mamm.array, c(1,3), max))
+# }
+# noaug <- jags(model.file = 'noaug.txt', data = data, n.chains = 3,
+#               parameters.to.save = parms, n.burnin = 5000,
+#               n.iter = 15000, n.thin = 10, inits = init.values)
 
 # Run models and save outputs
 # uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf)
