@@ -286,7 +286,7 @@ cat("
 # Write JAGS function
 VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
                        cov1 = forests, textdoc = "realdat.txt", 
-                       burn = 2000, iter = 6000, thin = 5){
+                       burn = 5000, iter = 15000, thin = 10){
   
   # write the model file
   write.model(priors)
@@ -333,7 +333,7 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
 # uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf)
 # saveRDS(uninf.mod, "real_uninf.rds")
 # 
-# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
+# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
 #                           priors = weakinf)
 # saveRDS(weakinf.mod, "real_weakinf.rds")
 # 
@@ -487,14 +487,6 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
   theme(panel.grid = element_blank(), 
         legend.title = element_blank())
 
-# Run individual regressions for fun
-mod.names <- unique(rich.long$mod.type)
-
-for(i in seq_along(mod.names)){
-  x <- subset(rich.long, rich.long$mod.type == mod.names[i])
-  print(summary(lm(data = x, Richness~Cov)))
-}
-
 # Covariate responses -------------------
 get.cov <- function(jag){
   # Extract covariate estimates from jags object
@@ -520,7 +512,7 @@ get.cov <- function(jag){
     geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
                   size = 1, width = 0.2)+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
-    scale_y_continuous(limits = c(-10,10))+
+    scale_y_continuous(limits = c(-12,12))+
     labs(x = "Species", y = "Coefficient")+
     theme_bw(base_size = 14)+
     theme(panel.grid = element_blank())
@@ -551,10 +543,11 @@ big.covplot <- (covplots[[1]]+
     geom_point(aes(x = cov.sig[[1]], y = 6), shape = 8))/
   (covplots[[2]]+
      geom_point(aes(x = cov.sig[[2]][1], y = 6), shape = 8)+
-     geom_point(aes(x = cov.sig[[2]][2], y = 6), shape = 8))/
+     geom_point(aes(x = cov.sig[[2]][2], y = 6), shape = 8)+
+     geom_point(aes(x = cov.sig[[2]][3], y = 6), shape = 8))/
   (covplots[[3]]+
     geom_point(aes(x = cov.sig[[3]][1], y = 6), shape = 8)+
     geom_point(aes(x = cov.sig[[3]][2], y = 6), shape = 8))
 
-ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 6,
-       units = 'in')
+# ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 6,
+#        units = 'in')
