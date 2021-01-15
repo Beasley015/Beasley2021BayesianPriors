@@ -35,6 +35,23 @@ nocaps.filtered <- site.nocaps %>%
 mamm.allsite <- rbind(mamm.filtered, nocaps.filtered)
 mamm.allsite$Abbrev[is.na(mamm.allsite$Abbrev)] <- "PELE"
 
+# Summary statistics -------------------------
+# Number of individuals
+inds <- mamm.raw %>%
+  select(Site, Tag, Abbrev) %>%
+  distinct()
+
+nrow(inds)
+
+# Number of species
+length(unique(inds$Abbrev))
+
+# Captures by species 
+inds %>%
+  group_by(Abbrev) %>%
+  summarise(byspec = n())
+
+# Prepare data for MSOM input --------------------
 # Rearrange data frame
 mamm.wide <- mamm.allsite %>%
   complete(Site, Abbrev, Day) %>%
