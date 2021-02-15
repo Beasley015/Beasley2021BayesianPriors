@@ -500,7 +500,7 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
   expand_limits(y = 0)+
   scale_color_viridis_d()+
   scale_fill_viridis_d()+
-  theme_bw(base_size = 16)+
+  theme_bw(base_size = 14)+
   theme(panel.grid = element_blank(), 
         legend.title = element_blank())
 
@@ -525,7 +525,7 @@ get.cov <- function(jag){
   
   # Make interval plot
   plot <- ggplot(data = a1.stat, aes(x = Spec, y = mean))+
-    geom_point(size = 1.5)+
+    geom_point()+
     geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
                   size = 1, width = 0.2)+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
@@ -564,7 +564,8 @@ big.covplot <- (covplots[[1]]+
      geom_point(aes(x = cov.sig[[2]][3], y = 6), shape = 8))/
   (covplots[[3]]+
     geom_point(aes(x = cov.sig[[3]][1], y = 6), shape = 8)+
-    geom_point(aes(x = cov.sig[[3]][2], y = 6), shape = 8))
+    geom_point(aes(x = cov.sig[[3]][2], y = 6), shape = 8))+
+  plot_annotation(tag_levels = "A")
 
 # ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 6,
 #        units = 'in')
