@@ -35,16 +35,18 @@ ab.Equal.star <- pool_par_gauss(alphaEqual, mv, sv^2)
 
 # Plot
 ggplot()+
+  stat_function(fun = dnorm, n = 100, size = 1, color = "red",
+                args = list(mean = ab.Equal.star[1], 
+                            sd = ab.Equal.star[2]), linetype = "dashed")+
+  stat_function(fun = dnorm, n = 100,  size = 1, color = "red",
+                args = list(mean = mv[1], sd = sv[1]))+
   stat_function(fun = dnorm, n = 100, 
-                args = list(mean = ab.Equal.star[1], sd = ab.Equal.star[2]), size = 1)+
-  stat_function(fun = dnorm, n = 100, args = list(mean = mv[1], sd = sv[1]), 
-                linetype = "dotted", size = 1)+
-  stat_function(fun = dnorm, n = 100, args = list(mean = mv[2], sd = sv[2]), 
-                linetype = "dashed", size = 1)+
+                args = list(mean = mv[2], sd = sv[2]), size = 1)+
   labs(y = "Density")+
   theme_bw()+
   xlim(c(-2, 5))+
-  theme(panel.grid = element_blank(), axis.title = element_blank())
+  theme(panel.grid = element_blank(), axis.title = element_blank(),
+        axis.text = element_blank())
 
 ggsave(file = "Example_agg.jpeg")
   
