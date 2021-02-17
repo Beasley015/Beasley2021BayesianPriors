@@ -565,7 +565,7 @@ big.covplot <- (covplots[[1]]+
   (covplots[[3]]+
     geom_point(aes(x = cov.sig[[3]][1], y = 6), shape = 8)+
     geom_point(aes(x = cov.sig[[3]][2], y = 6), shape = 8))+
-  plot_annotation(tag_levels = "A")
+  plot_annotation(tag_levels = "a")
 
 # ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 6,
 #        units = 'in')
