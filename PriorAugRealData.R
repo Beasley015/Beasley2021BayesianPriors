@@ -416,14 +416,15 @@ VT <- us_states[which(us_states$NAME=="Vermont"),]
 
 ggplot(data = VT)+
   geom_sf()+
-  geom_jitter(data = traps, aes(x = X, y = Y, color = Habitat), 
-              size = 3, width = 0.05, height = 0.05)+
-  scale_color_viridis_d()+
+  geom_jitter(data = traps, aes(x = X, y = Y, fill = Habitat), 
+              size = 3, width = 0.05, height = 0.05, alpha = 0.6,
+              pch = 21, color = "black")+
+  scale_fill_viridis_d()+
   north(VT, location = "bottomright", scale = 0.2)+
-  theme_classic(base_size = 16)+
+  theme_classic(base_size = 14)+
   theme(axis.title = element_blank(), axis.text = element_blank())
 
-ggsave(file = "sitemap.jpeg")
+ggsave(file = "sitemap.jpeg", dpi = 600)
 
 # Get Ns -----------------------
 get.ns <- function(jag){

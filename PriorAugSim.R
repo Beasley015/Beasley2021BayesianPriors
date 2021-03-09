@@ -815,22 +815,21 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
   expand_limits(y = 0)+
   scale_color_viridis_d()+
   scale_fill_viridis_d()+
-  theme_bw(base_size = 16)+
-  theme(panel.grid = element_blank(), 
-        legend.title = element_blank())
+  theme_bw(base_size = 14)+
+  theme(panel.grid = element_blank(), legend.title = element_blank())
 
-# ggsave(rich.plot, filename = 'richplot.jpeg')
+# ggsave(rich.plot, filename = 'richplot.jpeg', dpi = 600)
 
 # Compare covariate responses ----------------------
 get.cov <- function(jag){
   # Extract covariate estimates from jags object
   a1s <- jag$BUGSoutput$sims.list$a1
   
-  a1s <- as.data.frame(a1s[,21:22])
+  a1s <- as.data.frame(a1s)
   
   specnames <- logical()
-  for(i in 21:22){
-    specnames[i-20] <- paste("Spec", i, sep = "")
+  for(i in 1:22){
+    specnames[i] <- paste("Spec", i, sep = "")
   }
   
   colnames(a1s) <- specnames
@@ -846,7 +845,7 @@ get.cov <- function(jag){
     group_by(Spec) %>%
     summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
               hi = quantile(a1, 0.975)) %>%
-    mutate(tru.resp = resp2cov[21:22])
+    mutate(tru.resp = resp2cov)
 
   # Make interval plot
   plot <- ggplot(data = a1.stat, aes(x = Spec, y = mean))+
@@ -858,7 +857,7 @@ get.cov <- function(jag){
     scale_y_continuous(limits = c(-10, 10))+
     labs(x = "Species", y = "Coefficient")+
     theme_bw(base_size = 14)+
-    theme(panel.grid = element_blank())
+    theme(panel.grid = element_blank(), axis.text.x = element_blank())
   
   return(plot)
 }
@@ -874,11 +873,11 @@ plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]+
   theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
 
 allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
-  plot_annotation(tag_levels = "a")+
+  plot_annotation(tag_levels = "A")+
   plot_layout(heights = c(1,4))
 
 # ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10,
-#        width = 7, units = "in")
+#        width = 7, units = "in", dpi = 600)
 
 # Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs
