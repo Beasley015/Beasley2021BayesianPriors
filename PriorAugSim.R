@@ -873,7 +873,7 @@ plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]+
   theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
 
 allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
-  plot_annotation(tag_levels = "A")+
+  plot_annotation(tag_levels = "a")+
   plot_layout(heights = c(1,4))
 
 # ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10,
