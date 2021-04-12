@@ -108,27 +108,43 @@ vegdat <- data.frame(Site = filtered.veg$Site,
                      PC1 = vegpca$x[,1], PC2 = vegpca$x[,2],
                      PC3 = vegpca$x[,3])
 
+
+
 # Plot
-ggplot(data = vegdat, aes(x = PC1, y = PC2, color = Habitat))+
+pc <- ggplot(data = vegdat, aes(x = scale(PC1), y = scale(PC2), 
+                          color = Habitat))+
   geom_point(size = 3)+
   scale_color_viridis_d()+
-  theme_bw(base_size = 18)+
-  theme(panel.grid = element_blank())
+  labs(x = "PC1", y = "PC2")+
+  theme_bw(base_size = 14)+
+  theme(panel.grid = element_blank())+
+  annotation_custom(grob = textGrob(label = "Leaf Litter"), 
+                    ymin = -2.4, ymax = -2.4, xmin = 1.4, 
+                    xmax = 1.4)+
+  annotation_custom(grob = textGrob(label = "Grass"), 
+                    ymin = -2.4, ymax = -2.4, xmin = -0.8, 
+                    xmax = -0.8)+
+  annotation_custom(grob = textGrob(label = "Forb/Bare", 
+                                    rot = 90),
+                    ymin = 1.8, ymax = 1.8, xmin = -1.6, 
+                    xmax = -1.6)+
+  annotation_custom(grob = textGrob(label = "Grass", rot = 90),
+                    ymin = -1.1, ymax = -1.1, xmin = -1.6, 
+                    xmax = -1.6)
 
-# ggsave("PC12.jpeg")
+# Code to override clipping
+gt <- ggplot_gtable(ggplot_build(pc))
+gt$layout$clip[gt$layout$name == "panel"] <- "off"
+grid.draw(gt)
 
-ggplot(data = vegdat, aes(x = PC2, y = PC3, color = Habitat))+
-  geom_point(size = 3)+
-  scale_color_viridis_d()+
-  theme_bw(base_size = 18)+
-  theme(panel.grid = element_blank())
+ggsave(gt, filename = "PC12.jpeg")
 
-# PC1 (separates forest & everything else) explains 47.5% 
+# PC1 (separates forest & everything else) explains 82.4% 
 forests <- vegdat$PC1
 # Standardize
 forests <- as.vector(scale(forests))
 
-# PC2 (separates forby & grassy farms/fields) explains 16%
+# PC2 (separates forby & grassy farms/fields) explains 10.5%
 farmfield <- vegdat$PC2
 # Standardize
 farmfield <- as.vector(scale(farmfield))
