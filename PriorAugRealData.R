@@ -108,8 +108,6 @@ vegdat <- data.frame(Site = filtered.veg$Site,
                      PC1 = vegpca$x[,1], PC2 = vegpca$x[,2],
                      PC3 = vegpca$x[,3])
 
-
-
 # Plot
 pc <- ggplot(data = vegdat, aes(x = scale(PC1), y = scale(PC2), 
                           color = Habitat))+
@@ -520,6 +518,8 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
   theme_bw(base_size = 14)+
   theme(panel.grid = element_blank(), 
         legend.title = element_blank())
+
+ggsave(rich.plot, filename = "SiteRichness_Real.jpeg")
 
 # Covariate responses -------------------
 get.cov <- function(jag){
