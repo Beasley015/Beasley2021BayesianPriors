@@ -1,0 +1,126 @@
+---
+title: 'Appendix S2: Example of informed priors using simulated data.'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F)
+```
+
+
+### Simulate the community
+
+```{r, include = F}
+library(R2jags)
+library(boot)
+library(ggplot2)
+```
+
+```{r}
+# Set seed
+set.seed(16)
+
+# Global variables
+nspec <- 10
+nmiss <- 1 # Species present but not detected during sampling
+nsite <- 20
+nsurvey <- 4
+
+Ks <- rep(nsurvey, nsite) # vector of surveys at each site
+
+# Vector of covariate responses: half of species respond negatively
+resp2cov <- c(rnorm(n = 5, sd = 0.25),
+              rnorm(n = 5, mean = -3, sd = 0.25))
+
+resp2cov <- sample(resp2cov)
+
+# Covariate values for sites
+cov <- sort(rnorm(n = nsite))
+```
+
+```{r}
+# Get probs from a beta distribution
+sim.occ <- rbeta(n = nspec, shape1 = 2, shape2 = 3)
+
+# Write function to simulate true occupancy state
+tru.mats <- function(spec=nspec, site=nsite,
+                     alpha1=resp2cov){
+  #Get site-level psi to account for covariates
+  alpha0 <- logit(sim.occ)
+  
+  #Create empty matrix to store occupancy probs
+  logit.psi <- matrix(NA, nrow = spec, ncol = site)
+  
+  # Generate occupancy probs
+  for(i in 1:spec){
+    logit.psi[i,] <- alpha0[i] + alpha1[i]*cov
+  }
+  
+  # Transform
+  psi <- plogis(logit.psi)
+  
+  # Generate true occupancy state
+  nlist<-list()
+  for(a in 1:spec){
+    nlist[[a]] <- rbinom(n = site, size = 1, prob = psi[a,])
+  }
+  
+  #Turn abundance vectors into abundance matrix
+  ns<-do.call(rbind, nlist)
+  
+  return(ns)
+}
+
+# Get true occupancy states
+tru <- tru.mats()
+print(tru[,1:10])
+```
+
+```{r}
+# Generate mean detection probabilities from beta dist
+mean.p <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 8)
+mean.p <- sort(mean.p, decreasing = T)
+
+# Generate detection histories
+get.obs <- function(mat, specs){
+  #Detection intercept and cov responses
+  beta0<-logit(mean.p) #put it on logit scale
+
+  #Logit link function
+  logit.p <- array(NA, dim = c(nsite, nsurvey, specs))
+  for(i in 1:specs){
+    for(j in 1:nsite){
+      for(k in 1:nsurvey){
+        logit.p[j,,i] <- beta0[i]
+      }
+    }
+  }
+
+  p <- plogis(logit.p)
+
+  #Simulate observation data
+  L<-list()
+
+  for(b in 1:specs){
+    y<-matrix(NA, ncol = nsite, nrow = nsurvey)
+    for(a in 1:nsurvey){
+      y[a,]<-rbinom(n = nsite, size = 1, prob = p[,,b]*mat[b,])
+    }
+    L[[b]]<-t(y)
+  }
+
+  #Smash it into array
+  obs<-array(as.numeric(unlist(L)), 
+                 dim=c(nsite, nsurvey, specs))
+
+  return(obs)
+}
+
+obs.data <- get.obs(mat = tru, specs = nspec)
+```
+
+### Define the informed prior
+
+### Write the JAGS script
+
+### Run model and create figures
