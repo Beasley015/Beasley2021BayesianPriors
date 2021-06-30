@@ -21,23 +21,23 @@
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, 3,3, 0)
-            inf.mean1 <- c(0, -3,-3, 0)
+            inf.mean0 <- c(0, -2,0, 0)
+            inf.mean1 <- c(0, 0,-3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
             
-            weights <- c(0.15, 0.85)
+            weights <- c(0.85, 0.15)
 
             for(i in 1:(spec+aug)){
               #Create priors from hyperpriors
               g[i] ~ dinterval(i, lim)
               w[i] ~ dbern(omega)
               
-              lb0[i,1] <- weights[1]/(1/tau.a0)
               lb0[i,2] <- weights[2]/inf.var0[g[i]+1]
-              lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
+              lb0[i,1] <- weights[1]/(1/tau.a0)
               lb1[i,1] <- weights[1]/(1/tau.a1)
+              lb1[i,2] <- weights[2]/inf.var1[g[i]+1]
               
               pooled.var0[i] <- 1/sum(lb0[i,])
               pooled.var1[i] <- 1/sum(lb1[i,])
@@ -49,12 +49,12 @@
               
               a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
                             a0.mean), 
-                            ifelse(i==21 || i==22, 1/pooled.var0[i], 
+                            ifelse(i==21 || i==22, (1/pooled.var0[i]), 
                             tau.a0))
                              
               a1[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean1[i], 
                             a1.mean), 
-                            ifelse(i==21 || i ==22, 1/pooled.var1[i], 
+                            ifelse(i==21 || i ==22, (1/pooled.var1[i]), 
                             tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0) 

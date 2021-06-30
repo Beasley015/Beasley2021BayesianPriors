@@ -16,7 +16,7 @@ library(fitdistrplus)
 library(grid)
 
 # Set seed
-set.seed(16)
+set.seed(39)
 
 # Global variables
 nspec <- 20
@@ -38,7 +38,7 @@ cov <- sort(rnorm(n = nsite))
 
 # Simulate occupancy data -------------------------------------
 # Get probs from a beta distribution
-sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 3)
+sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 4)
 
 # Write function to simulate true occupancy state
 tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
@@ -51,7 +51,7 @@ tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
     logit.psi[i,] <- alpha0[i] + alpha1[i]*cov
   }
   
-  psi <- plogis(logit.psi)
+  psi <- inv.logit(logit.psi)
   
   #create list of abundance vectors
   nlist<-list()
@@ -121,34 +121,34 @@ maxobs <- apply(obs.data, c(1,3), max)
 colSums(maxobs)
 
 # Remove species with fewest detections: these will be "undetected" species
-obs.data <- obs.data[,,-c(21:22)]
+obs.data <- obs.data[,,-which(colSums(maxobs)==0)]
 
-# Function to reorder true values, if needed
-# reorder <- function(x){
-#   if (length(dim(x)) == 0){
-#     nondets <- which(colSums(maxobs) == 0)
-#     copy <- x[nondets]
-#     x <- x[-nondets]
-#     new <- c(x, copy)
-#     return(new)
-#     }
-#   else {
-#     nondets <- which(colSums(maxobs) == 0)
-#     copy <- x[nondets,]
-#     x <- x[-nondets,]
-#     new <- rbind(x, copy)
-#     return(new)
-#     }
-# }
-# 
-# sim.occ <- reorder(sim.occ)
-# mean.p <- reorder(mean.p)
-# 
-# resp2cov <- reorder(resp2cov)
-# 
-# tru <- reorder(tru)
+# Function to reorder true values
+reorder <- function(x){
+  if (length(dim(x)) == 0){
+    nondets <- which(colSums(maxobs) == 0)
+    copy <- x[nondets]
+    x <- x[-nondets]
+    new <- c(x, copy)
+    return(new)
+    }
+  else {
+    nondets <- which(colSums(maxobs) == 0)
+    copy <- x[nondets,]
+    x <- x[-nondets,]
+    new <- rbind(x, copy)
+    return(new)
+    }
+}
 
-# Augment the observed dataset ------------------------------------
+sim.occ <- reorder(sim.occ)
+mean.p <- reorder(mean.p)
+
+resp2cov <- reorder(resp2cov)
+
+tru <- reorder(tru)
+
+# Augment the observed dataset ---------------------------------
 ems.array <- array(0, dim = c(nsite, nsurvey, nmiss))
 obs.aug <- abind(obs.data, ems.array, along = 3)
 
@@ -167,8 +167,8 @@ weakinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, -4,0, 0)
-            inf.mean1 <- c(0, 0,3, 0)
+            inf.mean0 <- c(0, -2,0, 0)
+            inf.mean1 <- c(0, 0,-3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -209,8 +209,8 @@ modinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, -4,0, 0)
-            inf.mean1 <- c(0, 0,3, 0)
+            inf.mean0 <- c(0, -2,0, 0)
+            inf.mean1 <- c(0, 0,-3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -251,8 +251,8 @@ stronginf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, -4,0, 0)
-            inf.mean1 <- c(0, 0,3, 0)
+            inf.mean0 <- c(0, -2,0, 0)
+            inf.mean1 <- c(0, 0,-3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -293,8 +293,8 @@ weakmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, 3,3, 0)
-            inf.mean1 <- c(0, -3,-3, 0)
+            inf.mean0 <- c(0, 2,0, 0)
+            inf.mean1 <- c(0, 0,3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -335,8 +335,8 @@ modmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, 3,3, 0)
-            inf.mean1 <- c(0, -3,-3, 0)
+            inf.mean0 <- c(0, 2,0, 0)
+            inf.mean1 <- c(0, 0,3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -377,8 +377,8 @@ strongmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, 3,3, 0)
-            inf.mean1 <- c(0, -3,-3, 0)
+            inf.mean0 <- c(0, 2,0, 0)
+            inf.mean1 <- c(0, 0,3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -512,7 +512,7 @@ write.model <- function(priors){
  writeLines(mod, "aug_model.txt") 
 }
 
-# Write function for sending model to gibbs sampler --------------------------------
+# Write function for sending model to gibbs sampler --------------
 VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc, 
                        priors = uninf, burn = 2500, iter = 8000, 
                        thin = 10){
@@ -557,48 +557,55 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc,
 }
 
 # Run sims ------------------------------------
-# mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, cov = cov,
-#                         spec = nspec, textdoc = 'noaug.txt')
+# mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.data, 
+#                         cov = cov, spec = nspec, 
+#                         textdoc = 'noaug.txt')
 # saveRDS(mod.noaug, file = "mod_noaug.rds")
 # 
-# mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                         spec = nspec,textdoc = 'aug_model.txt',
-#                         aug = nmiss, burn = 2500, iter = 10000,
-#                         thin = 10)
+# mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug,
+#                         cov = cov, spec = nspec,
+#                         textdoc = 'aug_model.txt', aug = nmiss,
+#                         burn = 2500, iter = 10000, thin = 10)
 # saveRDS(mod.uninf, file = "mod_uninf.rds")
 # 
-# inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                            spec = nspec,textdoc = 'aug_model.txt',
-#                            aug = nmiss, priors = weakinf, burn = 2500,
-#                            iter = 10000, thin = 5)
+# inf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug,
+#                        cov = cov, spec = nspec,
+#                        textdoc = 'aug_model.txt', aug = nmiss,
+#                        priors = weakinf, burn = 3000,
+#                        iter = 10000, thin = 5)
 # saveRDS(inf.weak, file = "inf_weak.rds")
 # 
-# inf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                       spec = nspec, textdoc = 'aug_model.txt',
-#                       aug = nmiss, priors = modinf, burn = 7000,
+# inf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug,
+#                       cov = cov, spec = nspec,
+#                       textdoc = 'aug_model.txt', aug = nmiss,
+#                       priors = modinf, burn = 8000,
 #                       iter = 12000, thin = 3)
 # saveRDS(inf.mod, file = "inf_mod.rds")
 # 
-# inf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                          spec = nspec, textdoc = 'aug_model.txt',
-#                          aug = nmiss, priors = stronginf, burn = 7000,
+# inf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug,
+#                          cov = cov, spec = nspec,
+#                          textdoc = 'aug_model.txt', aug = nmiss,
+#                          priors = stronginf, burn = 8000,
 #                          iter = 12000, thin = 3)
 # saveRDS(inf.strong, file = "inf_strong.rds")
 # 
-# misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                           spec = nspec, textdoc = 'aug_model.txt',
-#                           aug = nmiss, priors = weakmisinf, burn = 5000,
-#                           iter = 10000, thin = 5)
+# misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, 
+#                           cov = cov, spec = nspec, 
+#                           textdoc = 'aug_model.txt',
+#                           aug = nmiss, priors = weakmisinf, 
+#                           burn = 5000, iter = 10000, thin = 5)
 # saveRDS(misinf.weak, file = "misinf_weak.rds")
 # 
-# misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                          spec = nspec, textdoc = 'aug_model.txt',
-#                          aug = nmiss, priors = modmisinf, burn = 2500,
+# misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, 
+#                          cov = cov, spec = nspec, 
+#                          textdoc = 'aug_model.txt', aug = nmiss,
+#                          priors = modmisinf, burn = 2500,
 #                          iter = 10000, thin = 10)
 # saveRDS(misinf.mod, file = "misinf_mod.rds")
 # 
-# misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, cov = cov,
-#                             spec = nspec, textdoc = 'aug_model.txt',
+# misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, obs = obs.aug, 
+#                             cov = cov, spec = nspec, 
+#                             textdoc = 'aug_model.txt',
 #                             aug = nmiss, priors = strongmisinf,
 #                             burn = 2000, iter = 10000, thin = 5)
 # saveRDS(misinf.strong, file = "misinf_strong.rds")
@@ -680,13 +687,13 @@ a021plot <- a021patch+
   plot_annotation(tag_levels = c('A', '1'))
 
 # Save that sonofabitch
-# ggsave(filename = "a021plot.jpeg", a021plot, width = 8, 
+# ggsave(filename = "a021plot.jpeg", a021plot, width = 8,
 #        height = 5)
 
 # Do it again with the other species
-# a0.22.inf <- lapply(mod.outputs[1:3], prior.agg0, 
+# a0.22.inf <- lapply(mod.outputs[1:3], prior.agg0,
 #                     spec.ID = 22, inf.means = c(-4, 0))
-# a0.22.misinf <- lapply(mod.outputs[4:6], prior.agg0, spec.ID = 22, 
+# a0.22.misinf <- lapply(mod.outputs[4:6], prior.agg0, spec.ID = 22,
 #                        inf.means = c(3,3))
 # 
 # a022inf <- (a0.22.inf[[1]]+a0.22.inf[[2]]+a0.22.inf[[3]])
@@ -695,7 +702,7 @@ a021plot <- a021patch+
 # 
 # a022patch <- a022inf/a022misinf
 # 
-# a022patch[[1]] <- a022patch[[1]]+plot_layout(tag_level = 'new') 
+# a022patch[[1]] <- a022patch[[1]]+plot_layout(tag_level = 'new')
 # a022patch[[2]] <- a022patch[[2]]+plot_layout(tag_level = 'new')
 # 
 # a022plot <- a022patch+
@@ -848,9 +855,9 @@ get.cov <- function(jag){
     mutate(tru.resp = resp2cov)
 
   # Make interval plot
-  plot <- ggplot(data = a1.stat, aes(x = Spec, y = mean))+
+  plot <- ggplot(data = a1.stat[c(21,22),], aes(x = Spec, y = mean))+
     geom_point(size = 1.5)+
-    geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
+    geom_errorbar(ymin = a1.stat$lo[c(21,22)], ymax = a1.stat$hi[c(21,22)], 
                   size = 1, width = 0.2)+
     geom_point(aes(y = tru.resp), color = "red", size = 1.5)+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
@@ -876,7 +883,7 @@ allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
   plot_annotation(tag_levels = "a")+
   plot_layout(heights = c(1,4))
 
-# ggsave(allthecovs, filename = "allthecovs.jpeg", height = 10,
+# ggsave(allthecovs, filename = "covs_undet.jpeg", height = 10,
 #        width = 7, units = "in", dpi = 600)
 
 # Compare typical bias of each prior method ---------------------
@@ -917,60 +924,3 @@ allthehists <- plot.uninf/(rich.hists.inf|rich.hists.misinf)+
 
 # ggsave(allthehists, file = "allthehists.jpeg", height = 10,
 #        width = 8, units = 'in')
-
-# Function looking at undetected spec error --------------------
-error.raster <- function(jag){
-  Zs <- jag$BUGSoutput$sims.list$Z
-  
-  spec.names <- c("Spec21", "Spec22")
-
-  Zs.mean <- data.frame(apply(Zs, c(2,3), mean)[,21:22])
-  colnames(Zs.mean) <- spec.names
-  Zs.mean$Site <- c(1:30)
-
-  tru.frame <-as.data.frame(t(tru))[,21:22]
-  colnames(tru.frame) <- spec.names
-  tru.frame$Site <- c(1:30)
-
-  tru.frame %>%
-    gather("Spec21":"Spec22", key = "Species", value = "Occ") %>%
-    {. ->> tru.frame}
-
-  Zs.mean %>%
-    gather("Spec21":"Spec22", key = "Species", value = "Occ") %>%
-    left_join(tru.frame, by = c("Site", "Species")) %>%
-    mutate(Error = Occ.y - Occ.x) %>%
-    {. ->> merged.frame}
-
-  merged.frame$Species = factor(merged.frame$Species, 
-                                levels = spec.names)
-
-  rast <- ggplot(data = merged.frame, 
-                 aes(x = Species, y = Site, fill = Error))+
-    geom_tile()+
-    scale_fill_distiller(type = "div", 
-                         limit = max(abs(merged.frame$Error)) *
-                           c(-1, 1))+
-    scale_y_continuous(expand = c(0,0))+
-    scale_x_discrete(expand = c(0,0))+
-    theme_bw(base_size = 18)
-  
-  return(rast)
-}
-
-error.out <- lapply(biglist, error.raster)
-
-plot.uninf <- plot_spacer() + error.out[[1]]+ plot_spacer()+
-  plot_layout(widths = c(1,2,1))
-
-plot.inf <- (error.out[[2]]/error.out[[3]]/error.out[[4]])&
-  guides(fill = "none")
-
-plot.misinf <- (error.out[[5]]/error.out[[6]]/error.out[[7]])&
-  guides(fill = "none")
-
-error.plots <- plot.uninf/(plot.inf|plot.misinf)+
-  plot_layout(heights = c(1,5), guides = "collect")
-
-# ggsave(error.plots, file = "error_plots.jpeg", height = 10, 
-#        width = 8, units = "in")
