@@ -39,6 +39,8 @@ cov <- sort(rnorm(n = nsite))
 # Simulate occupancy data -------------------------------------
 # Get probs from a beta distribution
 sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 4)
+# Get quantiles
+qbeta(p = c(0.025, 0.975), shape1 = 2, shape2 = 4)
 
 # Write function to simulate true occupancy state
 tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
@@ -72,6 +74,8 @@ psi <- rowMeans(tru.mats()[[2]])
 # Generate mean detection probabilities from beta dist
 mean.p <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 8)
 mean.p <- sort(mean.p, decreasing = T)
+# Get quantiles
+qbeta(p = c(0.025, 0.975), shape1=2, shape2=8)
 
 # Generate detection histories
 get.obs <- function(mat, specs){
