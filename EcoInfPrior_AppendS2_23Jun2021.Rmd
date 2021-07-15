@@ -14,7 +14,8 @@ knitr::opts_chunk$set(echo = TRUE, warning = F)
 library(R2jags)
 library(boot)
 library(abind)
-library(ggplot2)
+library(tidyverse)
+library(ggnewscale)
 ```
 
 ```{r}
@@ -253,7 +254,7 @@ datalist <- list(J = nsite, K = Ks, obs = obs.aug,
                  spec = 9, aug = 1, cov = cov)
 
 # Parameters to save after model is analyzed
-parms <- c('N', 'a0', 'b0', 'a1', 'Z', 'a1.mean', 'pooled.mean',
+parms <- c('N', 'a0', 'b0', 'a1', 'Z', 'a1.mean','tau.a1', 'pooled.mean',
            'pooled.var')
 
 # Initial values for the Markov chains
@@ -273,7 +274,7 @@ init.values<-function(){
 #               inits = init.values, n.burnin = 1000,
 #               n.iter = 5000, n.thin = 3)
 
-#Save/load model
+# Save/load model
 # saveRDS(model, file = "sample_mod.rds")
 model <- readRDS(file = "sample_mod.rds")
 ```
@@ -283,11 +284,161 @@ model <- readRDS(file = "sample_mod.rds")
 #### Check to see if aggregation worked
 
 ```{r}
+# Get values from aggregated prior
+pooled.mean <- median(model$BUGSoutput$sims.list$pooled.mean) 
+pooled.sd <- median(sqrt(model$BUGSoutput$sims.list$pooled.var))
+# Medians used because posterior is asymmetrical
 
+# Create objects from informed values used in priors
+inf.mean <- -3
+inf.var <- 0.5
+  
+# Pull community distribution priors from model
+comm.mean <- median(model$BUGSoutput$sims.list$a1.mean)
+comm.sd <- median(sqrt(1/model$BUGSoutput$sims.list$tau.a1))
+# These are symmetrical but using median for consistency
+  
+# Pull posteriors from model
+post.mean <- mean(model$BUGSoutput$sims.list$a1[,10])
+post.sd <- sd(model$BUGSoutput$sims.list$a1[,10])
+
+# Plot the distributions
+ggplot()+
+  stat_function(fun = dnorm, n = 1000, 
+                args = list(mean = pooled.mean, sd = pooled.sd),
+                size = 1, aes(linetype = "Aggregated", color = "Prior"))+
+  stat_function(fun = dnorm, n = 1000, 
+                args = list(mean = inf.mean, sd = sqrt(inf.var)),
+                size = 1, aes(linetype = "Informed", color = "Prior"))+
+  stat_function(fun = dnorm, n = 1000, 
+                args = list(mean = comm.mean, sd = comm.sd),
+                size = 1, aes(linetype = "Community", color = "Prior"))+
+  stat_function(fun = dnorm, n = 1000, 
+                args = list(mean = post.mean, sd = post.sd),
+                size = 1, aes(linetype = "Aggregated", color = "Posterior"))+
+  xlim(c(-6, 5))+
+  scale_linetype_manual(breaks = c("Aggregated", "Informed", "Community"),
+                        values = c(1, 3, 5), name = "Prior")+
+  scale_color_manual(breaks = c("Prior", "Posterior"),
+                     values = c("black", "red"), name = "")+
+  labs(y = "Density")+
+  theme_bw(base_size = 16)+
+  theme(panel.grid = element_blank(), 
+        axis.title.x = element_blank())
 ```
 
 #### Regional richness estimates
 
+```{r}
+# Extract regional species richness N from model
+Ns <- as.vector(model$BUGSoutput$sims.list$N)
+
+# Create table of counts for each estimate
+Ns %>%
+  table() %>%
+  data.frame() %>%
+  {. ->> ns.frame}
+colnames(ns.frame) <- c("N_Species", "Freq")
+  
+# Look at mean an median estimates
+mean(Ns)
+median(Ns)
+# Suggests most models accounted for the missing species
+
+# Check it graphically
+Ns.median <- median(Ns)
+ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)),
+                            y = Freq))+
+  geom_col(width = 0.95, color = 'lightgray')+
+  geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"),
+             size = 1.5)+
+  scale_linetype_manual(values = c("Estimated"="dotted"),
+                        name = "", 
+                        labels = c("Median Estimate"))+
+  labs(x = "Estimated Species", y = "Frequency")+
+  scale_y_continuous(expand = c(0,0))+
+  theme_classic(base_size = 18)+
+  theme(axis.text.y = element_blank(), 
+        axis.title.y = element_blank(), 
+        axis.title.x = element_blank(),
+        legend.key.height = unit(40, units = 'pt'),
+        aspect.ratio = 1/1)
+  
+```
+
 #### Site-level richness estimates
 
+```{r}
+# Pull estimated occurrences from model  
+Zs <- model$BUGSoutput$sims.list$Z
+
+# Get avg. occurrence matrices  
+Zs.mean <- apply(Zs, c(2,3), mean)
+
+# Get site-level richness  
+site.rich <- data.frame(Est = rowSums(Zs.mean))
+
+# Get true and observed values for comparison
+site.rich$True <- colSums(tru)
+site.rich$Obs <- rowSums(apply(obs.data, c(1,3), max))
+site.rich$Cov <- cov # Covariate makes for a cleaner plot
+
+# Coerce to long format
+rich.long <-pivot_longer(site.rich, cols = Est:Obs, values_to = "Richness",
+                         names_to = "Source")
+
+# Plot it  
+ggplot(data = rich.long, aes(x = Cov, y = Richness, color = Source))+
+  geom_point()+
+  geom_smooth(aes(fill = Source), method = 'lm', alpha = 0.2)+
+  labs(x = "Covariate")+
+  expand_limits(y = 0)+
+  scale_color_viridis_d()+
+  scale_fill_viridis_d()+
+  theme_bw(base_size = 14)+
+  theme(panel.grid = element_blank(), legend.title = element_blank())
+
+```
+
 #### Covariate responses
+
+```{r}
+# Extract covariate estimates from jags object
+a1s <- model$BUGSoutput$sims.list$a1
+  
+a1s <- as.data.frame(a1s)
+  
+# Create a vector of species names
+specnames <- logical()
+for(i in 1:nspec){
+  specnames[i] <- paste("Spec", i, sep = "")
+}
+  
+colnames(a1s) <- specnames
+
+# Pivot data frame for plotting
+a1.long <- a1s %>%
+  pivot_longer(cols = everything(), names_to = "Spec", 
+               values_to = "a1")
+
+a1.long$Spec <- factor(a1.long$Spec, levels = specnames)
+
+# Get summary stats
+a1.stat <- a1.long %>%
+  group_by(Spec) %>%
+  summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
+            hi = quantile(a1, 0.975)) %>%
+  mutate(tru.resp = resp2cov)
+
+# Make interval plot
+ggplot(data = a1.stat, aes(x = Spec, y = mean))+
+  geom_point(size = 1.5)+
+  geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
+                size = 1, width = 0.2)+
+  geom_point(aes(y = tru.resp), color = "red", size = 1.5)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
+  scale_y_continuous(limits = c(-25, 20))+
+  labs(x = "Species", y = "Coefficient")+
+  theme_bw(base_size = 14)+
+  theme(panel.grid = element_blank(), axis.text.x = element_blank())
+```
