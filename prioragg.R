@@ -42,11 +42,14 @@ ggplot()+
                 args = list(mean = mv[1], sd = sv[1]))+
   stat_function(fun = dnorm, n = 100, 
                 args = list(mean = mv[2], sd = sv[2]), size = 1)+
-  labs(y = "Density")+
-  theme_bw()+
-  xlim(c(-2, 5))+
-  theme(panel.grid = element_blank(), axis.title = element_blank(),
-        axis.text = element_blank())
+  labs(x = expression(psi))+
+  scale_x_continuous(limits = c(-2, 5), breaks = c(-2, 5),
+                     labels = c("0", "1"))+
+  theme_bw(base_size = 36)+
+  theme(panel.grid = element_blank(), axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(margin = margin(t = -30, b = 0,
+                                                       r = 0, l = 0)))
 
 ggsave(file = "Example_agg.jpeg")
   

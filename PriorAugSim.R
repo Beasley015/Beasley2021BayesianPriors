@@ -748,14 +748,11 @@ get.ns <- function(jag){
                                      "True"="solid"),
                           name = "", 
                           labels = c("Median Estimate", "True"))+
-    labs(x = "Estimated Species", y = "Frequency")+
     scale_y_continuous(expand = c(0,0))+
-    theme_classic(base_size = 18)+
+    theme_classic(base_size = 12)+
     theme(axis.text.y = element_blank(), 
-          axis.title.y = element_blank(), 
-          axis.title.x = element_blank(),
-          legend.key.height = unit(40, units = 'pt'),
-          aspect.ratio = 1/1)
+          axis.title = element_blank(), 
+          plot.margin = unit(c(0,0,0,0), units = "point"))
   
   out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean,
                    median = Ns.median)
@@ -768,23 +765,28 @@ N.outs <- lapply(biglist, get.ns)
 # Put histograms in single figure
 histos <- map(N.outs, 1) 
 
-# Create patchwork objects
-histos.uninf <- histos[[1]]+
-  plot_annotation(tag_levels = "A")&
-  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
-histos.inf <- (histos[[2]]/histos[[3]]/histos[[4]])&
-  theme(plot.margin = unit(c(5.5, 0, 5.5, 5.5), units = "point"))
-histos.misinf <- (histos[[5]]/histos[[6]]/histos[[7]])&
-  theme(plot.margin = unit(c(5.5, 5.5, 5.5, 0), units = "point"))
+# Define plot layout
+layout <- "
+#AA#
+BBEE
+CCFF
+DDGG
+"
 
-# Final plot
-Ns.megaplot <- histos.uninf/(histos.inf|histos.misinf)+
+# Create figure
+Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+histos[[5]]+
+  histos[[6]]+histos[[7]]+
+  plot_layout(design = layout)+
   plot_annotation(tag_levels = "a")+
-  plot_layout(guides = "collect", heights = c(1,3.5)) &
+  plot_layout(guides = "collect")&
   xlim(19.5, 22.5)
+
+gn <- patchworkGrob(Ns.base)
+Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
+                                   gp=gpar(fontsize = 14), hjust = 0.8))
   
-# ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 7,
-#        height = 10, units = 'in')
+# ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 6,
+#        height = 5, units = 'in', dpi = 600)
 
 # Compare site-level richness and covariate ----------------------
 # Pull Zs from each item in list  
@@ -857,38 +859,44 @@ get.cov <- function(jag){
     summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
               hi = quantile(a1, 0.975)) %>%
     mutate(tru.resp = resp2cov)
+  
+  smol.a1 <- a1.stat[21:22,]
 
   # Make interval plot
-  plot <- ggplot(data = a1.stat[c(21,22),], aes(x = Spec, y = mean))+
+  plot <- ggplot(data = smol.a1, aes(x = Spec, y = mean))+
     geom_point(size = 1.5)+
-    geom_errorbar(ymin = a1.stat$lo[c(21,22)], ymax = a1.stat$hi[c(21,22)], 
+    geom_errorbar(ymin = smol.a1$lo, ymax = smol.a1$hi, 
                   size = 1, width = 0.2)+
     geom_point(aes(y = tru.resp), color = "red", size = 1.5)+
     geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
-    scale_y_continuous(limits = c(-10, 10))+
+    scale_x_discrete(expand = c(0.8, 0.2))+
+    scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
     labs(x = "Species", y = "Coefficient")+
     theme_bw(base_size = 14)+
-    theme(panel.grid = element_blank(), axis.text.x = element_blank())
+    theme(panel.grid = element_blank(), axis.title = element_blank())
   
   return(plot)
 }
 
 cov.plots <- lapply(biglist, get.cov)
 
-plot.uninf <- (plot_spacer()|cov.plots[[1]]|plot_spacer())+
-  plot_layout(widths = c(1,2,1))+
-  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
-plot.inf <- cov.plots[[2]]/cov.plots[[3]]/cov.plots[[4]]+
-  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
-plot.misinf <- cov.plots[[5]]/cov.plots[[6]]/cov.plots[[7]]+
-  theme(plot.margin = unit(c(5,5, 0, 5.5, 5.5), units = "point"))
+covs <- (plot_spacer()+cov.plots[[1]]+plot_spacer()+
+                 plot_layout(widths = c(1,2,1)))/
+  (cov.plots[[2]]|cov.plots[[5]])/
+  (cov.plots[[3]]|cov.plots[[6]])/
+  (cov.plots[[4]]|cov.plots[[7]])+
+  plot_annotation(tag_levels = "a")
 
-allthecovs <- plot.uninf/(plot.inf|plot.misinf)+
-  plot_annotation(tag_levels = "a")+
-  plot_layout(heights = c(1,4))
+gt <- patchworkGrob(covs)
+allthecovs <- grid.arrange(gt, 
+                           left = textGrob("Coefficient", 
+                                           gp=gpar(fontsize = 14),
+                                           rot = 90), 
+                           bottom = textGrob("Species", 
+                                           gp=gpar(fontsize = 14)))
 
-# ggsave(allthecovs, filename = "covs_undet.jpeg", height = 10,
-#        width = 7, units = "in", dpi = 600)
+# ggsave(allthecovs, filename = "undet_cov.jpeg", dpi = 600, width = 6,
+#        height = 8, units = "in")
 
 # Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs
