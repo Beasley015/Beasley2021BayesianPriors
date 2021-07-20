@@ -25,11 +25,10 @@ set.seed(23)
 We will begin by simulating a community consisting of 10 species. We will assume that we surveyed this community by sampling 20 sites over a period of 4 surveys each. We will also simulate a covariate that is correlated with the occupancy rates of some species: half of the species in the community will respond negatively to the covariate, while the other half are not affected.
 
 ```{r}
-
 # Global variables
-nspec <- 10
-nsite <- 20
-nsurvey <- 4
+nspec <- 10 # number of species
+nsite <- 20 # number of sites
+nsurvey <- 4 # surveys per site
 
 Ks <- rep(nsurvey, nsite) # vector of surveys at each site
 
@@ -88,6 +87,10 @@ tru <- tru.mats()
 print(tru[,1:10])
 ```
 
+Species-level detection probabilities, like species-level occupancy probabilities, will be drawn from a beta distribution. Environmental or survey covariates that may influence detectability can be added using the logit link function; however, for this example we will assume detectability does not vary across sites and surveys.
+
+Simulated survey data will be the result of a Bernoulli trial with the species-level detection probability as the probability of encountering that species at a given site during a given survey.
+
 ```{r}
 # Generate mean detection probabilities from beta dist
 mean.p <- rbeta(n = nspec, shape1 = 2, shape2 = 8)
@@ -132,12 +135,17 @@ obs.data <- get.obs(mat = tru, specs = nspec)
 
 # Look at observed occurrence
 maxobs <- apply(obs.data, c(1,3), max)
+```
+
+By calculating the column sums, we can see that one species went undetected in the simulated survey: 
+
+```{r, include = F}
 colSums(maxobs) # One species was not observed
 ```
 
-### Remove undetected species from observed dataset and reorder data
+To make the JAGS script easier to write and the figures more readable, the undetected species was moved to the last position in the observed data. Code for this procedure can be found in Appendix S3.
 
-```{r}
+```{r, include = F}
 # Remove undetected species
 obs.data <- obs.data[,,-which(colSums(maxobs) == 0)]
 
@@ -173,21 +181,39 @@ obs.aug <- abind(obs.data, ems.array, along = 3)
 
 ### Define the informed prior
 
+Next, we will define the informed species-level prior distribution for the undetected species. We know the true value of the covariate is:
+
 ```{r}
 # Get true covariate value
 resp2cov[10]
+```
 
+We will use this value as the mean of the informed prior distribution.  
+  
+We will use the Markov chain Monte Carlo (MCMC) sampler JAGS to analyze the model. JAGS is compatible with most operating systems and the language is similar to R. The package R2jags will allow us to call JAGS directly from R.
+
+In order for JAGS to analyze the model, we have to write a text file to send to JAGS. Begin by writing a character object that defines the mean and variance of the informed prior distribution:
+
+```{r}
 # Write script for priors in JAGS language
 priors <- "#Info for species-level prior distribution
             inf.mean <- -3 #mean of distribution
-            inf.var <- 0.5 #variance of distribution
+            inf.var <- 0.5 #variance of distribution"
+```
             
-          #Define prior weights: how much each distribution 
+Next, define the relative weights of the community-level hyperprior and the informed species-level prior. The weight is a value between 0 and 1 that determines the relative contribution of each prior to the aggregated prior (weights of each prior must sum to 1). To assign weights, create a vector with the weight of the community-level prior as the first element and the species-level prior as the second: 
+
+```{r}            
+priors <- paste(priors,
+          "#Define prior weights: how much each distribution 
           #contributes to the final aggregate
           #Hyperprior first, then informed
-            weights <- c(0.5, 0.5) #these are equal weights
-          
-          #Pool the distributions  
+            weights <- c(0.5, 0.5) #these are equal weights")
+```
+
+```{r}          
+priors <- paste(priors, 
+            "#Pool the distributions  
             lb[1] <- weights[1]/(1/tau.a0) 
             #1/tau.a0 is the variation of hyperprior
             lb[2] <- weights[2]/inf.var
@@ -206,7 +232,7 @@ priors <- "#Info for species-level prior distribution
               a1[i] ~ dnorm(ifelse(i==10,pooled.mean,a1.mean), 
                             ifelse(i==10,(1/pooled.var),tau.a1))
 
-              b0[i] ~ dnorm(b0.mean, tau.b0)"
+              b0[i] ~ dnorm(b0.mean, tau.b0)")
 ```
 
 ### Write the JAGS script
