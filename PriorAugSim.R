@@ -13,7 +13,7 @@ library(boot)
 library(viridis)
 library(patchwork)
 library(fitdistrplus)
-library(grid)
+library(gridExtra)
 
 # Set seed
 set.seed(39)

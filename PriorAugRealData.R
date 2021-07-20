@@ -13,6 +13,7 @@ library(spData)
 library(sf)
 library(ggsn)
 library(patchwork)
+library(gridExtra)
 
 # Set seed
 set.seed(15)
@@ -535,13 +536,19 @@ get.cov <- function(jag){
     pivot_longer(cols = everything(), names_to = "Spec", 
                  values_to = "a1")
   
+  full.names <- select(mamm.raw, Genus:Abbrev)
+  full.names <- rbind(full.names, c("Sylvilagus", "floridanus", "SYFL"))
+  
   a1.stat <- a1.long %>%
     group_by(Spec) %>%
     summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
-              hi = quantile(a1, 0.975))
+              hi = quantile(a1, 0.975)) %>%
+    left_join(y = full.names, by = c("Spec" = "Abbrev")) %>%
+    distinct() %>%
+    mutate(full.name = paste(substring(Genus,1,1), Species, sep = "."))
   
   # Make interval plot
-  plot <- ggplot(data = a1.stat, aes(x = Spec, y = mean))+
+  plot <- ggplot(data = a1.stat, aes(x = full.name, y = mean))+
     geom_point()+
     geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
                   size = 1, width = 0.2)+
@@ -549,40 +556,30 @@ get.cov <- function(jag){
     scale_y_continuous(limits = c(-12,12))+
     labs(x = "Species", y = "Coefficient")+
     theme_bw(base_size = 14)+
-    theme(panel.grid = element_blank())
+    theme(panel.grid = element_blank(), 
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+          axis.title = element_blank())
   
-  outs <- list(stat = a1.stat, plot = plot)
+  rows <- logical()
+  for(i in 1:nrow(a1.stat)){
+    rows[i] <- between(0, a1.stat$lo[i], a1.stat$hi[i])
+  }
+  
+  sigs <- rep(NA, nrow(a1.stat))
+  sigs[which(rows == FALSE)] <- a1.stat$full.name[which(rows == FALSE)]
+  
+  outs <- plot+geom_point(aes(x = sigs, y = 6), shape = 8)
+  
   return(outs)
 }
 
 covslist <- lapply(modlist, get.cov)
 
-covs <- map(covslist, 1)
-
-get.sigs <- function(outs){
-  rows <- logical()
-  for(i in 1:nrow(outs)){
-    rows[i] <- between(0, outs$lo[i], outs$hi[i])
-  }
-
-  sigs <- outs$Spec[which(rows == FALSE)]
-}
-
-cov.sig <- lapply(covs, get.sigs)
-
-# Plot covariate responses
-covplots <- map(covslist, 2)
-
-big.covplot <- (covplots[[1]]+
-    geom_point(aes(x = cov.sig[[1]], y = 6), shape = 8))/
-  (covplots[[2]]+
-     geom_point(aes(x = cov.sig[[2]][1], y = 6), shape = 8)+
-     geom_point(aes(x = cov.sig[[2]][2], y = 6), shape = 8)+
-     geom_point(aes(x = cov.sig[[2]][3], y = 6), shape = 8))/
-  (covplots[[3]]+
-    geom_point(aes(x = cov.sig[[3]][1], y = 6), shape = 8)+
-    geom_point(aes(x = cov.sig[[3]][2], y = 6), shape = 8))+
+all.covplot <- covslist[[1]]/covslist[[2]]/covslist[[3]]+
   plot_annotation(tag_levels = "a")
 
-ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 6,
-       units = 'in')
+gcov <- patchworkGrob(all.covplot)
+big.covplot <- grid.arrange(gcov, bottom = "Species", left = "Coefficient of Vegetation Cover")
+
+# ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 8,
+#        units = 'in')

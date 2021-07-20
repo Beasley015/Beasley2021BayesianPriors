@@ -13,6 +13,10 @@
     a1.mean <- log(mean.a0)-log(1-mean.a0)
     tau.a1 ~ dgamma(0.1, 0.1)
     
+    mean.a2 ~ dunif(0,1)
+    a2.mean <- log(mean.a2)-log(1-mean.a2)
+    tau.a2 ~ dgamma(0.1, 0.1)
+    
     mean.b0 ~ dunif(0,1)
     b0.mean <- log(mean.b0)-log(1-mean.b0)
     tau.b0 ~ dgamma(0.1, 0.1)
@@ -46,12 +50,13 @@
                              
               a1[i] ~ dnorm(ifelse(i==11, pooled.mean1, a1.mean), 
                             ifelse(i==11, (1/pooled.var1), tau.a1))
+              a2[i] ~ dnorm(a2.mean, tau.a2)
 
               b0[i] ~ dnorm(b0.mean, tau.b0) 
 
       #Estimate occupancy of species i at point j
       for (j in 1:J){
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j]
+        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j] + a2[i]*cov2[j]
         Z[j,i] ~ dbern(psi[j,i]*w[i])
     
         #Estimate detection of i at point j during sampling period k

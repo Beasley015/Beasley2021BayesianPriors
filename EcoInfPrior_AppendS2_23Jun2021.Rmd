@@ -211,6 +211,8 @@ priors <- paste(priors,
             weights <- c(0.5, 0.5) #these are equal weights")
 ```
 
+Next, pool the distributions. For normal distributions, the pooled mean is defined as $\mu = \sum(\mathbf{w}\mathbf{\mu})*v$
+
 ```{r}          
 priors <- paste(priors, 
             "#Pool the distributions  

@@ -1,13 +1,18 @@
 Habitat,County,Site,Date,Day,Techs,Station,Bait,Tag,Genus,Species,Abbrev,Sex,Repro,Mass,TL,RHFL,EL,Ecto,DNA
+Farm,GrandIsle,Borderview1,14/07/2019,3,"EB, BL",24,Seed,CH,Blarina,brevicauda,BLBR,F,sm,19,23,15,0,,
+Farm,GrandIsle,Borderview1,13/07/2019,2,"EB, BL",25,Seed,LH,Blarina,brevicauda,BLBR,F,sm,19,22,14,0,,
+Farm,GrandIsle,Borderview1,13/07/2019,2,"EB, BL",27,Seed,RH,Blarina,brevicauda,BLBR,F,sm,21,28,14,0,,
+Field,Chittenden,StM1,6/7/2019,1,EB,19,Seed,LH,Blarina,brevicauda,BLBR,F,lg,22,25,13,0,,
+Forest,Chittenden,Jericho1,27/05/2019,2,EB,15,Pb,68,Glaucomys,volans,GLVO,F,lg,64,118,,,,
 Field,Chittenden,Audubon1,29/05/2019,2,EB,13,Seed,22,Microtus,pennsylvanicus,MIPE,F,sm,18,33,16,10,,
 Field,Chittenden,Audubon1,30/05/2019,3,EB,16,Pb,18,Microtus,pennsylvanicus,MIPE,F,lg,43,50,17,10,,
 Field,Chittenden,Audubon1,30/05/2019,3,EB,13,Seed,25,Microtus,pennsylvanicus,MIPE,F,sm,28,29,19,8,,
-Field,Chittenden,Audubon1,28/05/2019,1,EB,11,Seed,27,Zapus,hudsonius,ZAHU,F,sm,19,123,28,11,E011,
-Field,Chittenden,Audubon1,29/05/2019,2,EB,11,Seed,4,Zapus,hudsonius,ZAHU,F,sm,15,118,118,11,,
-Field,Chittenden,Audubon1,29/05/2019,2,EB,18,Seed,27,Zapus,hudsonius,ZAHU,F,sm,17,123,28,11,E015,
-Field,Chittenden,Audubon1,30/05/2019,3,EB,27,Seed,6,Zapus,hudsonius,ZAHU,M,s,12,125,28,13,E017,
-Field,Chittenden,Audubon1,30/05/2019,3,EB,24,Pb,4,Zapus,hudsonius,ZAHU,F,sm,16,118,118,11,,
-Field,Chittenden,Audubon1,30/05/2019,3,EB,16,Seed,27,Zapus,hudsonius,ZAHU,F,sm,17,123,28,11,,
+Farm,Addison,Elmer2,19/06/2019,2,"EB, BL",25,Seed,89,Microtus,pennsylvanicus,MIPE,M,ns,35,34,19,13,,
+Farm,Addison,Elmer2,18/06/2019,1,"EB, BL",28,Seed,91,Microtus,pennsylvanicus,MIPE,F,sm,27,38,19,12,E023,
+Farm,Franklin,RiverBerry1,30/07/2019,2,"EB, RO",23,Seed,40,Microtus,pennsylvanicus,MIPE,M,s,37,43,20,5,,
+Farm,Franklin,RiverBerry1,30/07/2019,2,"EB, RO",24,Seed,14,Microtus,pennsylvanicus,MIPE,M,ns,24,46,19,6,,
+Field,Chittenden,StM1,8/7/2019,3,EB,7,Seed,35,Microtus,pennsylvanicus,MIPE,M,ns,45,38,21,8,,
+Forest,Orleans,Barr2,15/06/2019,2,EB,15,Seed,95,Myodes,gapperi,MYGA,M,s,23,34,15,9,,
 Forest,Chittenden,Audubon2,29/05/2019,1,EB,7,Pb,29,Napeozapus,insignis,NAIN,F,sm,18,128,27,13,,
 Forest,Chittenden,Audubon2,29/05/2019,1,EB,11,Pb,1,Napeozapus,insignis,NAIN,M,s,20,140,29,16,,
 Forest,Chittenden,Audubon2,29/05/2019,1,EB,30,Seed,3,Napeozapus,insignis,NAIN,M,s,23,138,28,12,,
@@ -19,6 +24,16 @@ Forest,Chittenden,Audubon2,31/05/2019,3,EB,11,Seed,3,Napeozapus,insignis,NAIN,M,
 Forest,Chittenden,Audubon2,31/05/2019,3,EB,7,Pb,1,Napeozapus,insignis,NAIN,M,s,21,140,29,16,,
 Forest,Chittenden,Audubon2,31/05/2019,3,EB,6,Seed,16,Napeozapus,insignis,NAIN,F,sm,20,141,29,12,,
 Forest,Chittenden,Audubon2,31/05/2019,3,EB,5,Seed,17,Napeozapus,insignis,NAIN,M,s,21,138,27,11,,
+Forest,Orleans,Barr2,15/06/2019,2,EB,7,Seed,93,Napeozapus,insignis,NAIN,M,ns,23,135,30,15,,
+Forest,Orleans,Barr2,15/06/2019,2,EB,2,Seed,79,Napeozapus,insignis,NAIN,M,s,25,148,30,12,,
+Forest,Orleans,Barr2,16/06/2019,3,EB,21,Seed,92,Napeozapus,insignis,NAIN,F,sm,19,143,28,13,E022,
+Forest,Chittenden,Jericho1,26/05/2019,1,EB,1,Seed,76,Napeozapus,insignis,NAIN,F,sm,24,128,30,14,E008,
+Forest,Chittenden,Jericho1,26/05/2019,1,EB,5,Pb,,Napeozapus,insignis,NAIN,,,,,,,,
+Forest,Chittenden,Jericho1,26/05/2019,1,EB,22,Seed,71,Napeozapus,insignis,NAIN,F,sm,18,139,28,13,E009,
+Forest,Chittenden,Jericho1,27/05/2019,2,EB,3,Pb,69,Napeozapus,insignis,NAIN,M,s,17,130,27,13,,
+Forest,Chittenden,Jericho1,28/05/2019,3,EB,3,Seed,26,Napeozapus,insignis,NAIN,M,s,21,135,30,13,E010,
+Forest,Windsor,MBR1,8/6/2019,1,EB,22,Seed,13,Napeozapus,insignis,NAIN,F,lg,20,136,27,12,,
+Forest,Windsor,MBR1,9/6/2019,2,"EB, AM",25,Seed,60,Napeozapus,insignis,NAIN,M,s,22,146,29,14,,
 Forest,Chittenden,Audubon2,29/05/2019,1,EB,1,Seed,67,Peromyscus,leucopus,PELE,M,ns,16,68,18,17,E012,T012
 Forest,Chittenden,Audubon2,29/05/2019,1,EB,2,Seed,28,Peromyscus,leucopus,PELE,M,ns,14,72,19,18,,T013
 Forest,Chittenden,Audubon2,29/05/2019,1,EB,23,Pb,77,Peromyscus,leucopus,PELE,F,preg,22,87,18,15,,T104
@@ -37,43 +52,23 @@ Forest,Chittenden,Audubon2,31/05/2019,3,EB,16,Pb,99,Peromyscus,leucopus,PELE,F,s
 Forest,Chittenden,Audubon2,31/05/2019,3,EB,14,Pb,33,Peromyscus,leucopus,PELE,F,sm,10,52,16,14,E019,T019
 Forest,Chittenden,Audubon2,31/05/2019,3,EB,12,Seed,67,Peromyscus,leucopus,PELE,M,ns,16,68,18,17,,
 Forest,Chittenden,Audubon2,31/05/2019,3,EB,1,Seed,28,Peromyscus,leucopus,PELE,M,ns,14,72,19,18,,
-Field,Orleans,Barr1,14/06/2019,2,EB,29,Seed,59,Zapus,hudsonius,ZAHU,M,ns,15,129,28,13,E020,
-Field,Orleans,Barr1,14/06/2019,2,EB,5,Seed,11,Zapus,hudsonius,ZAHU,F,lg,20,98,28,12,,
-Field,Orleans,Barr1,15/06/2019,3,EB,25,Seed,59,Zapus,hudsonius,ZAHU,M,ns,17,129,28,13,E021,
-Field,Orleans,Barr1,15/06/2019,3,EB,18,Seed,97,Zapus,hudsonius,ZAHU,F,lg,23,136,29,14,,
-Field,Orleans,Barr1,15/06/2019,3,EB,2,Seed,11,Zapus,hudsonius,ZAHU,F,lg,20,98,28,12,,
-Forest,Orleans,Barr2,15/06/2019,2,EB,15,Seed,95,Myodes,gapperi,MYGA,M,s,23,34,15,9,,
-Forest,Orleans,Barr2,15/06/2019,2,EB,7,Seed,93,Napeozapus,insignis,NAIN,M,ns,23,135,30,15,,
-Forest,Orleans,Barr2,15/06/2019,2,EB,2,Seed,79,Napeozapus,insignis,NAIN,M,s,25,148,30,12,,
-Forest,Orleans,Barr2,16/06/2019,3,EB,21,Seed,92,Napeozapus,insignis,NAIN,F,sm,19,143,28,13,E022,
-Forest,Orleans,Barr2,15/06/2019,2,EB,17,Seed,96,Peromyscus,maniculatus,PEMA,F,sm,16,74,18,16,,T021
-Farm,GrandIsle,Borderview1,14/07/2019,3,"EB, BL",24,Seed,CH,Blarina,brevicauda,BLBR,F,sm,19,23,15,0,,
-Farm,GrandIsle,Borderview1,13/07/2019,2,"EB, BL",25,Seed,LH,Blarina,brevicauda,BLBR,F,sm,19,22,14,0,,
-Farm,GrandIsle,Borderview1,13/07/2019,2,"EB, BL",27,Seed,RH,Blarina,brevicauda,BLBR,F,sm,21,28,14,0,,
 Farm,GrandIsle,Borderview1,13/07/2019,2,"EB, BL",21,Seed,66,Peromyscus,leucopus,PELE,M,s,20,80,19,17,,T032
 Farm,GrandIsle,Borderview1,12/7/2019,1,"EB, BL",16,Seed,45,Peromyscus,leucopus,PELE,M,s,25,90,19,18,,T030
 Farm,GrandIsle,Borderview1,12/7/2019,1,"EB, BL",21,Seed,98,Peromyscus,leucopus,PELE,F,sm,22,83,19,18,,T031
-Farm,GrandIsle,Borderview1,14/07/2019,3,"EB, BL",18,Seed,32,Tamias,striatus,TAST,F,sm,109,115,32,12,,
-Farm,GrandIsle,Borderview1,12/7/2019,1,"EB, BL",30,Seed,34,Tamias,striatus,TAST,F,sm,91,95,36,12,E028,
 Forest,Rutland,Buck2,24/07/2019,1,"EB, TM",12,Seed,38,Peromyscus,leucopus,PELE,F,lg,28,93,18,15,E029,T036
 Forest,Rutland,Buck2,24/07/2019,1,"EB, TM",15,Seed,81,Peromyscus,leucopus,PELE,F,lg,28,85,20,17,,T033
 Forest,Rutland,Buck2,25/07/2019,2,"EB, TM ",1,Seed,19,Peromyscus,leucopus,PELE,M,ns,21,78,18,15,E030,T034
 Forest,Rutland,Buck2,26/07/2019,3,"EB, TM ",21,Seed,81,Peromyscus,leucopus,PELE,F,lg,26,85,20,17,,
 Forest,Rutland,Buck2,26/07/2019,3,"EB, TM ",3,Seed,38,Peromyscus,leucopus,PELE,F,lg,29,93,18,15,E031,
 Forest,Rutland,Buck2,26/07/2019,3,"EB, TM ",1,Seed,63,Peromyscus,leucopus,PELE,M,s,23,83,21,15,E032,T035
-Forest,GrandIsle,Butternut2,14/07/2019,1,"EB, BL",16,Seed,,Tamiasciurus,hudsonius,TAHU,,,178,,,,,
 Forest,Windham,Dummer1,25/06/2019,2,EB,16,Seed,87,Peromyscus,leucopus,PELE,M,ns,14,78,19,16,E025,T026
 Forest,Windham,Dummer1,25/06/2019,2,EB,7,Seed,82,Peromyscus,leucopus,PELE,F,lg,31,,,,,
 Forest,Windham,Dummer1,24/06/2019,1,EB,17,Seed,82,Peromyscus,leucopus,PELE,F,lg,23,84,18,17,E026,T024
-Forest,Windham,Dummer1,26/06/2019,3,EB,12,Seed,88,Peromyscus,maniculatus,PEMA,F,lg,29,,,,,
-Forest,Windham,Dummer1,24/06/2019,1,EB,15,Seed,88,Peromyscus,maniculatus,PEMA,F,lg,29,93,18,18,,T023
 Forest,Windham,Dummer2,25/06/2019,3,EB,14,Seed,86,Peromyscus,leucopus,PELE,M,s,23,74,18,17,,T027
 Forest,Windham,Dummer2,25/06/2019,3,EB,13,Seed,85,Peromyscus,leucopus,PELE,,,22,,,,,
 Forest,Windham,Dummer2,24/06/2019,2,EB,2,Seed,41,Peromyscus,leucopus,PELE,M,ns,12,59,15,12,,T025
 Farm,Addison,Elmer1,21/06/2019,3,"EB, BL",17,Seed,42,Peromyscus,leucopus,PELE,M,ns,15,76,20,18,,
 Farm,Addison,Elmer1,20/06/2019,2,"EB, BL",17,Seed,42,Peromyscus,leucopus,PELE,M,ns,16,76,20,18,E024,T022
-Farm,Addison,Elmer2,19/06/2019,2,"EB, BL",25,Seed,89,Microtus,pennsylvanicus,MIPE,M,ns,35,34,19,13,,
-Farm,Addison,Elmer2,18/06/2019,1,"EB, BL",28,Seed,91,Microtus,pennsylvanicus,MIPE,F,sm,27,38,19,12,E023,
 Farm,Chittenden,Hort2,17/05/2019,1,EB,19,Seed,50,Peromyscus,leucopus,PELE,M,ns,14,71,19,18,,T001
 Farm,Chittenden,Hort2,18/05/2019,2,EB,13,Pb,49,Peromyscus,leucopus,PELE,M,s,23,79,18,17,,T002
 Farm,Chittenden,Hort2,18/05/2019,2,EB,14,Seed,50,Peromyscus,leucopus,PELE,M,ns,15,71,19,18,,
@@ -82,33 +77,42 @@ Farm,Chittenden,Hort2,18/05/2019,2,EB,26,Seed,47,Peromyscus,leucopus,PELE,F,lg,2
 Farm,Chittenden,Hort2,19/05/2019,3,EB,25,Pb,47,Peromyscus,leucopus,PELE,F,lg,24,75,19,16,,
 Farm,Chittenden,Hort2,19/05/2019,3,EB,19,Seed,48,Peromyscus,leucopus,PELE,M,ns,11,58,17,13,E003,
 Farm,Chittenden,Hort2,19/05/2019,3,EB,9,Pb,50,Peromyscus,leucopus,PELE,M,ns,15,71,19,18,E004,
-Farm,Chittenden,Hort2,18/05/2019,2,EB,16,Seed,75,Peromyscus,maniculatus,PEMA,M,ns,23,79,18,19,,T003
-Farm,Chittenden,Hort2,19/05/2019,3,EB,30,Seed,75,Peromyscus,maniculatus,PEMA,M,ns,24,79,18,19,E002,
-Farm,Chittenden,Hort2,19/05/2019,3,EB,21,Seed,74,Tamias,striatus,TAST,F,sm,101,100,,,,
 Farm,Chittenden,Hort3,20/05/2019,3,EB,25,Pb,72,Peromyscus,leucopus,PELE,F,sm,13,63,18,16,,T006
 Farm,Chittenden,Hort3,20/05/2019,3,EB,24,Pb,51,Peromyscus,leucopus,PELE,M,ns,16,61,18,15,,T007
-Farm,Chittenden,Inter1,20/05/2019,1,EB,18,Seed,52,Zapus,hudsonius,ZAHU,F,sm,19,115,27,12,E005,
-Farm,Chittenden,Inter1,22/05/2019,3,"EB,RL",10,Pb,54,Zapus,hudsonius,ZAHU,F,sm,19,123,28,13,,
-Farm,Chittenden,Inter2,21/05/2019,1,EB,3,Pb,53,Zapus,hudsonius,ZAHU,F,sm,15,123,27,13,E006,
-Forest,Chittenden,Jericho1,27/05/2019,2,EB,15,Pb,68,Glaucomys,volans,GLVO,F,lg,64,118,,,,
-Forest,Chittenden,Jericho1,26/05/2019,1,EB,1,Seed,76,Napeozapus,insignis,NAIN,F,sm,24,128,30,14,E008,
-Forest,Chittenden,Jericho1,26/05/2019,1,EB,5,Pb,,Napeozapus,insignis,NAIN,,,,,,,,
-Forest,Chittenden,Jericho1,26/05/2019,1,EB,22,Seed,71,Napeozapus,insignis,NAIN,F,sm,18,139,28,13,E009,
-Forest,Chittenden,Jericho1,27/05/2019,2,EB,3,Pb,69,Napeozapus,insignis,NAIN,M,s,17,130,27,13,,
-Forest,Chittenden,Jericho1,28/05/2019,3,EB,3,Seed,26,Napeozapus,insignis,NAIN,M,s,21,135,30,13,E010,
 Forest,Chittenden,Jericho1,26/05/2019,1,EB,17,Seed,57,Peromyscus,leucopus,PELE,F,sm,12,54,17,14,,T010
 Forest,Chittenden,Jericho1,27/05/2019,2,EB,18,Pb,57,Peromyscus,leucopus,PELE,F,sm,11,54,17,14,,
-Forest,Chittenden,Jericho1,26/05/2019,1,EB,16,Seed,56,Peromyscus,maniculatus,PEMA,F,lg,29,83,18,17,,T009
 Forest,Chittenden,Jericho2,26/05/2019,2,EB,16,Pb,55,Peromyscus,leucopus,PELE,M,ns,18,68,17,18,E007,T008
 Forest,Chittenden,Jericho2,27/05/2019,3,EB,21,Pb,55,Peromyscus,leucopus,PELE,M,ns,15,68,17,18,,
 Forest,Chittenden,Jericho2,27/05/2019,3,EB,16,Pb,70,Peromyscus,leucopus,PELE,F,lg,25,78,18,17,,T011
-Forest,Windsor,MBR1,8/6/2019,1,EB,22,Seed,13,Napeozapus,insignis,NAIN,F,lg,20,136,27,12,,
-Forest,Windsor,MBR1,9/6/2019,2,"EB, AM",25,Seed,60,Napeozapus,insignis,NAIN,M,s,22,146,29,14,,
 Forest,Windsor,MBR1,8/6/2019,1,EB,24,Seed,37,Peromyscus,leucopus,PELE,F,lg,19,28,18,16,,T020
 Forest,Windsor,MBR1,9/6/2019,2,"EB, AM",22,Seed,37,Peromyscus,leucopus,PELE,F,lg,22,28,18,16,,
 Forest,Windsor,MBR1,10/6/2019,3,"EB, AM",23,Seed,37,Peromyscus,leucopus,PELE,F,lg,17,28,18,16,,
-Farm,Franklin,RiverBerry1,30/07/2019,2,"EB, RO",23,Seed,40,Microtus,pennsylvanicus,MIPE,M,s,37,43,20,5,,
-Farm,Franklin,RiverBerry1,30/07/2019,2,"EB, RO",24,Seed,14,Microtus,pennsylvanicus,MIPE,M,ns,24,46,19,6,,
+Field,Chittenden,StM1,8/7/2019,3,EB,13,Seed,83,Peromyscus,leucopus,PELE,M,s,15,69,18,18,,T029
+Field,Chittenden,StM2,7/7/2019,1,EB,15,Seed,84,Peromyscus,leucopus,PELE,M,s,17,83,21,18,E027,T028
+Forest,Orleans,Barr2,15/06/2019,2,EB,17,Seed,96,Peromyscus,maniculatus,PEMA,F,sm,16,74,18,16,,T021
+Forest,Windham,Dummer1,26/06/2019,3,EB,12,Seed,88,Peromyscus,maniculatus,PEMA,F,lg,29,,,,,
+Forest,Windham,Dummer1,24/06/2019,1,EB,15,Seed,88,Peromyscus,maniculatus,PEMA,F,lg,29,93,18,18,,T023
+Farm,Chittenden,Hort2,18/05/2019,2,EB,16,Seed,75,Peromyscus,maniculatus,PEMA,M,ns,23,79,18,19,,T003
+Farm,Chittenden,Hort2,19/05/2019,3,EB,30,Seed,75,Peromyscus,maniculatus,PEMA,M,ns,24,79,18,19,E002,
+Forest,Chittenden,Jericho1,26/05/2019,1,EB,16,Seed,56,Peromyscus,maniculatus,PEMA,F,lg,29,83,18,17,,T009
+Forest,GrandIsle,Butternut2,14/07/2019,1,"EB, BL",16,Seed,,Tamiasciurus,hudsonius,TAHU,,,178,,,,,
+Farm,GrandIsle,Borderview1,14/07/2019,3,"EB, BL",18,Seed,32,Tamias,striatus,TAST,F,sm,109,115,32,12,,
+Farm,GrandIsle,Borderview1,12/7/2019,1,"EB, BL",30,Seed,34,Tamias,striatus,TAST,F,sm,91,95,36,12,E028,
+Farm,Chittenden,Hort2,19/05/2019,3,EB,21,Seed,74,Tamias,striatus,TAST,F,sm,101,100,,,,
+Field,Chittenden,Audubon1,28/05/2019,1,EB,11,Seed,27,Zapus,hudsonius,ZAHU,F,sm,19,123,28,11,E011,
+Field,Chittenden,Audubon1,29/05/2019,2,EB,11,Seed,4,Zapus,hudsonius,ZAHU,F,sm,15,118,118,11,,
+Field,Chittenden,Audubon1,29/05/2019,2,EB,18,Seed,27,Zapus,hudsonius,ZAHU,F,sm,17,123,28,11,E015,
+Field,Chittenden,Audubon1,30/05/2019,3,EB,27,Seed,6,Zapus,hudsonius,ZAHU,M,s,12,125,28,13,E017,
+Field,Chittenden,Audubon1,30/05/2019,3,EB,24,Pb,4,Zapus,hudsonius,ZAHU,F,sm,16,118,118,11,,
+Field,Chittenden,Audubon1,30/05/2019,3,EB,16,Seed,27,Zapus,hudsonius,ZAHU,F,sm,17,123,28,11,,
+Field,Orleans,Barr1,14/06/2019,2,EB,29,Seed,59,Zapus,hudsonius,ZAHU,M,ns,15,129,28,13,E020,
+Field,Orleans,Barr1,14/06/2019,2,EB,5,Seed,11,Zapus,hudsonius,ZAHU,F,lg,20,98,28,12,,
+Field,Orleans,Barr1,15/06/2019,3,EB,25,Seed,59,Zapus,hudsonius,ZAHU,M,ns,17,129,28,13,E021,
+Field,Orleans,Barr1,15/06/2019,3,EB,18,Seed,97,Zapus,hudsonius,ZAHU,F,lg,23,136,29,14,,
+Field,Orleans,Barr1,15/06/2019,3,EB,2,Seed,11,Zapus,hudsonius,ZAHU,F,lg,20,98,28,12,,
+Farm,Chittenden,Inter1,20/05/2019,1,EB,18,Seed,52,Zapus,hudsonius,ZAHU,F,sm,19,115,27,12,E005,
+Farm,Chittenden,Inter1,22/05/2019,3,"EB,RL",10,Pb,54,Zapus,hudsonius,ZAHU,F,sm,19,123,28,13,,
+Farm,Chittenden,Inter2,21/05/2019,1,EB,3,Pb,53,Zapus,hudsonius,ZAHU,F,sm,15,123,27,13,E006,
 Farm,Franklin,RiverBerry1,29/07/2019,1,"EB, RO",26,Seed,36,Zapus,hudsonius,ZAHU,F,sm,24,129,27,12,E033,
 Farm,Franklin,RiverBerry1,30/07/2019,2,"EB, RO",11,Seed,65,Zapus,hudsonius,ZAHU,F,lg,25,119,29,13,,
 Farm,Franklin,RiverBerry1,30/07/2019,2,"EB, RO",18,Seed,12,Zapus,hudsonius,ZAHU,F,lg,24,124,30,13,E034,
@@ -121,7 +125,3 @@ Farm,Franklin,RiverBerry1,31/07/2019,3,"EB, RO",15,Seed,80,Zapus,hudsonius,ZAHU,
 Farm,Franklin,RiverBerry1,31/07/2019,3,"EB, RO",11,Seed,12,Zapus,hudsonius,ZAHU,F,lg,23,124,30,13,,
 Farm,Franklin,RiverBerry1,31/07/2019,3,"EB, RO",10,Seed,65,Zapus,hudsonius,ZAHU,F,lg,20,119,29,13,,
 Farm,Franklin,RiverBerry1,31/07/2019,3,"EB, RO",3,Seed,31,Zapus,hudsonius,ZAHU,M,ns,19,121,30,14,E037,
-Field,Chittenden,StM1,6/7/2019,1,EB,19,Seed,LH,Blarina,brevicauda,BLBR,F,lg,22,25,13,0,,
-Field,Chittenden,StM1,8/7/2019,3,EB,7,Seed,35,Microtus,pennsylvanicus,MIPE,M,ns,45,38,21,8,,
-Field,Chittenden,StM1,8/7/2019,3,EB,13,Seed,83,Peromyscus,leucopus,PELE,M,s,15,69,18,18,,T029
-Field,Chittenden,StM2,7/7/2019,1,EB,15,Seed,84,Peromyscus,maniculatus,PELE,M,s,17,83,21,18,E027,T028
