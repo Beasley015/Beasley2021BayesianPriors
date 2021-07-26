@@ -14,6 +14,7 @@ library(viridis)
 library(patchwork)
 library(fitdistrplus)
 library(gridExtra)
+library(grid)
 
 # Set seed
 set.seed(39)

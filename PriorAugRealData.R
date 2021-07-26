@@ -14,6 +14,7 @@ library(sf)
 library(ggsn)
 library(patchwork)
 library(gridExtra)
+library(grid)
 
 # Set seed
 set.seed(15)
@@ -25,11 +26,11 @@ site.nocaps <- read.csv("AugmentedSites.csv")
 
 # Select columns of interest
 mamm.filtered <- mamm.raw %>%
-  select(Site, Day, Abbrev) %>%
+  dplyr::select(Site, Day, Abbrev) %>%
   mutate(Occ = 1)
 
 nocaps.filtered <- site.nocaps %>%
-  select(Site, Day, Abbrev) %>%
+  dplyr::select(Site, Day, Abbrev) %>%
   mutate(Occ = 0)
 
 # Add a species to sites with no caps
@@ -39,7 +40,7 @@ mamm.allsite$Abbrev[is.na(mamm.allsite$Abbrev)] <- "PELE"
 # Summary statistics -------------------------
 # Number of individuals
 inds <- mamm.raw %>%
-  select(Site, Tag, Abbrev) %>%
+  dplyr::select(Site, Tag, Abbrev) %>%
   distinct()
 
 nrow(inds)
@@ -93,7 +94,7 @@ mamm.aug <- abind(mamm.array, undetected, along = 3)
 veg <- read.csv("VegRawData.csv")
 
 veg %>%
-  select(c(Site, Habitat, Canopy:X.DeadVeg)) %>%
+  dplyr::select(c(Site, Habitat, Canopy:X.DeadVeg)) %>%
   group_by(Site, Habitat) %>%
   summarise_all(mean) %>%
   {. ->> filtered.veg}
@@ -536,7 +537,7 @@ get.cov <- function(jag){
     pivot_longer(cols = everything(), names_to = "Spec", 
                  values_to = "a1")
   
-  full.names <- select(mamm.raw, Genus:Abbrev)
+  full.names <- dplyr::select(mamm.raw, Genus:Abbrev)
   full.names <- rbind(full.names, c("Sylvilagus", "floridanus", "SYFL"))
   
   a1.stat <- a1.long %>%
