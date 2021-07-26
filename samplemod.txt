@@ -17,33 +17,31 @@
 
      #Info for species-level prior distribution
             inf.mean <- -3 #mean of distribution
-            inf.var <- 0.5 #variance of distribution
-            
-          #Define prior weights: how much each distribution 
+            inf.var <- 0.5 #variance of distribution #Define prior weights: how much each distribution 
           #contributes to the final aggregate
           #Hyperprior first, then informed
-            weights <- c(0.5, 0.5) #these are equal weights
-          
-          #Pool the distributions  
-            lb[1] <- weights[1]/(1/tau.a0) 
+            weights <- c(0.5, 0.5) #these are equal weights #Pool the distributions  
+            lb[1] <- weights[1]/(1/tau.a1) 
             #1/tau.a0 is the variation of hyperprior
             lb[2] <- weights[2]/inf.var
             
             pooled.var <- 1/sum(lb)
-            pooled.mean <- sum(lb*c(a0.mean,inf.mean))
-              *pooled.var
-          
-            for(i in 1:(spec+aug)){
-              #Create priors from hyperpriors/aggregated prior
-              w[i] ~ dbern(omega) 
-              #w=1 means species was available for sampling
+            pooled.mean <- sum(lb*c(a1.mean,inf.mean))
+              *pooled.var for(i in 1:spec){
+                  #Create priors from hyperpriors/aggregated prior
+                  w[i] ~ dbern(omega) 
+                  #w=1 means species was available for sampling
               
-              a0[i] ~ dnorm(a0.mean, tau.a0)
+                  a0[i] ~ dnorm(a0.mean, tau.a0)
+                  #a0 is the occupancy intercept
                              
-              a1[i] ~ dnorm(ifelse(i==10,pooled.mean,a1.mean), 
+                  a1[i] ~ dnorm(ifelse(i==10,pooled.mean,a1.mean), 
                             ifelse(i==10,(1/pooled.var),tau.a1))
+                  #Use ifelse() here because detected species
+                  #are still drawn from hyperprior
 
-              b0[i] ~ dnorm(b0.mean, tau.b0) 
+                  b0[i] ~ dnorm(b0.mean, tau.b0)
+                  #b0 is detection intercept 
 
       #Estimate occupancy of species i at point j
       for (j in 1:J){

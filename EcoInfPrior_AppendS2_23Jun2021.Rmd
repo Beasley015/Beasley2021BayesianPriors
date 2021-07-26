@@ -42,7 +42,7 @@ resp2cov <- sample(resp2cov)
 cov <- sort(rnorm(n = nsite))
 ```
 
-To simulate site-level occupancy, we will first draw species-level occupancy probabilities from a beta distribution. We will use a logit link function to account for covariate effects on site-level occupancy probability of each species. Finally, the true occupancy state for each species at each site will be the result of a Bernoulli trial with the site-level probability as the probability of success.
+To simulate site-level occupancy, we will first draw species-level occupancy probabilities from a beta distribution $\psi_i \sim Beta(\alpha = 2, \beta = 3)$. This distribution generates a wide range of occupancy probabilities (95% interval `r qbeta(p = c(0.025, 0.975), shape1 = 2, shape2 = 3)[1]` - `r qbeta(p = c(0.025, 0.975), shape1 = 2, shape2 = 3)[2]`), a situation in which data augmentation is known to work well. We will use a logit link function to account for covariate effects on site-level occupancy probability of each species. Finally, the true occupancy state for each species at each site will be the result of a Bernoulli trial with the site-level probability as the probability of success.
 
 ```{r}
 # Get probs from a beta distribution
@@ -87,7 +87,7 @@ tru <- tru.mats()
 print(tru[,1:10])
 ```
 
-Species-level detection probabilities, like species-level occupancy probabilities, will be drawn from a beta distribution. Environmental or survey covariates that may influence detectability can be added using the logit link function; however, for this example we will assume detectability does not vary across sites and surveys.
+Similarly to species-level occupancy probabilities, species-level detection probabilities will be drawn from a beta distribution $p_i \sim Beta(\alpha = 2, \beta = 8)$. This will generate low-to-mid detection probabilites (95% interval `r qbeta(p = c(0.025, 0.975), shape1 = 2, shape2 = 8)[1]`-`r qbeta(p = c(0.025, 0.975), shape1 = 2, shape2 = 8)[2]`), another situation in which data augmentation performs well. Environmental or survey covariates that may influence detectability can be added using the logit link function; however, for this example we will assume detectability does not vary across sites and surveys.
 
 Simulated survey data will be the result of a Bernoulli trial with the species-level detection probability as the probability of encountering that species at a given site during a given survey.
 
@@ -211,33 +211,63 @@ priors <- paste(priors,
             weights <- c(0.5, 0.5) #these are equal weights")
 ```
 
-Next, pool the distributions. For normal distributions, the pooled mean is defined as $\mu = \sum(\mathbf{w}\mathbf{\mu})*v$
+Next, pool the distributions. For normal distributions, the pooled mean is defined as:  
+  
+\begin{math}  
+\begin{aligned}
+\mu_{pooled} = \sum(\mathbf{w}\mathbf{\mu})*v_{pooled}
+\end{aligned}
+\end{math}
+  
+where $\mathbf{\mu}$ is a vector of raw means and $v_{pooled}$ the pooled variance. The pooled variance $v_{pooled}$ is defined as:  
+
+\begin{math}
+\begin{aligned}
+v_{pooled} = 1/\sum{\mathbf{w}}
+\end{aligned}
+\end{math}
+  
+The term $\mathbf{w}$ is defined as $\mathbf{w} = \mathbf{\alpha}/v$, where $\mathbf{\alpha}$ is the vector of weights and $\mathbf{v}$ is a vector of raw variances.
+
+Because $\mathbf{w}$ typically represents the regional occupancy of a species in MSOM notation, we will use the term 'lb' to calculate the pooled mean and variance. The terms 'a1.mean' and '1/tau.a1' are the mean and variance, respectively, of the community-level hyperprior, which we will define later.
 
 ```{r}          
 priors <- paste(priors, 
             "#Pool the distributions  
-            lb[1] <- weights[1]/(1/tau.a0) 
+            lb[1] <- weights[1]/(1/tau.a1) 
             #1/tau.a0 is the variation of hyperprior
             lb[2] <- weights[2]/inf.var
             
             pooled.var <- 1/sum(lb)
-            pooled.mean <- sum(lb*c(a0.mean,inf.mean))
-              *pooled.var
-          
-            for(i in 1:(spec+aug)){
-              #Create priors from hyperpriors/aggregated prior
-              w[i] ~ dbern(omega) 
-              #w=1 means species was available for sampling
-              
-              a0[i] ~ dnorm(a0.mean, tau.a0)
-                             
-              a1[i] ~ dnorm(ifelse(i==10,pooled.mean,a1.mean), 
-                            ifelse(i==10,(1/pooled.var),tau.a1))
+            pooled.mean <- sum(lb*c(a1.mean,inf.mean))
+              *pooled.var")
+```
 
-              b0[i] ~ dnorm(b0.mean, tau.b0)")
+Finally, we will use the pooled mean and variance of the aggregated prior above when we define species-level priors:
+
+```{r}          
+priors <- paste(priors,
+                "for(i in 1:spec){
+                  #Create priors from hyperpriors/aggregated prior
+                  w[i] ~ dbern(omega) 
+                  #w=1 means species was available for sampling
+              
+                  a0[i] ~ dnorm(a0.mean, tau.a0)
+                  #a0 is the occupancy intercept
+                             
+                  a1[i] ~ dnorm(ifelse(i==10,pooled.mean,a1.mean), 
+                            ifelse(i==10,(1/pooled.var),tau.a1))
+                  #Use ifelse() here because detected species
+                  #are still drawn from hyperprior
+
+                  b0[i] ~ dnorm(b0.mean, tau.b0)
+                  #b0 is detection intercept")
 ```
 
 ### Write the JAGS script
+
+Next, we write the full model script in the JAGS language:
+
 ```{r}
 # Function to create text file
 write.model <- function(priors){
