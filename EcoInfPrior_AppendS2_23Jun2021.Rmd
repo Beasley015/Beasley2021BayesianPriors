@@ -211,7 +211,7 @@ priors <- paste(priors,
             weights <- c(0.5, 0.5) #these are equal weights")
 ```
 
-Next, pool the distributions. For normal distributions, the pooled mean is defined as:  
+Next, pool the distributions. For normal distributions, the pooled mean $\mu_pooled$ is:  
   
 \begin{math}  
 \begin{aligned}
@@ -219,7 +219,7 @@ Next, pool the distributions. For normal distributions, the pooled mean is defin
 \end{aligned}
 \end{math}
   
-where $\mathbf{\mu}$ is a vector of raw means and $v_{pooled}$ the pooled variance. The pooled variance $v_{pooled}$ is defined as:  
+where $\mathbf{\mu}$ is a vector of raw means and $v_{pooled}$ the pooled variance. The pooled variance $v_{pooled}$ is:  
 
 \begin{math}
 \begin{aligned}
@@ -304,8 +304,8 @@ write.model <- function(priors){
     }
     
     #Estimate total richness by adding observed and unobserved species
-    n0<-sum(w[(spec+1):(spec+aug)])
-    N<-spec+n0
+    n0<-sum(w[spec])
+    N<-(spec-1)+n0
     
     }
     ")
@@ -317,10 +317,12 @@ write.model(priors = priors)
 
 ### Run model
 
+Before running the model, we need to send some information to JAGS, including our data, the parameters we want JAGS to return, and the initial values for the Markov chains.
+
 ```{r}
 # List of data to send to model
 datalist <- list(J = nsite, K = Ks, obs = obs.aug, 
-                 spec = 9, aug = 1, cov = cov)
+                 spec = nspec, cov = cov)
 
 # Parameters to save after model is analyzed
 parms <- c('N', 'a0', 'b0', 'a1', 'Z', 'a1.mean','tau.a1', 'pooled.mean',
@@ -336,23 +338,32 @@ init.values<-function(){
     b0 = rnorm(n = nspec),
     Z = maxobs)
 }
+```
 
+Finally, run the model in JAGS. Additional code for saving and loading the model results can be found in Appendix S3.
+
+```{r, echo = F}
 # Send model to JAGS
-# model <- jags(model.file = 'samplemod.txt', data = datalist,
-#               n.chains = 3, parameters.to.save = parms,
-#               inits = init.values, n.burnin = 1000,
-#               n.iter = 5000, n.thin = 3)
-
+model <- jags(model.file = 'samplemod.txt', data = datalist,
+              n.chains = 3, parameters.to.save = parms,
+              inits = init.values, n.burnin = 1000,
+              n.iter = 5000, n.thin = 3)
+```
+```{r, include = F}
 # Save/load model
 # saveRDS(model, file = "sample_mod.rds")
-model <- readRDS(file = "sample_mod.rds")
+# model <- readRDS(file = "sample_mod.rds")
 ```
 
 ### Figures
 
+???
+
 #### Check to see if aggregation worked
 
-```{r}
+We can check if prior aggregation worked by comparing the posterior distribution (i.e. the model result) to the aggregated prior, and the aggregated prior to its parent distributions (Figure 1). If prior aggregation was successful, the aggregated prior (solid black line) should be somewhere in between the informed species-level prior (dotted black line) and the community-level hyperprior (dashed black line). The posterior distribution (solid red line) should resemble the aggregated prior more than the two parent distributions.
+
+```{r Figure1, echo=F, fig.cap="", fig.width=6, fig.height=4}
 # Get values from aggregated prior
 pooled.mean <- median(model$BUGSoutput$sims.list$pooled.mean) 
 pooled.sd <- median(sqrt(model$BUGSoutput$sims.list$pooled.var))
@@ -396,9 +407,13 @@ ggplot()+
         axis.title.x = element_blank())
 ```
 
+Based on this figure, prior aggregation was successful.
+
 #### Regional richness estimates
 
-```{r}
+
+
+```{r Figure2, echo=F, fig.width=4, fig.height=4}
 # Extract regional species richness N from model
 Ns <- as.vector(model$BUGSoutput$sims.list$N)
 
@@ -421,15 +436,15 @@ ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)),
   geom_col(width = 0.95, color = 'lightgray')+
   geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"),
              size = 1.5)+
+  scale_x_discrete(limits = c(9,10))+
   scale_linetype_manual(values = c("Estimated"="dotted"),
                         name = "", 
                         labels = c("Median Estimate"))+
-  labs(x = "Estimated Species", y = "Frequency")+
+  labs(x = "Estimated Richness (N)", y = "Frequency")+
   scale_y_continuous(expand = c(0,0))+
-  theme_classic(base_size = 18)+
+  theme_classic(base_size = 14)+
   theme(axis.text.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         legend.key.height = unit(40, units = 'pt'),
         aspect.ratio = 1/1)
   
