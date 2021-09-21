@@ -1,0 +1,38 @@
+Files herein contain posterior distributions for Bayesian MSOMs associated with 
+Beasley (2021).
+
+---------------------------------------------
+
+The following contain posteriors of models analyzing data from a simulated community:
+
+"mod_noaug.rds": posteriors of model in which undetected species were not accounted for
+
+"mod_uninf.rds": model in which undetected species were accounted for by augmenting
+the dataset with all-zero encounter histories, and uninformed priors were used for 
+these species.
+
+prefix "inf_": models in which undetected species were accounted for (see above), but
+informed priors were used to model undetected species. Strength of the informed prior 
+was weak, moderate, or strong.
+
+prefix "misinf_": models in which undetected species were accounted for (see above), but
+misinformed priors were used to model undetected species. These models were used to test
+what would happen if the information supplied to the model was wrong or misleading.
+Strength of the informed prior was weak, moderate, or strong.
+
+-----------------------------------------------
+
+The following contain posteriors of models analyzing empirical data from small mammal
+communities throughout Vermont, USA, collected in summer 2019. 
+
+"real_uninf.rds": model using uninformed priors for all species in the model, detected
+and undetected
+
+"real_weakinf": model using weakly informative priors for undetected species
+
+"real_modinf": model using moderately informative priors for undetected species
+
+-------------------------------------------
+
+"sample_mod.rds" is the posterior distribution for the model in Appendix S3, using
+a simulated community of 10 species.

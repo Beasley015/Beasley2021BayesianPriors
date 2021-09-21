@@ -1,0 +1,100 @@
+Data herein was collected by the authors in Vermont, USA, between April 2019 and 
+September 2019.
+
+-------------------------------------
+
+The file MammRaw2019.csv contains data from small mammal captures. Key to column 
+abbreviations:
+
+Habitat: Coarse descriptor of habitat where trapping transect was located. Farm = 
+actively farmed land, Field = old field, Forest = second-growth forest.
+
+County: County where transect was located, no spaces
+
+Site: Location of trapping transect. Borderview = Borderview Farm (Alburgh, VT), StM =
+St. Michael's College (Colchester, VT), Jericho = University of Vermont Jericho Research
+Forest (Jericho, VT), Audubon = Green Mountain Audubon Center (Huntington, VT), 
+Elmer = Elmer Farm (near Middlebury, VT), RiverBerry = River Berry Farm (Fairfax, VT), 
+Barr = Barr Hill Natural Area (Greensboro, VT), MBR = Marsh-Billings-Rockefeller National 
+Park, Buck = Helen Buckner Memorial Preserve (West Haven, VT), Dummer = Fort Dummer State 
+Park, Hort = University of Vermont Horticultural Research Center (South Burlington, VT),
+Butternut = Butternut Hill Natural Area (North Hero, VT), Intervale = Intervale Center
+(Burlington, VT)
+
+Date: date (day/month/year)
+
+Day: Survey number, values range from 1-3
+
+Techs: Initials of technicians collecting data. Author = EB
+
+Station: Trap station along the linear transect
+
+Bait: Bait type. PB = peanut butter + sunflower seeds, seed = sunflower seeds only
+
+Tag: For individals marked with ear tags, tag number. For shrews, portion of the body
+where fur was clipped for marking. LH = left hind, RH = right hind, CH = center hind
+
+Genus: Genus of captured mammal
+
+Species: species epithet of captured mammal
+
+Abbrev: Abbreviation of species name. First two letters of genus + first two letters
+of species epithet
+
+Sex: F = female, M = male
+
+Repro: reproductive status of captured individual. ns = non-scrotal male, s = scrotal 
+male, sm = female with small nipples, lg = female with large nipples
+
+Mass: mass in grams
+
+TL: tail length in millimeters
+
+RHFL: right hind foot length in millimeters
+
+EL: ear length in millimeters. Measurement was taken from the left ear unless ear was
+damaged
+
+Ecto: Sample number of ectoparasites, if any were collected
+
+DNA: Sample number for ear tissue sample, if any was collected
+
+------------------------------------
+
+File VegRawData.csv contains vegetation data. Data was collected within a 0.5x0.5m quadrat
+placed in the center of each trap station. Key to column abbreviations:
+
+Habitat-Station: See above.
+
+Canopy: Average canopy cover index taken facing four cardinal directions. Values range
+from 0-24. 
+
+Weins10-Weins60: Number of points where living vegetation touched a 1/4" pole at 
+10-cm intervals. Serves as an index of vertical complexity.
+
+%Tree: amount of tree cover in sampling quadrat
+
+%Shrub: amount of shrub cover in sampling quadrat
+
+%Grass: amount of grass cover in sampling quadrat
+
+%Forb: amount of herbacious vegetation in the sampling quadrat that does not fall under
+any of the above categories
+
+%Bare: amount of exposed ground in the sampling quadrat
+
+%DeadVeg: amount of dead vegetation (e.g. dead leaves, mats of grass) in the sampling
+quadrat
+
+Other: any other cover type in the sampling quadrat (usually moss)
+
+------------------------------
+
+The file AugmentedSites.csv contains data on sites where no small mammals were captured.
+Can be appended to MammRaw2019.csv to include 0s for these sites in the dataset. Column
+abbreviations can be found above.
+
+--------------------------------
+
+The file UpdatedTracks.kml contains a shapefile of the trapping transect locations 
+as a polyline object.
