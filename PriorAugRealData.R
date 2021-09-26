@@ -21,8 +21,8 @@ set.seed(15)
 
 # Mammal data --------------------------------
 # Read in data and sites with no captures
-mamm.raw <- read.csv("MammRaw2019.csv")
-site.nocaps <- read.csv("AugmentedSites.csv")
+mamm.raw <- read.csv("Data/MammRaw2019.csv")
+site.nocaps <- read.csv("Data/AugmentedSites.csv")
 
 # Select columns of interest
 mamm.filtered <- mamm.raw %>%
@@ -91,7 +91,7 @@ undetected <- array(0, dim = c(J, max(K), 1))
 mamm.aug <- abind(mamm.array, undetected, along = 3)
 
 # Vegetation data ------------------------
-veg <- read.csv("VegRawData.csv")
+veg <- read.csv("Data/VegRawData.csv")
 
 veg %>%
   dplyr::select(c(Site, Habitat, Canopy:X.DeadVeg)) %>%
@@ -137,7 +137,7 @@ gt <- ggplot_gtable(ggplot_build(pc))
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
 
-ggsave(gt, filename = "PC12.jpeg")
+ggsave(gt, filename = "PC12.jpeg", dpi = 600)
 
 # PC1 (separates forest & everything else) explains 82.4% 
 forests <- vegdat$PC1
@@ -375,15 +375,15 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
 # saveRDS(modinf.mod, "real_modinf.rds")
 
 # Read in models
-uninf.mod <- readRDS("real_uninf.rds")
-weakinf.mod <- readRDS("real_weakinf.rds")
-modinf.mod <- readRDS("real_modinf.rds")
+uninf.mod <- readRDS("ModelOutputs/real_uninf.rds")
+weakinf.mod <- readRDS("ModelOutputs/real_weakinf.rds")
+modinf.mod <- readRDS("ModelOutputs/real_modinf.rds")
 
 # Put models in list
 modlist <- list(uninf.mod, weakinf.mod, modinf.mod)
 
 # Site map --------------------------
-traplines <- readOGR(dsn = "UpdatedTracks.kml")
+traplines <- readOGR(dsn = "Data/UpdatedTracks.kml")
 
 # Convert to sf object
 trapsf <- st_as_sf(traplines)
@@ -521,7 +521,7 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
   theme(panel.grid = element_blank(), 
         legend.title = element_blank())
 
-ggsave(rich.plot, filename = "SiteRichness_Real.jpeg")
+ggsave(rich.plot, filename = "SiteRichness_Real.jpeg", dpi = 600)
 
 # Covariate responses -------------------
 get.cov <- function(jag){
@@ -583,4 +583,4 @@ gcov <- patchworkGrob(all.covplot)
 big.covplot <- grid.arrange(gcov, bottom = "Species", left = "Coefficient of Vegetation Cover")
 
 # ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 8,
-#        units = 'in')
+#        units = 'in', dpi = 600)

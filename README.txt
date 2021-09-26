@@ -15,3 +15,9 @@ ModelOutputs: Contains posterior distributions (i.e. results) of Bayesian Multi-
 Occupancy Models described in the manuscript and in Appendix S1.
 
 More detailed metadata is included in each folder.
+
+"PriorAugSim.R" contains the script for generating a simulated metacommunity and testing
+effects of prior aggregation on model results.
+
+"PriorAugRealData.R" contains code for applying prior aggregation to empirical data of
+small mammal communities in Vermont, USA, collected in summer 2019.

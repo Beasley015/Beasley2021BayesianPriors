@@ -616,16 +616,16 @@ VivaLaMSOM <- function(J, K, obs, spec, aug = 0, cov, textdoc,
 # saveRDS(misinf.strong, file = "misinf_strong.rds")
 
 # Load models -------------------------------
-noaug <- readRDS(file = "mod_noaug.rds")
+noaug <- readRDS(file = "ModelOutputs/mod_noaug.rds")
 
 # Augmented models
-uninf <- readRDS("mod_uninf.rds")
-inf.weak <- readRDS("inf_weak.rds")
-inf.mod <- readRDS("inf_mod.rds")
-inf.strong <- readRDS("inf_strong.rds")
-misinf.weak <- readRDS("misinf_weak.rds")
-misinf.mod <- readRDS("misinf_mod.rds")
-misinf.strong <- readRDS("misinf_strong.rds")
+uninf <- readRDS("ModelOutputs/mod_uninf.rds")
+inf.weak <- readRDS("ModelOutputs/inf_weak.rds")
+inf.mod <- readRDS("ModelOutputs/inf_mod.rds")
+inf.strong <- readRDS("ModelOutputs/inf_strong.rds")
+misinf.weak <- readRDS("ModelOutputs/misinf_weak.rds")
+misinf.mod <- readRDS("ModelOutputs/misinf_mod.rds")
+misinf.strong <- readRDS("ModelOutputs/misinf_strong.rds")
 
 # Put models in a list
 mod.outputs <- list(inf.weak, inf.mod, inf.strong, misinf.weak, 
