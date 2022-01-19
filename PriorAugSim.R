@@ -17,7 +17,7 @@ library(gridExtra)
 library(grid)
 
 # Set seed
-set.seed(39)
+set.seed(15)
 
 # Global variables
 nspec <- 20
@@ -27,137 +27,7 @@ nsurvey <- 4
 
 Ks <- rep(nsurvey, nsite)
 
-# Vector of covariate responses
-resp2cov <- c(rnorm(n = 7, sd = 0.25),
-              rnorm(n = 8, mean = 3, sd = 0.25),
-              rnorm(n = 7, mean = -3, sd = 0.25))
-
-resp2cov <- sample(resp2cov)
-
-# Covariate values for sites
-cov <- sort(rnorm(n = nsite))
-
-# Simulate occupancy data -------------------------------------
-# Get probs from a beta distribution
-sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 4)
-# Get quantiles
-qbeta(p = c(0.025, 0.975), shape1 = 2, shape2 = 4)
-
-# Write function to simulate true occupancy state
-tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
-  #Get site-level psi to account for covariates
-  alpha0 <- logit(sim.occ)
-  
-  logit.psi <- matrix(NA, nrow = spec, ncol = site)
-  
-  for(i in 1:spec){
-    logit.psi[i,] <- alpha0[i] + alpha1[i]*cov
-  }
-  
-  psi <- inv.logit(logit.psi)
-  
-  #create list of abundance vectors
-  nlist<-list()
-  for(a in 1:spec){
-    nlist[[a]] <- rbinom(n = site, size = 1, prob = psi[a,])
-  }
-  
-  #Turn abundance vectors into abundance matrix
-  ns<-do.call(rbind, nlist)
-  
-  return(list(ns, psi))
-}
-
-tru <- tru.mats()[[1]]
-psi <- rowMeans(tru.mats()[[2]])
-
-# Simulate detection process ---------------------------------
-# Generate mean detection probabilities from beta dist
-mean.p <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 8)
-mean.p <- sort(mean.p, decreasing = T)
-# Get quantiles
-qbeta(p = c(0.025, 0.975), shape1=2, shape2=8)
-
-# Generate detection histories
-get.obs <- function(mat, specs){
-  #Detection intercept and cov responses
-  beta0<-logit(mean.p) #put it on logit scale
-
-  #Logit link function
-  logit.p <- array(NA, dim = c(nsite, nsurvey, specs))
-  for(i in 1:specs){
-    for(j in 1:nsite){
-      for(k in 1:nsurvey){
-        logit.p[j,,i] <- beta0[i]
-      }
-    }
-  }
-
-  p <- plogis(logit.p)
-
-  #Simulate observation data
-  L<-list()
-
-  for(b in 1:specs){
-    y<-matrix(NA, ncol = nsite, nrow = nsurvey)
-    for(a in 1:nsurvey){
-      y[a,]<-rbinom(n = nsite, size = 1, prob = p[,,b]*mat[b,])
-    }
-    L[[b]]<-t(y)
-  }
-
-  #Smash it into array
-  obsdata<-array(as.numeric(unlist(L)), dim=c(nsite, nsurvey, specs))
-
-  #Get site-level p
-  ps <- apply(p, c(1,3), mean)
-  
-  #List of outputs
-  out.list <- list(obs.data = obsdata, ps = ps)
-
-  return(out.list)
-}
-
-obs.data <- get.obs(mat = tru, specs = nspec+nmiss)[[1]]
-p <- get.obs(mat = tru, specs = nspec+nmiss)[[2]]
-
-#Checkpoint: get observed data matrix
-maxobs <- apply(obs.data, c(1,3), max)
-colSums(maxobs)
-
-# Remove species with fewest detections: these will be "undetected" species
-obs.data <- obs.data[,,-which(colSums(maxobs)==0)]
-
-# Function to reorder true values
-reorder <- function(x){
-  if (length(dim(x)) == 0){
-    nondets <- which(colSums(maxobs) == 0)
-    copy <- x[nondets]
-    x <- x[-nondets]
-    new <- c(x, copy)
-    return(new)
-    }
-  else {
-    nondets <- which(colSums(maxobs) == 0)
-    copy <- x[nondets,]
-    x <- x[-nondets,]
-    new <- rbind(x, copy)
-    return(new)
-    }
-}
-
-sim.occ <- reorder(sim.occ)
-mean.p <- reorder(mean.p)
-
-resp2cov <- reorder(resp2cov)
-
-tru <- reorder(tru)
-
-# Augment the observed dataset ---------------------------------
-ems.array <- array(0, dim = c(nsite, nsurvey, nmiss))
-obs.aug <- abind(obs.data, ems.array, along = 3)
-
-# Add prior information --------------------------------
+# Priors
 uninf <- "for(i in 1:(spec+aug)){
           #Create priors from hyperpriors
             w[i] ~ dbern(omega)
@@ -293,7 +163,7 @@ stronginf <- "#Add info for species-level priors
                             tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
-  
+
 weakmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -335,7 +205,7 @@ weakmisinf <- "#Add info for species-level priors
                             tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
- 
+
 modmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -419,6 +289,127 @@ strongmisinf <- "#Add info for species-level priors
                             tau.a1))
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
+
+# Begin sims ---------------------------------
+# Vector of covariate responses (detected species)
+resp2cov <- c(rnorm(n = 6, sd = 0.25),
+              rnorm(n = 7, mean = 3, sd = 0.25),
+              rnorm(n = 7, mean = -3, sd = 0.25))
+
+resp2cov <- sample(resp2cov)
+
+# Add undetected species
+resp2cov[21:22] <- c(rnorm(n = 1, mean = -3, sd = 0.25),
+                     rnorm(n = 1, mean = 0, sd = 0.25))
+
+# Covariate values for sites
+cov <- sort(rnorm(n = nsite))
+
+# Simulate occupancy data -------------------------------------
+# Get probs from a beta distribution
+sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 4)
+# Get quantiles
+qbeta(p = c(0.025, 0.975), shape1 = 2, shape2 = 4)
+
+# Write function to simulate true occupancy state
+tru.mats <- function(spec=nspec+nmiss, site=nsite, alpha1=resp2cov){
+  #Get site-level psi to account for covariates
+  alpha0 <- logit(sim.occ)
+  
+  logit.psi <- matrix(NA, nrow = spec, ncol = site)
+  
+  for(i in 1:spec){
+    logit.psi[i,] <- alpha0[i] + alpha1[i]*cov
+  }
+  
+  psi <- inv.logit(logit.psi)
+  
+  #create list of abundance vectors
+  nlist<-list()
+  for(a in 1:spec){
+    nlist[[a]] <- rbinom(n = site, size = 1, prob = psi[a,])
+  }
+  
+  #Turn abundance vectors into abundance matrix
+  ns<-do.call(rbind, nlist)
+  
+  return(list(ns, psi))
+}
+
+tru <- tru.mats()[[1]]
+psi <- tru.mats()[[2]]
+
+# Fill any 0s so all species occupy at least 1 site
+if(any(rowSums(tru) == 0)){
+  tru[rowSums(tru)==0,
+      which(psi[rowSums(tru) == 0] == max(psi[rowSums(tru) == 0,]))] <- 1
+}
+
+# Simulate detection process ---------------------------------
+# Generate mean detection probabilities from beta dist
+mean.p <- rbeta(n = nspec, shape1 = 2, shape2 = 8)
+mean.p <- sort(mean.p, decreasing = T)
+# Get quantiles
+qbeta(p = c(0.025, 0.975), shape1=2, shape2=8)
+
+# add undetected species
+mean.p[21:22] <- 0
+
+# Generate detection histories
+get.obs <- function(mat, specs){
+  #Detection intercept and cov responses
+  beta0<-logit(mean.p) #put it on logit scale
+
+  #Logit link function
+  logit.p <- array(NA, dim = c(nsite, nsurvey, specs))
+  for(i in 1:specs){
+    for(j in 1:nsite){
+      for(k in 1:nsurvey){
+        logit.p[j,,i] <- beta0[i]
+      }
+    }
+  }
+
+  p <- plogis(logit.p)
+
+  #Simulate observation data
+  L<-list()
+
+  for(b in 1:specs){
+    y<-matrix(NA, ncol = nsite, nrow = nsurvey)
+    for(a in 1:nsurvey){
+      y[a,]<-rbinom(n = nsite, size = 1, prob = p[,,b]*mat[b,])
+    }
+    L[[b]]<-t(y)
+  }
+
+  #Smash it into array
+  obsdata<-array(as.numeric(unlist(L)), dim=c(nsite, nsurvey, specs))
+
+  #Get site-level p
+  ps <- apply(p, c(1,3), mean)
+  
+  #List of outputs
+  out.list <- list(obs.data = obsdata, ps = ps)
+
+  return(out.list)
+}
+
+obs.data <- get.obs(mat = tru, specs = nspec+nmiss)[[1]]
+p <- get.obs(mat = tru, specs = nspec+nmiss)[[2]]
+
+# Checkpoint: get observed data matrix
+maxobs <- apply(obs.data, c(1,3), max)
+colSums(maxobs)
+
+# Make sure first 20 species are detected
+if(any(colSums(maxobs[,1:20]))==0){
+  
+}
+
+# Augment the observed dataset ---------------------------------
+ems.array <- array(0, dim = c(nsite, nsurvey, nmiss))
+obs.aug <- abind(obs.data, ems.array, along = 3)
 
 # Write Models ----------------------------
 # Model without augmentation
