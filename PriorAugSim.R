@@ -337,16 +337,20 @@ occ.func <- function(resp2cov = sim.covs()[[1]], cov = sim.covs()[[2]]){
   ns<-do.call(rbind, nlist)
   
   # Fill any 0s so all species occupy at least 1 site
-  if(any(rowSums(ns) == 0)){
-    ns[rowSums(ns)==0,
-        which(psi[rowSums(ns) == 0] == max(psi[rowSums(ns) == 0,]))] <- 1
+  if(any(rowSums(ns)==0)){
+    missing <- which(rowSums(ns)==0)
+    
+    for(i in 1:length(missing)){
+      ns[missing[i],
+         psi[missing[i],
+             which(psi[missing[i],]==max(psi[missing[i],]))]]<- 1
+    }
   }
-  
-  return(list(ns, psi))
+  return(list(sim.occ, ns, psi))
 }
 
 # Function to simulate detection process ------------------------------
-det.func <- function(mat = occ.func()[[1]]){
+det.func <- function(mat = occ.func()[[2]], psi = occ.func()[[3]]){
   # Generate mean detection probabilities from beta dist
   mean.p <- rbeta(n = nspec, shape1 = 2, shape2 = 8)
   mean.p <- sort(mean.p, decreasing = T)
@@ -391,7 +395,7 @@ det.func <- function(mat = occ.func()[[1]]){
   maxobs <- apply(obsdata, c(1,3), max)
 
   # Make sure first 20 species are detected
-  while(any(colSums(maxobs[,1:20])==0)){
+  if(any(colSums(maxobs[,1:20])==0)){
     missing <- which(colSums(maxobs[,1:20])==0)
   
     for(i in 1:length(missing)){
@@ -418,7 +422,7 @@ VivaLaMSOM <- function(J = nsite, K = nsurvey, obs = det.func(), spec,
   
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov,
-                   sim.occ = sim.occ)
+                   sim.occ = occ.func()[[1]])
   if(textdoc == 'aug_model.txt'){
     datalist$aug <- aug
   }
@@ -599,7 +603,7 @@ forth.eorlingas <- function(iters){
   for(i in 1:iters){
     results <- fit.mods()
     
-    filename <- paste("./Outputs/out", iters, ".rds", sep = "")
+    filename <- paste("./Outputs/out", i, ".rds", sep = "")
     
     saveRDS(results, file = filename)
   }
