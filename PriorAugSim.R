@@ -606,10 +606,12 @@ forth.eorlingas <- function(iters){
     filename <- paste("./Outputs/out", i, ".rds", sep = "")
     
     saveRDS(results, file = filename)
+    
+    print(i)
   }
 }
 
-forth.eorlingas(iters = 2)
+forth.eorlingas(iters = 50)
 
 
 
