@@ -611,112 +611,48 @@ forth.eorlingas <- function(iters){
   }
 }
 
-forth.eorlingas(iters = 50)
+# forth.eorlingas(iters = 50)
 
-
-
-
-
-
-
-
-# Load models -------------------------------
-noaug <- readRDS(file = "ModelOutputs/mod_noaug.rds")
-
-# Augmented models
-uninf <- readRDS("ModelOutputs/mod_uninf.rds")
-inf.weak <- readRDS("ModelOutputs/inf_weak.rds")
-inf.mod <- readRDS("ModelOutputs/inf_mod.rds")
-inf.strong <- readRDS("ModelOutputs/inf_strong.rds")
-misinf.weak <- readRDS("ModelOutputs/misinf_weak.rds")
-misinf.mod <- readRDS("ModelOutputs/misinf_mod.rds")
-misinf.strong <- readRDS("ModelOutputs/misinf_strong.rds")
-
-# Put models in a list
-mod.outputs <- list(inf.weak, inf.mod, inf.strong, misinf.weak, 
-                    misinf.mod, misinf.strong)
-names(mod.outputs) <- c("inf.weak", "inf.mod", "inf.strong", 
-                        "misinf.weak", "misinf.mod", "misinf.strong")
-
-# Compare priors and posteriors ------------
-# Write function to pull priors/posteriors and plot
-prior.agg0 <- function(x, spec.ID, inf.means){
-  pooled.mean <- mean(x$BUGSoutput$sims.list$pooled.mean0[,spec.ID])
-  pooled.sd <- mean(sqrt(x$BUGSoutput$sims.list$pooled.var0[,spec.ID]))
-
-  inf.mean <- inf.means[spec.ID-20]
-  inf.var <- 0.5
+# Function to load results ---------------
+get.outs <- function(param){
+  filenames <- list.files("./Outputs")
   
-  comm.mean <- mean(x$BUGSoutput$sims.list$a0.mean)
-  comm.sd <- mean(sqrt(1/x$BUGSoutput$sims.list$tau.a0))
+  param.list <- list()
+  modtype <- c('mod.uninf', 'inf.weak', 'inf.mod', 'inf.strong',
+               'misinf.weak', 'misinf.mod', 'misinf.strong')
   
-  post.mean <- mean(x$BUGSoutput$sims.list$a0[,spec.ID])
-  post.sd <- sd(x$BUGSoutput$sims.list$a0[,spec.ID])
-
-  plot <- ggplot()+
-    stat_function(fun = dnorm, n = 1000, 
-                  args = list(mean = pooled.mean, sd = pooled.sd),
-                  size = 1)+
-    stat_function(fun = dnorm, n = 1000, 
-                  args = list(mean = inf.mean, sd = sqrt(inf.var)),
-                  size = 1, linetype = "dashed")+
-    stat_function(fun = dnorm, n = 1000, 
-                  args = list(mean = comm.mean, sd = comm.sd),
-                  size = 1, linetype = "dotted")+
-    stat_function(fun = dnorm, n = 1000, 
-                  args = list(mean = post.mean, sd = post.sd),
-                  size = 1, color = "red")+
-    xlim(c(-6, 5))+
-    labs(y = "Density")+
-    theme_bw(base_size = 16)+
-    theme(panel.grid = element_blank(), 
-          axis.title.x = element_blank())
+  for(i in 1:length(filenames)){
+    out <- readRDS(file = paste("./Outputs/", filenames[i],
+                                sep = ""))
+    
+    for(j in 1:length(modtype)){
+      param.out <- out[[j]]$BUGSoutput$sims.list[param]
+      
+      if(length(param.list) < length(modtype)){
+        param.list[[j]] <- param.out
+      } else{
+        param.list[[j]] <- append(param.list[[j]], param.out)
+      }
+    }
+    
+    print(paste("i = ", i, sep = ""))
+  }
   
-  return(plot)
+  names(param.list) <- modtype
+  
+  return(param.list)
 }
 
-# Create subplots for patchwork
-a0.21.inf <- lapply(mod.outputs[1:3], prior.agg0, 
-                    spec.ID = 21, inf.means = c(-4, 0))
-a0.21.misinf <- lapply(mod.outputs[4:6], prior.agg0, spec.ID = 21, 
-                       inf.means = c(3,3))
 
-# Create patchwork objects
-a021inf <- (a0.21.inf[[1]]+a0.21.inf[[2]]+a0.21.inf[[3]])
-a021misinf <- (a0.21.misinf[[1]]+a0.21.misinf[[2]]+
-                 a0.21.misinf[[3]])
 
-# Create layout and add tags
-a021patch <- a021inf/a021misinf
 
-a021patch[[1]] <- a021patch[[1]]+plot_layout(tag_level = 'new') 
-a021patch[[2]] <- a021patch[[2]]+plot_layout(tag_level = 'new')
 
-# Final plot
-a021plot <- a021patch+
-  plot_annotation(tag_levels = c('A', '1'))
 
-# Save that sonofabitch
-# ggsave(filename = "a021plot.jpeg", a021plot, width = 8,
-#        height = 5)
 
-# Do it again with the other species
-# a0.22.inf <- lapply(mod.outputs[1:3], prior.agg0,
-#                     spec.ID = 22, inf.means = c(-4, 0))
-# a0.22.misinf <- lapply(mod.outputs[4:6], prior.agg0, spec.ID = 22,
-#                        inf.means = c(3,3))
-# 
-# a022inf <- (a0.22.inf[[1]]+a0.22.inf[[2]]+a0.22.inf[[3]])
-# a022misinf <- (a0.22.misinf[[1]]+a0.22.misinf[[2]]+
-#                  a0.22.misinf[[3]])
-# 
-# a022patch <- a022inf/a022misinf
-# 
-# a022patch[[1]] <- a022patch[[1]]+plot_layout(tag_level = 'new')
-# a022patch[[2]] <- a022patch[[2]]+plot_layout(tag_level = 'new')
-# 
-# a022plot <- a022patch+
-#   plot_annotation(tag_levels = c('A', '1'))
+
+
+
+
 
 # Compare Ns -----------------
 # Create list that includes uninformed priors
