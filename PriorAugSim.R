@@ -22,6 +22,7 @@ set.seed(15)
 # Global variables
 nspec <- 20
 nmiss <- 2 # Species present but not detected during sampling
+naug <- 2 # Species never detected; used to set prior on N
 nsite <- 30
 nsurvey <- 4
 
@@ -42,7 +43,8 @@ weakinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, round(sim.occ[21]),round(sim.occ[22]), 0)
+            inf.mean0 <- c(0, round(logit(sim.occ[21])),
+                            round(logit(sim.occ[22])), 0)
             inf.mean1 <- c(0, -3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
@@ -84,7 +86,9 @@ modinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, round(sim.occ[21]),round(sim.occ[22]), 0)
+            inf.mean0 <- c(0, round(logit(sim.occ[21])),
+                            round(logit(sim.occ[22])), 0)
+                            
             inf.mean1 <- c(0, -3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
@@ -126,7 +130,8 @@ stronginf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, round(sim.occ[21]),round(sim.occ[22]), 0)
+            inf.mean0 <- c(0, round(logit(sim.occ[21])),
+                            round(logit(sim.occ[22])), 0)
             inf.mean1 <- c(0, -3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
@@ -168,7 +173,8 @@ weakmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, -round(sim.occ[21]), -round(sim.occ[22]), 0)
+            inf.mean0 <- c(0, -round(logit(sim.occ[21])),
+                            -round(logit(sim.occ[22])), 0)
             inf.mean1 <- c(0, 3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
@@ -210,7 +216,8 @@ modmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, -round(sim.occ[21]), -round(sim.occ[22]), 0)
+            inf.mean0 <- c(0, -round(logit(sim.occ[21])),
+                            -round(logit(sim.occ[22])), 0)
             inf.mean1 <- c(0, 3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
@@ -252,7 +259,8 @@ strongmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
 
-            inf.mean0 <- c(0, -round(sim.occ[21]), -round(sim.occ[22]), 0)
+            inf.mean0 <- c(0, -round(logit(sim.occ[21])),
+                            -round(logit(sim.occ[22])), 0)
             inf.mean1 <- c(0, 3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
@@ -290,14 +298,12 @@ strongmisinf <- "#Add info for species-level priors
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
-# Function for simulated covs and coefficients -----------------------
+# Function for simulated covs and coefficients -------------------
 sim.covs <- function(){
   # Vector of covariate responses (detected species)
   resp2cov <- c(rnorm(n = 6, sd = 0.25),
                 rnorm(n = 7, mean = 3, sd = 0.25),
                 rnorm(n = 7, mean = -3, sd = 0.25))
-
-  resp2cov <- sample(resp2cov)
 
   # Add undetected species
   resp2cov[21:22] <- c(rnorm(n = 1, mean = -3, sd = 0.25),
@@ -312,7 +318,8 @@ sim.covs <- function(){
 }
 
 # Function to simulate occupancy data ---------------------------
-occ.func <- function(resp2cov = sim.covs()[[1]], cov = sim.covs()[[2]]){
+occ.func <- function(resp2cov = sim.covs()[[1]], 
+                     cov = sim.covs()[[2]]){
   # Get probs from a beta distribution
   sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 4)
 
@@ -349,7 +356,7 @@ occ.func <- function(resp2cov = sim.covs()[[1]], cov = sim.covs()[[2]]){
   return(list(sim.occ, ns, psi))
 }
 
-# Function to simulate detection process ------------------------------
+# Function to simulate detection process -------------------------
 det.func <- function(mat = occ.func()[[2]], psi = occ.func()[[3]]){
   # Generate mean detection probabilities from beta dist
   mean.p <- rbeta(n = nspec, shape1 = 2, shape2 = 8)
@@ -407,14 +414,19 @@ det.func <- function(mat = occ.func()[[2]], psi = occ.func()[[3]]){
     maxobs <- apply(obsdata, c(1,3), max)
   }
   
- return(obsdata) 
+  # Add augmented species
+  augdata <- array(0, dim = c(nsite, nsurvey, naug))
+  
+  obsdata <- abind(obsdata, augdata, along = 3)
+  
+  return(obsdata) 
 }
 
 # Function for sending model to gibbs sampler --------------
-VivaLaMSOM <- function(J = nsite, K = nsurvey, obs = det.func(), spec, 
-                       aug = 0, cov = sim.covs()[[2]], textdoc, 
-                       priors = uninf, burn = 2500, iter = 8000, 
-                       thin = 10){
+VivaLaMSOM <- function(J = nsite, K = nsurvey, obs = det.func(),
+                       spec, aug = 0, cov = sim.covs()[[2]],
+                       textdoc, priors = uninf, burn = 2500, 
+                       iter = 8000, thin = 10){
   
   # Write model for augmented datasets
   if(textdoc == 'aug_model.txt')
@@ -533,7 +545,7 @@ write.model <- function(priors){
         mu.psi[j,i] <- psi[j,i] * w[i]
         Z[j,i] ~ dbern(mu.psi[j,i])
     
-        #Estimate detection of i at point j during sampling period k
+        #Estimate detection of i at point j during day k
         for(k in 1:K[j]){
           logit(p[j,k,i]) <-  b0[i]
           mu.p[j,k,i] <- p[j,k,i]*Z[j,i] 
@@ -559,36 +571,38 @@ fit.mods <- function(){
   #                         textdoc = 'noaug.txt')
 
   mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                          textdoc = 'aug_model.txt', aug = nmiss, 
-                          burn = 2500, iter = 10000, thin = 10)
+                          textdoc = 'aug_model.txt', 
+                          aug = nmiss+naug, burn = 2500, 
+                          iter = 10000, thin = 10)
 
   inf.weak <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                         textdoc = 'aug_model.txt', aug = nmiss, 
-                         priors = weakinf, burn = 3000, iter = 10000, 
-                         thin = 5)
+                         textdoc = 'aug_model.txt', 
+                         aug = nmiss+naug, priors = weakinf, 
+                         burn = 3000, iter = 10000, thin = 5)
 
   inf.mod <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                        textdoc = 'aug_model.txt', aug = nmiss, 
-                        priors = modinf, burn = 8000, iter = 12000, 
-                        thin = 3)
+                        textdoc = 'aug_model.txt', 
+                        aug = nmiss+naug, priors = modinf, 
+                        burn = 8000, iter = 12000, thin = 3)
 
   inf.strong <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                           textdoc = 'aug_model.txt', aug = nmiss, 
-                           priors = stronginf, burn = 8000, iter = 12000,
-                           thin = 3)
+                           textdoc = 'aug_model.txt', 
+                           aug = nmiss+naug, priors = stronginf,
+                           burn = 8000, iter = 12000, thin = 3)
 
   misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                            textdoc = 'aug_model.txt', aug = nmiss, 
-                            priors = weakmisinf, burn = 5000, 
-                            iter = 10000, thin = 5)
+                            textdoc = 'aug_model.txt', 
+                            aug = nmiss+naug, priors = weakmisinf,
+                            burn = 5000, iter = 10000, thin = 5)
 
   misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                           textdoc = 'aug_model.txt', aug = nmiss, 
-                           priors = modmisinf, burn = 2500, iter = 10000,
-                           thin = 10)
+                           textdoc = 'aug_model.txt', 
+                           aug = nmiss+naug, priors = modmisinf,
+                           burn = 2500, iter = 10000, thin = 10)
 
   misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                              textdoc = 'aug_model.txt', aug = nmiss,
+                              textdoc = 'aug_model.txt', 
+                              aug = nmiss+naug, 
                               priors = strongmisinf, burn = 2000, 
                               iter = 10000, thin = 5)
   
@@ -643,40 +657,29 @@ get.outs <- function(param){
   return(param.list)
 }
 
+# Compare Ns -------------------------
+# Load all n's into R
+all.n <- get.outs(param = "N")
 
+# Combine all vectors in list elements
+ns.combined <- lapply(all.n, function(x) c(unlist(x)))
 
-
-
-
-
-
-
-
-
-
-# Compare Ns -----------------
-# Create list that includes uninformed priors
-biglist <- list(uninf, inf.weak, inf.mod, 
-                inf.strong, misinf.weak, misinf.mod, 
-                misinf.strong)
-
-# Write function to get Ns
-get.ns <- function(jag){
+# Plot it
+ns.plot <- function(jag){
   getmode <- function(x) {
     uniqx <- unique(x)
     uniqx[which.max(tabulate(match(x, uniqx)))]
   }
   
-  Ns <- as.vector(jag$BUGSoutput$sims.list$N)
-  Ns %>%
+  ns.frame <- jag %>%
     table() %>%
     data.frame() %>%
     {. ->> ns.frame}
   colnames(ns.frame) <- c("N_Species", "Freq")
   
-  Ns.mode <-getmode(Ns)
-  Ns.mean <- mean(Ns)
-  Ns.median <- median(Ns)
+  Ns.mode <-getmode(jag)
+  Ns.mean <- mean(jag)
+  Ns.median <- median(jag)
   
   Ns.plot <- ggplot(data = ns.frame, 
                     aes(x = as.integer(as.character(N_Species)),
@@ -702,7 +705,7 @@ get.ns <- function(jag){
   return(out.list)
 }
 
-N.outs <- lapply(biglist, get.ns)
+N.outs <- lapply(ns.combined, ns.plot)
 
 # Put histograms in single figure
 histos <- map(N.outs, 1) 
@@ -729,6 +732,21 @@ Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)",
   
 # ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 6,
 #        height = 5, units = 'in', dpi = 600)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Compare site-level richness and covariate ----------------------
 # Pull Zs from each item in list  
