@@ -307,7 +307,7 @@ sim.covs <- function(){
 
   # Add undetected species
   resp2cov[21:22] <- c(rnorm(n = 1, mean = -3, sd = 0.25),
-                       rnorm(n = 1, mean = 0, sd = 0.25))
+                       rnorm(n = 1, mean = 3, sd = 0.25))
 
   # Covariate values for sites
   cov <- sort(rnorm(n = nsite))
@@ -321,7 +321,9 @@ sim.covs <- function(){
 occ.func <- function(resp2cov = sim.covs()[[1]], 
                      cov = sim.covs()[[2]]){
   # Get probs from a beta distribution
-  sim.occ <- rbeta(n = nspec+nmiss, shape1 = 2, shape2 = 4)
+  sim.occ <- rbeta(n = nspec, shape1 = 2, shape2 = 4)
+  # Keep undetected species consistent in all sims
+  sim.occ[21:22] <- c(0.3, 0.7)
 
   #Get site-level psi to account for covariates
   alpha0 <- logit(sim.occ)
@@ -460,9 +462,10 @@ VivaLaMSOM <- function(J = nsite, K = nsurvey, obs = det.func(),
   }
   
   #JAGS command
-  model <- jags(model.file = textdoc, data = datalist, n.chains = 3,
-                parameters.to.save = parms, inits = init.values, 
-                n.burnin = burn, n.iter = iter, n.thin = thin)
+  model <- jags(model.file = textdoc, data = datalist, 
+                n.chains = 3, parameters.to.save = parms, 
+                inits = init.values, n.burnin = burn, 
+                n.iter = iter, n.thin = thin)
   
   return(model)
 }
