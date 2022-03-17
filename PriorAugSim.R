@@ -45,7 +45,7 @@ weakinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, -3, 0, 0)
+            inf.mean1 <- c(0, -3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -89,7 +89,7 @@ modinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
                             
-            inf.mean1 <- c(0, -3, 0, 0)
+            inf.mean1 <- c(0, -3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -132,7 +132,7 @@ stronginf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, -3, 0, 0)
+            inf.mean1 <- c(0, -3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -175,7 +175,7 @@ weakmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, 0, 0)
+            inf.mean1 <- c(0, 3, -3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -218,7 +218,7 @@ modmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, 0, 0)
+            inf.mean1 <- c(0, 3, -3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -261,7 +261,7 @@ strongmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, 0, 0)
+            inf.mean1 <- c(0, 3, -3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -318,8 +318,7 @@ sim.covs <- function(){
 }
 
 # Function to simulate occupancy data ---------------------------
-occ.func <- function(resp2cov = sim.covs()[[1]], 
-                     cov = sim.covs()[[2]]){
+occ.func <- function(resp2cov, cov){
   # Get probs from a beta distribution
   sim.occ <- rbeta(n = nspec, shape1 = 2, shape2 = 4)
   # Keep undetected species consistent in all sims
@@ -359,7 +358,7 @@ occ.func <- function(resp2cov = sim.covs()[[1]],
 }
 
 # Function to simulate detection process -------------------------
-det.func <- function(mat = occ.func()[[2]], psi = occ.func()[[3]]){
+det.func <- function(mat, psi){
   # Generate mean detection probabilities from beta dist
   mean.p <- rbeta(n = nspec, shape1 = 2, shape2 = 8)
   mean.p <- sort(mean.p, decreasing = T)
@@ -424,11 +423,24 @@ det.func <- function(mat = occ.func()[[2]], psi = occ.func()[[3]]){
   return(obsdata) 
 }
 
+# Function to create all community data ------------------
+comm.sim <- function(){
+  # Run all simulation functions
+  covs <- sim.covs()
+  occ.sim <- occ.func(resp2cov = covs[[1]], cov = covs[[2]])
+  det.sim <- det.func(mat = occ.sim[[2]], psi = occ.sim[[3]])
+  
+  # Save relevant parameters to list
+  out.list <- list(cov = covs[[2]], sim.occ = occ.sim[[1]], 
+                   obs = det.sim)
+  return(out.list)
+}
+
 # Function for sending model to gibbs sampler --------------
-VivaLaMSOM <- function(J = nsite, K = nsurvey, obs = det.func(),
-                       spec, aug = 0, cov = sim.covs()[[2]],
-                       textdoc, priors = uninf, burn = 2500, 
-                       iter = 8000, thin = 10){
+VivaLaMSOM <- function(J = nsite, K = nsurvey, obs, spec, aug = 0, 
+                       cov, sim.occ, textdoc, 
+                       priors = uninf, burn = 2500, iter = 8000, 
+                       thin = 10 ){
   
   # Write model for augmented datasets
   if(textdoc == 'aug_model.txt')
@@ -436,7 +448,7 @@ VivaLaMSOM <- function(J = nsite, K = nsurvey, obs = det.func(),
   
   # Compile data into list
   datalist <- list(J = J, K = K, obs = obs, spec = spec, cov = cov,
-                   sim.occ = occ.func()[[1]])
+                   sim.occ = sim.occ)
   if(textdoc == 'aug_model.txt'){
     datalist$aug <- aug
   }
@@ -568,43 +580,50 @@ write.model <- function(priors){
 }
 
 # Function to fit models ------------------------------------
-fit.mods <- function(){
+fit.mods <- function(cov, obs, sim.occ){
   # Aug model just in case
   # mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
   #                         textdoc = 'noaug.txt')
 
   mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                          textdoc = 'aug_model.txt', 
+                          textdoc = 'aug_model.txt', cov = cov,
+                          obs = obs, sim.occ = sim.occ,
                           aug = nmiss+naug, burn = 2500, 
                           iter = 10000, thin = 10)
 
   inf.weak <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                         textdoc = 'aug_model.txt', 
+                         textdoc = 'aug_model.txt', cov = cov,
+                         obs = obs, sim.occ = sim.occ,
                          aug = nmiss+naug, priors = weakinf, 
                          burn = 3000, iter = 10000, thin = 5)
 
   inf.mod <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                        textdoc = 'aug_model.txt', 
+                        textdoc = 'aug_model.txt', cov = cov,
+                        obs = obs, sim.occ = sim.occ,
                         aug = nmiss+naug, priors = modinf, 
                         burn = 8000, iter = 12000, thin = 3)
 
   inf.strong <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                           textdoc = 'aug_model.txt', 
+                           textdoc = 'aug_model.txt', cov = cov,
+                           obs = obs, sim.occ = sim.occ, 
                            aug = nmiss+naug, priors = stronginf,
                            burn = 8000, iter = 12000, thin = 3)
 
   misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                            textdoc = 'aug_model.txt', 
+                            textdoc = 'aug_model.txt', cov = cov,
+                            obs = obs, sim.occ = sim.occ,
                             aug = nmiss+naug, priors = weakmisinf,
                             burn = 5000, iter = 10000, thin = 5)
 
   misinf.mod <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                           textdoc = 'aug_model.txt', 
+                           textdoc = 'aug_model.txt', cov = cov,
+                           obs = obs, sim.occ = sim.occ,
                            aug = nmiss+naug, priors = modmisinf,
                            burn = 2500, iter = 10000, thin = 10)
 
   misinf.strong <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
-                              textdoc = 'aug_model.txt', 
+                              textdoc = 'aug_model.txt', cov = cov,
+                              obs = obs, sim.occ = sim.occ, 
                               aug = nmiss+naug, 
                               priors = strongmisinf, burn = 2000, 
                               iter = 10000, thin = 5)
@@ -618,7 +637,10 @@ fit.mods <- function(){
 # Run that sucker ----------------------
 forth.eorlingas <- function(iters){
   for(i in 1:iters){
-    results <- fit.mods()
+    sim.outs <- comm.sim()
+    
+    results <- fit.mods(cov = sim.outs[[1]], obs = sim.outs[[3]],
+                        sim.occ = sim.outs[[2]])
     
     filename <- paste("./Outputs/out", i, ".rds", sep = "")
     
@@ -727,7 +749,7 @@ Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+histos[[5]]+
   plot_layout(design = layout)+
   plot_annotation(tag_levels = "a")+
   plot_layout(guides = "collect")&
-  xlim(19.5, 22.5)
+  xlim(19.5, 25.5)
 
 gn <- patchworkGrob(Ns.base)
 Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
@@ -736,6 +758,86 @@ Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)",
 # ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 6,
 #        height = 5, units = 'in', dpi = 600)
 
+# Compare covariate responses ----------------------
+# Load in cov responses
+all.a1 <- get.outs(param = "a1")
+
+# Reformat lists
+list.to.frame <- function(x){
+  # Combine all iterations of each model
+  list.combined <- lapply(x, function(y) 
+    as.data.frame(do.call("rbind", y)))
+  
+  # Create species list
+  specs <- logical()
+  for(i in 1:(nspec+naug+nmiss)){
+    specs[i] <- paste("Spec", i, sep = "")
+  }
+  
+  # rename columns
+  list.cols <- lapply(list.combined, setNames, specs)
+  
+  # Add column to each data frame
+  modnames <- names(list.cols)
+  list.named <- mapply(cbind, list.cols, "model" = modnames, 
+                     SIMPLIFY = F)
+  
+  # Merge it all into data frame
+  big.ass.data.frame <- do.call(rbind, list.named)
+  
+  return(big.ass.data.frame)
+}
+
+chonk <- list.to.frame(all.a1)
+
+# pivot to long format
+a1s <- chonk %>%
+    pivot_longer(cols = -model, names_to = "Species",
+                 values_to = "a1")
+  
+# Calculate means and quantiles
+a1.stat <- a1s %>%
+  group_by(Species, model) %>%
+  summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
+              hi = quantile(a1, 0.975)) %>%
+  mutate(model = factor(model, 
+                        levels = c("mod.uninf", "inf.weak", 
+                                   "inf.mod", "inf.strong", 
+                                   "misinf.weak", "misinf.mod",
+                                   "misinf.strong")))
+  
+smol.a1.21 <- filter(a1.stat, Species == "Spec21")
+smol.a1.22 <- filter(a1.stat, Species == "Spec22")
+
+  
+# Make interval plots
+covplot.21 <- ggplot(data = smol.a1.21, aes(x = model, y = mean))+
+  geom_point(size = 1.5)+
+  geom_errorbar(ymin = smol.a1.21$lo, ymax = smol.a1.21$hi,
+                  size = 1, width = 0.2)+
+  geom_point(aes(y = -3), color = "red", size = 1.5)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
+  scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
+  labs(x = "Model", y = "Coefficient")+
+  theme_bw(base_size = 14)+
+  theme(panel.grid = element_blank())
+
+covplot.22 <- ggplot(data = smol.a1.22, aes(x = model, y = mean))+
+  geom_point(size = 1.5)+
+  geom_errorbar(ymin = smol.a1.22$lo, ymax = smol.a1.22$hi,
+                size = 1, width = 0.2)+
+  geom_point(aes(y = 3), color = "red", size = 1.5)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
+  scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
+  labs(x = "Model", y = "Coefficient")+
+  theme_bw(base_size = 14)+
+  theme(panel.grid = element_blank())
+
+covs <- (covplot.21/covplot.22)+
+  plot_annotation(tag_levels = "a")
+
+# ggsave(allthecovs, filename = "undet_cov.jpeg", dpi = 600, width = 6,
+#        height = 8, units = "in")
 
 
 
@@ -795,71 +897,6 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
   theme(panel.grid = element_blank(), legend.title = element_blank())
 
 # ggsave(rich.plot, filename = 'richplot.jpeg', dpi = 600)
-
-# Compare covariate responses ----------------------
-get.cov <- function(jag){
-  # Extract covariate estimates from jags object
-  a1s <- jag$BUGSoutput$sims.list$a1
-  
-  a1s <- as.data.frame(a1s)
-  
-  specnames <- logical()
-  for(i in 1:22){
-    specnames[i] <- paste("Spec", i, sep = "")
-  }
-  
-  colnames(a1s) <- specnames
-
-  # Pivot data frame for plotting
-  a1.long <- a1s %>%
-    pivot_longer(cols = everything(), names_to = "Spec", 
-                 values_to = "a1")
-  
-  a1.long$Spec <- factor(a1.long$Spec, levels = specnames)
-
-  a1.stat <- a1.long %>%
-    group_by(Spec) %>%
-    summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
-              hi = quantile(a1, 0.975)) %>%
-    mutate(tru.resp = resp2cov)
-  
-  smol.a1 <- a1.stat[21:22,]
-
-  # Make interval plot
-  plot <- ggplot(data = smol.a1, aes(x = Spec, y = mean))+
-    geom_point(size = 1.5)+
-    geom_errorbar(ymin = smol.a1$lo, ymax = smol.a1$hi, 
-                  size = 1, width = 0.2)+
-    geom_point(aes(y = tru.resp), color = "red", size = 1.5)+
-    geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
-    scale_x_discrete(expand = c(0.8, 0.2))+
-    scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
-    labs(x = "Species", y = "Coefficient")+
-    theme_bw(base_size = 14)+
-    theme(panel.grid = element_blank(), axis.title = element_blank())
-  
-  return(plot)
-}
-
-cov.plots <- lapply(biglist, get.cov)
-
-covs <- (plot_spacer()+cov.plots[[1]]+plot_spacer()+
-                 plot_layout(widths = c(1,2,1)))/
-  (cov.plots[[2]]|cov.plots[[5]])/
-  (cov.plots[[3]]|cov.plots[[6]])/
-  (cov.plots[[4]]|cov.plots[[7]])+
-  plot_annotation(tag_levels = "a")
-
-gt <- patchworkGrob(covs)
-allthecovs <- grid.arrange(gt, 
-                           left = textGrob("Coefficient", 
-                                           gp=gpar(fontsize = 14),
-                                           rot = 90), 
-                           bottom = textGrob("Species", 
-                                           gp=gpar(fontsize = 14)))
-
-# ggsave(allthecovs, filename = "undet_cov.jpeg", dpi = 600, width = 6,
-#        height = 8, units = "in")
 
 # Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs
