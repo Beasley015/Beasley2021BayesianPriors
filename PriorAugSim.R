@@ -650,7 +650,7 @@ forth.eorlingas <- function(iters){
   }
 }
 
-# forth.eorlingas(iters = 50)
+forth.eorlingas(iters = 50)
 
 # Function to load results ---------------
 get.outs <- function(param){
