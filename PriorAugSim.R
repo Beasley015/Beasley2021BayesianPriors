@@ -650,7 +650,7 @@ forth.eorlingas <- function(iters){
   }
 }
 
-forth.eorlingas(iters = 50)
+# forth.eorlingas(iters = 50)
 
 # Function to load results ---------------
 get.outs <- function(param){
@@ -687,51 +687,94 @@ get.outs <- function(param){
 all.n <- get.outs(param = "N")
 
 # Combine all vectors in list elements
-ns.combined <- lapply(all.n, function(x) c(unlist(x)))
+# ns.combined <- lapply(all.n, function(x) c(unlist(x)))
+
+# Calculate measure of centrality
+ns.center <- function(jag, center = "mean"){
+  if(center == "mode"){
+    # Create list for storage of tables
+    jagtab <- list()
+    # For loop to calculate mode for each element
+    for(i in 1:50){
+      #Convert to character
+      jag[[i]] <- as.character(jag[[i]])
+      # Create table
+      jagtab[[i]] <- table(jag[[i]])
+      
+      # Find most common value in table
+      jag[[i]] <- names(table(jag[[i]]))[which.max(jagtab[[i]])]
+    }
+    # Change to vector of modes
+    x = unlist(jag)
+    return(x)
+    
+  } else if(center == "median"){
+    for(i in 1:50){
+    # Get median
+     jag[[i]] <- median(as.vector(jag[[i]]))
+    }
+    # Change to vector
+    x = unlist(jag)
+    return(x)
+    
+  } else if(center == "mean"){
+    for(i in 1:50){
+    # Get mean
+    jag[[i]] <- mean(jag[[i]])
+    }
+    # Change to vector
+    x = unlist(jag)
+    return(x)
+  }
+}
+
+ns.means <- lapply(all.n, ns.center, center = "mean")
+ns.medians <- lapply(all.n, ns.center, center = "median")
+ns.modes <- lapply(all.n, ns.center, center = "mode")
 
 # Plot it
-ns.plot <- function(jag){
-  getmode <- function(x) {
-    uniqx <- unique(x)
-    uniqx[which.max(tabulate(match(x, uniqx)))]
-  }
-  
-  ns.frame <- jag %>%
+ns.plot <- function(dat, center){
+  if(center == "mean"){
+    Ns.plot <- ggplot(data = data.frame(ns = dat), aes(x = ns))+
+      geom_histogram(binwidth = 0.5, color = 'lightgray')+
+      geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"),
+                 size = 1.5)+
+      scale_y_continuous(expand = c(0,0))+
+      theme_classic(base_size = 12)+
+      theme(axis.text.y = element_blank(), 
+            axis.title = element_blank(), 
+            plot.margin = unit(c(0,0,0,0), units = "point"))
+  } else{
+  ns.frame <- dat %>%
     table() %>%
     data.frame() %>%
     {. ->> ns.frame}
   colnames(ns.frame) <- c("N_Species", "Freq")
-  
-  Ns.mode <-getmode(jag)
-  Ns.mean <- mean(jag)
-  Ns.median <- median(jag)
+
   
   Ns.plot <- ggplot(data = ns.frame, 
-                    aes(x = as.integer(as.character(N_Species)),
-                                       y = Freq))+
-    geom_col(width = 0.95, color = 'lightgray')+
-    geom_vline(aes(xintercept = Ns.median, linetype = "Estimated"),
-               size = 1.5)+
+                    aes(x = as.integer(as.character(N_Species)), 
+                        y = Freq))+
+    geom_col(color = 'lightgray')+
     geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"),
                size = 1.5)+
-    scale_linetype_manual(values = c("Estimated"="dotted", 
-                                     "True"="solid"),
-                          name = "", 
-                          labels = c("Median Estimate", "True"))+
     scale_y_continuous(expand = c(0,0))+
     theme_classic(base_size = 12)+
     theme(axis.text.y = element_blank(), 
           axis.title = element_blank(), 
           plot.margin = unit(c(0,0,0,0), units = "point"))
   
-  out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean,
-                   median = Ns.median)
-  
-  return(out.list)
+  }
+  return(Ns.plot)
 }
 
-N.outs <- lapply(ns.combined, ns.plot)
+lapply(ns.means, ns.plot, center = "mean")
+lapply(ns.modes, ns.plot, center = "mode")
+lapply(ns.medians, ns.plot, center = "median")
+# I think it's because one spec is rare, another common
+# If it were one common/one middle this would work better
 
+# RESUME HERE -----------------------------
 # Put histograms in single figure
 histos <- map(N.outs, 1) 
 
@@ -809,7 +852,6 @@ a1.stat <- a1s %>%
 smol.a1.21 <- filter(a1.stat, Species == "Spec21")
 smol.a1.22 <- filter(a1.stat, Species == "Spec22")
 
-  
 # Make interval plots
 covplot.21 <- ggplot(data = smol.a1.21, aes(x = model, y = mean))+
   geom_point(size = 1.5)+
@@ -836,8 +878,8 @@ covplot.22 <- ggplot(data = smol.a1.22, aes(x = model, y = mean))+
 covs <- (covplot.21/covplot.22)+
   plot_annotation(tag_levels = "a")
 
-# ggsave(allthecovs, filename = "undet_cov.jpeg", dpi = 600, width = 6,
-#        height = 8, units = "in")
+# ggsave(covs, filename = "undet_cov.jpeg", dpi = 600, width = 8,
+#        height = 6, units = "in")
 
 
 
