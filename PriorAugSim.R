@@ -432,7 +432,7 @@ comm.sim <- function(){
   
   # Save relevant parameters to list
   out.list <- list(cov = covs[[2]], sim.occ = occ.sim[[1]], 
-                   obs = det.sim)
+                   obs = det.sim, tru = occ.sim[[2]])
   return(out.list)
 }
 
@@ -686,9 +686,6 @@ get.outs <- function(param){
 # Load all n's into R
 all.n <- get.outs(param = "N")
 
-# Combine all vectors in list elements
-# ns.combined <- lapply(all.n, function(x) c(unlist(x)))
-
 # Calculate measure of centrality
 ns.center <- function(jag, center = "mean"){
   if(center == "mode"){
@@ -768,15 +765,10 @@ ns.plot <- function(dat, center){
   return(Ns.plot)
 }
 
-lapply(ns.means, ns.plot, center = "mean")
-lapply(ns.modes, ns.plot, center = "mode")
-lapply(ns.medians, ns.plot, center = "median")
+nouts.mean <- lapply(ns.means, ns.plot, center = "mean")
+nouts.mode <- lapply(ns.modes, ns.plot, center = "mode")
+nouts.median <- lapply(ns.medians, ns.plot, center = "median")
 # I think it's because one spec is rare, another common
-# If it were one common/one middle this would work better
-
-# RESUME HERE -----------------------------
-# Put histograms in single figure
-histos <- map(N.outs, 1) 
 
 # Define plot layout
 layout <- "
@@ -785,6 +777,8 @@ BBEE
 CCFF
 DDGG
 "
+
+histos <- nouts.mode
 
 # Create figure
 Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+histos[[5]]+
@@ -798,7 +792,7 @@ gn <- patchworkGrob(Ns.base)
 Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
                                    gp=gpar(fontsize = 14), hjust = 0.8))
   
-# ggsave(Ns.megaplot, filename = "ns_megaplot.jpeg", width = 6,
+# ggsave(Ns.megaplot, filename = "ns_median.jpeg", width = 6,
 #        height = 5, units = 'in', dpi = 600)
 
 # Compare covariate responses ----------------------
@@ -881,64 +875,87 @@ covs <- (covplot.21/covplot.22)+
 # ggsave(covs, filename = "undet_cov.jpeg", dpi = 600, width = 8,
 #        height = 6, units = "in")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Compare site-level richness and covariate ----------------------
-# Pull Zs from each item in list  
-Zs <- lapply(biglist, function(x) x$BUGSoutput$sims.list$Z)
+# Get true values
+sim.res <- list()
+for(i in 1:50){
+  sim.res[[i]] <- comm.sim()
+}
 
-# Get avg. occurrence matrices  
-Zs.mean <- lapply(Zs, apply, c(2,3), mean)
+tru <- list()
+for(i in 1:length(sim.res)){
+  tru[[i]] <- apply(sim.res[[i]][[3]], c(1,3), max)[,-c(23:24)]
+}
 
-# Get site-level richness  
-site.rich <- lapply(Zs.mean, rowSums)
+# Load in estimated vals
+zs <- get.outs(param = "Z")
 
-# Convert list to data.frame
-rich.frame <- as.data.frame(do.call(cbind, site.rich))
-colnames(rich.frame) <- c('uninf', 'inf.weak', 'inf.mod', 
-                          'inf.strong', 'misinf.weak', 
-                          'misinf.mod', 'misinf.strong')
+# Get differences between true and est values
+get.diff <- function(jag){
+  z.avg <- list()
+  for(i in 1:7){
+    z.avg[[i]] <- list()
+    for(j in 1:50){
+      z.avg[[i]][[j]] <- apply(jag[[i]][[j]], c(2,3), mean)[,-c(23:24)]
+    }
+  }
 
-rich.frame$True <- colSums(tru)
-rich.frame$Obs <- rowSums(apply(obs.data, c(1,3), max))
-rich.frame$Cov <- cov
+  # Get species richness
+  tru.rich <- lapply(tru, rowSums)
 
-rich.long <- rich.frame %>%
-  pivot_longer(uninf:Obs, names_to = 'model', 
-               values_to = 'Richness') %>%
-  mutate(mod.type = case_when(startsWith(model,"un")~"Uninformed",
-                            startsWith(model,"mis")~"Misinformed",
-                            startsWith(model,"inf")~"Informed",
-                            model == "True"~"True",
-                            model == "Obs"~"Observed"))
+  z.rich <- list()
+  for(i in 1:length(z.avg)){
+      z.rich[[i]] <- lapply(z.avg[[i]], rowSums)
+  }
 
-order <- c("Observed", "True", "Uninformed", "Informed", "Misinformed")
-rich.long$mod.type <- factor(rich.long$mod.type, levels = order)
+  # subtract true and estimated richness
+  z.diff <- list()
+  for(i in 1:length(z.rich)){
+    z.diff[[i]] <- lapply(z.rich[[i]], function(x) x-tru.rich[[i]])
+  }
+  names(z.diff) <- names(jag)
   
-rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
-                                         color = mod.type))+
-  geom_point()+
-  geom_smooth(aes(fill = mod.type), method = 'lm', alpha = 0.2)+
-  labs(x = "Covariate")+
-  expand_limits(y = 0)+
-  scale_color_viridis_d()+
-  scale_fill_viridis_d()+
-  theme_bw(base_size = 14)+
-  theme(panel.grid = element_blank(), legend.title = element_blank())
+  return(z.diff)
+}
 
-# ggsave(rich.plot, filename = 'richplot.jpeg', dpi = 600)
+z.diff <- get.diff(jag = zs)
+
+# Get true coefficients
+coefs <- list()
+for(i in 1: length(sim.res)){
+  coefs[[i]] <- sim.res[[i]]$cov
+}
+
+# Create vectors of site, rep names
+sitenames <- logical()
+for(i in 1:nsite){
+  sitenames[i] <- paste("Site", i, sep = "")
+}
+
+repnames <- logical()
+for(i in 1:50){
+  repnames[i] <- paste("Rep", i, sep = "")
+}
+
+modnames <- logical()
+for(i in 1:length(z.diff)){
+  x <- rep(names(z.diff)[i], 30)
+  modnames <- append(modnames, x)
+}
+
+# Coerce all to data frames
+coef.frame <- as.data.frame(do.call(cbind, coefs))
+colnames(coef.frame) <- repnames
+coef.frame$Site <- sitenames
+coef.frame <- pivot_longer(coef.frame, -Site, names_to = "Rep", 
+                           values_to = "Cov")
+
+diff.frame <- lapply(z.diff, function(x) as.data.frame(do.call(cbind, x)))
+diff.frame <- do.call(rbind, diff.frame)
+diff.frame$Model <- modnames
+colnames(diff.frame) <- repnames
+diff.frame$Site <- rep(sitenames, 7)
+# pivot longer here
 
 # Compare typical bias of each prior method ---------------------
 # Get series of site-level estimates from Zs
