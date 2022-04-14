@@ -15,6 +15,7 @@ library(patchwork)
 library(fitdistrplus)
 library(gridExtra)
 library(grid)
+library(scico)
 
 # Set seed
 set.seed(15)
@@ -45,7 +46,7 @@ weakinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, -3, 3, 0)
+            inf.mean1 <- c(0, -3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -89,7 +90,7 @@ modinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
                             
-            inf.mean1 <- c(0, -3, 3, 0)
+            inf.mean1 <- c(0, -3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -132,7 +133,7 @@ stronginf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, -3, 3, 0)
+            inf.mean1 <- c(0, -3, 0, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -175,7 +176,7 @@ weakmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, -3, 0)
+            inf.mean1 <- c(0, 3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -218,7 +219,7 @@ modmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, -3, 0)
+            inf.mean1 <- c(0, 3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -261,7 +262,7 @@ strongmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, -3, 0)
+            inf.mean1 <- c(0, 3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -307,7 +308,7 @@ sim.covs <- function(){
 
   # Add undetected species
   resp2cov[21:22] <- c(rnorm(n = 1, mean = -3, sd = 0.25),
-                       rnorm(n = 1, mean = 3, sd = 0.25))
+                       rnorm(n = 1, mean = 0, sd = 0.25))
 
   # Covariate values for sites
   cov <- sort(rnorm(n = nsite))
@@ -636,8 +637,12 @@ fit.mods <- function(cov, obs, sim.occ){
 
 # Run that sucker ----------------------
 forth.eorlingas <- function(iters){
+  # List for community sim outputs
+  sim.outs <- list()
+  
+  # Run the models
   for(i in 1:iters){
-    sim.outs <- comm.sim()
+    sim.outs[[i]] <- comm.sim()
     
     results <- fit.mods(cov = sim.outs[[1]], obs = sim.outs[[3]],
                         sim.occ = sim.outs[[2]])
@@ -648,6 +653,9 @@ forth.eorlingas <- function(iters){
     
     print(i)
   }
+  
+  # save sim outputs
+  saveRDS(sim.outs, file = "simres.rds")
 }
 
 # forth.eorlingas(iters = 50)
@@ -884,19 +892,19 @@ for(i in 1:50){
 
 tru <- list()
 for(i in 1:length(sim.res)){
-  tru[[i]] <- apply(sim.res[[i]][[3]], c(1,3), max)[,-c(23:24)]
+  tru[[i]] <- sim.res[[i]][[4]][-c(23:24),]
 }
 
-# Load in estimated vals
-zs <- get.outs(param = "Z")
-
 # Get differences between true and est values
-get.diff <- function(jag){
+get.diff <- function(){
+  # Load in estimated vals
+  zs <- get.outs(param = "Z")
+  
   z.avg <- list()
   for(i in 1:7){
     z.avg[[i]] <- list()
     for(j in 1:50){
-      z.avg[[i]][[j]] <- apply(jag[[i]][[j]], c(2,3), mean)[,-c(23:24)]
+      z.avg[[i]][[j]] <- apply(zs[[i]][[j]], c(2,3), mean)[,-c(23:24)]
     }
   }
 
@@ -911,7 +919,7 @@ get.diff <- function(jag){
   # subtract true and estimated richness
   z.diff <- list()
   for(i in 1:length(z.rich)){
-    z.diff[[i]] <- lapply(z.rich[[i]], function(x) x-tru.rich[[i]])
+    z.diff[[i]] <- lapply(z.rich[[i]], function(x) tru.rich[[i]]-x)
   }
   names(z.diff) <- names(jag)
   
@@ -953,45 +961,103 @@ coef.frame <- pivot_longer(coef.frame, -Site, names_to = "Rep",
 diff.frame <- lapply(z.diff, function(x) as.data.frame(do.call(cbind, x)))
 diff.frame <- do.call(rbind, diff.frame)
 diff.frame$Model <- modnames
-colnames(diff.frame) <- repnames
+colnames(diff.frame)[1:50] <- repnames
 diff.frame$Site <- rep(sitenames, 7)
-# pivot longer here
+diff.frame <- pivot_longer(diff.frame, cols = -c(Model, Site), 
+                           names_to = "Rep", values_to = "Diff") 
 
-# Compare typical bias of each prior method ---------------------
-# Get series of site-level estimates from Zs
-rich.bias <- function(jag){
-  # Get site-level richness
-  Zs <- jag$BUGSoutput$sims.list$Z
+big.ass.frame <- left_join(diff.frame, coef.frame, 
+                           by = c("Rep", "Site"))
 
-  Zs.replicates <- apply(Zs, c(1,2), sum)
+qplot(x = Cov, y = Diff, color = Model, data = big.ass.frame)
+qplot(x = Cov, y = Diff, color = Model, data = big.ass.frame,
+      geom = 'smooth')
 
-  # Subtract each replicate vector from the true value
-  rich.diffs <- apply(Zs.replicates, 1, function(x) x-colSums(tru))
-  
-  # Convert to vector
-  diffs.vec <- as.vector(rich.diffs)
-
-  # Create histograms
-  plot <- ggplot()+
-      geom_bar(aes(x = diffs.vec), fill = 'darkgray')+
-      geom_vline(xintercept = 0)+
-      labs(x = "Richness")+
-      theme_bw(base_size = 18)+
-      theme(axis.title.y = element_blank(), 
-            panel.grid = element_blank())
-  
-  return(plot)
+# Look at occ estimates for missing species ---------------------
+# Get true values
+sim.res <- list()
+for(i in 1:50){
+  sim.res[[i]] <- comm.sim()
 }
 
-rich.hists <- lapply(biglist, rich.bias)
+tru <- list()
+for(i in 1:length(sim.res)){
+  tru[[i]] <- sim.res[[i]][[4]][c(21:22),]
+}
 
-plot.uninf <- plot_spacer()+rich.hists[[1]]+plot_spacer()+
-  plot_layout(widths = c(1,2,1))
-rich.hists.inf <- rich.hists[[2]]/rich.hists[[3]]/rich.hists[[4]]
-rich.hists.misinf <- rich.hists[[5]]/rich.hists[[6]]/rich.hists[[7]]
+# Get differences between true and est values
+get.undet <- function(){
+  # Load in estimated vals
+  zs <- get.outs(param = "Z")
+  
+  z.avg <- list()
+  for(i in 1:7){
+    z.avg[[i]] <- list()
+    for(j in 1:50){
+      z.avg[[i]][[j]] <- apply(zs[[i]][[j]], c(2,3), mean)[,21:22]
+    }
+  }
+  
+  # subtract true and estimated richness
+  z.diff <- list()
+  for(i in 1:length(z.avg)){
+    z.diff[[i]] <- lapply(z.avg[[i]], function(x) tru[[i]]-t(x))
+  }
+  names(z.diff) <- names(zs)
+  
+  return(z.diff)
+}
 
-allthehists <- plot.uninf/(rich.hists.inf|rich.hists.misinf)+
-  plot_layout(heights = c(1,5))
+undet.err <- get.undet()
 
-# ggsave(allthehists, file = "allthehists.jpeg", height = 10,
-#        width = 8, units = 'in')
+# Add cols denoting model and species
+df.list <- lapply(undet.err, function(x) do.call(rbind, x))
+for(i in 1:length(df.list)){
+  df.list[[i]] <- as.data.frame(df.list[[i]])
+  df.list[[i]]$model <- names(df.list)[i]
+  df.list[[i]]$species <- rep(c("Spec21", "Spec22"), 50)
+}
+
+# make it a data frame
+undet.frame <- do.call(rbind, df.list)
+
+# Create vectors of site names
+sitenames <- logical()
+for(i in 1:nsite){
+  sitenames[i] <- paste("Site", i, sep = "")
+}
+
+colnames(undet.frame) <- c(sitenames, "model", "Species")
+
+# Pull simulated covariates
+cov.list <- lapply(sim.res, '[[', 1)
+cov.vec <- do.call(c, cov.list)
+
+# Pivot longer and add column for covariate
+undet.long <- undet.frame %>%
+  pivot_longer(cols = Site1:Site30, names_to = "Site", 
+               values_to = "Occ") %>%
+  mutate(Site = factor(.$Site, levels = sitenames)) %>%
+  mutate(cov = rep(cov.vec, 14))
+
+# Get data frame for each species
+undet.s21 <- filter(undet.long, Species == "Spec21")
+undet.s22 <- filter(undet.long, Species == "Spec22")
+
+# Plots
+ggplot(data = undet.s21, aes(x = cov, y = Occ))+
+  geom_point()+
+  geom_hline(yintercept = 0, linetype = "dashed")+
+  facet_wrap(vars(model))+
+  labs(x = "Covariate", y = "True Occupancy-Estimated Occupancy")+
+  theme_bw()+
+  theme(panel.grid = element_blank())
+
+ggplot(data = undet.s22, aes(x = cov, y = Occ))+
+  geom_point()+
+  facet_wrap(vars(model))+
+  labs(x = "Covariate", y = "True Occupancy-Estimated Occupancy")+
+  theme_bw()+
+  theme(panel.grid = element_blank())
+
+
