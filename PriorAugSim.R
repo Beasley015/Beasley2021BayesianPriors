@@ -638,11 +638,12 @@ fit.mods <- function(cov, obs, sim.occ){
 # Run that sucker ----------------------
 forth.eorlingas <- function(iters){
   # List for community sim outputs
-  sim.outs <- list()
+  sim.res <- list()
   
   # Run the models
   for(i in 1:iters){
-    sim.outs[[i]] <- comm.sim()
+    sim.outs <- comm.sim()
+    sim.res <- append(sim.res, sim.outs)
     
     results <- fit.mods(cov = sim.outs[[1]], obs = sim.outs[[3]],
                         sim.occ = sim.outs[[2]])
@@ -655,7 +656,7 @@ forth.eorlingas <- function(iters){
   }
   
   # save sim outputs
-  saveRDS(sim.outs, file = "simres.rds")
+  saveRDS(sim.res, file = "simres.rds")
 }
 
 # forth.eorlingas(iters = 50)

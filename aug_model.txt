@@ -23,7 +23,7 @@
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, -3, 0)
+            inf.mean1 <- c(0, 3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
