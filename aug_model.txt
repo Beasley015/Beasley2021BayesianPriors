@@ -23,7 +23,7 @@
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, 3, 0)
+            inf.mean1 <- c(0, 3, -3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -77,8 +77,7 @@
     }
     
     #Estimate total richness (N) by adding observed (n) and unobserved (n0) species
-    n0<-sum(w[(spec+1):(spec+aug)])
-    N<-spec+n0
-    
+    n0<-w[(spec+1):(spec+aug)]
+    N<-spec+sum(n0)
     }
     
