@@ -45,7 +45,7 @@ weakinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, -3, 3, 0)
+            inf.mean1 <- c(0, 0,-3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -89,7 +89,7 @@ modinf <- "#Add info for species-level priors
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
                             
-            inf.mean1 <- c(0, -3, 3, 0)
+            inf.mean1 <- c(0, 0, -3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -132,7 +132,7 @@ stronginf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, round(logit(sim.occ[21])),
                             round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, -3, 3, 0)
+            inf.mean1 <- c(0, 0, -3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -175,7 +175,7 @@ weakmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, -3, 0)
+            inf.mean1 <- c(0, 3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -218,7 +218,7 @@ modmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, -3, 0)
+            inf.mean1 <- c(0, 3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -261,7 +261,7 @@ strongmisinf <- "#Add info for species-level priors
 
             inf.mean0 <- c(0, -round(logit(sim.occ[21])),
                             -round(logit(sim.occ[22])), 0)
-            inf.mean1 <- c(0, 3, -3, 0)
+            inf.mean1 <- c(0, 3, 3, 0)
             
             inf.var0 <- c(1, 0.5,0.5, 1)
             inf.var1 <- c(1, 0.5,0.5, 1)
@@ -306,8 +306,8 @@ sim.covs <- function(){
                 rnorm(n = 7, mean = -3, sd = 0.25))
 
   # Add undetected species
-  resp2cov[21:22] <- c(rnorm(n = 1, mean = -3, sd = 0.25),
-                       rnorm(n = 1, mean = 3, sd = 0.25))
+  resp2cov[21:22] <- c(rnorm(n = 1, mean = 0, sd = 0.25),
+                       rnorm(n = 1, mean = -3, sd = 0.25))
 
   # Covariate values for sites
   cov <- sort(rnorm(n = nsite))
@@ -322,7 +322,7 @@ occ.func <- function(resp2cov, cov){
   # Get probs from a beta distribution
   sim.occ <- rbeta(n = nspec, shape1 = 2, shape2 = 4)
   # Keep undetected species consistent in all sims
-  sim.occ[21:22] <- c(0.3, 0.7)
+  sim.occ[21:22] <- c(0.1, 0.4)
 
   #Get site-level psi to account for covariates
   alpha0 <- logit(sim.occ)
@@ -801,39 +801,8 @@ gn <- patchworkGrob(Ns.base)
 Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
                                    gp=gpar(fontsize = 14), hjust = 0.8))
   
-# ggsave(Ns.megaplot, filename = "ns_mode.jpeg", width = 6,
+# ggsave(Ns.megaplot, filename = "ns_median.jpeg", width = 6,
 #        height = 5, units = 'in', dpi = 600)
-
-# Which species did the mod account for? -----------------
-no <- get.outs(param = "n0")
-
-n0.count <- list()
-for(i in 1:length(no)){
-  n0.count[[i]] <- lapply(no[[i]], function(x) colSums(x)/nrow(x))
-}
-
-n0.count <- lapply(n0.count, function(x) do.call(rbind, x))
-
-n0.frame <- data.frame(prob = do.call(rbind, n0.count), 
-                       rep(names(no), each = 50))
-
-undet.spec <- logical()
-for(i in 1:5){
-  undet.spec[i] <- paste("Spec", i+20, sep = "")
-}
-
-names(n0.frame) <- c(undet.spec, "model")
-
-n0.long <- n0.frame %>%
-  pivot_longer(cols = -model, names_to = "Species", 
-               values_to = "prob") %>%
-  filter(Species == "Spec21" | Species == "Spec22") %>%
-  group_by(model, Species) %>%
-  summarise(mean.prob = mean(prob))
-
-ggplot(data = n0.long, aes(x = Species, y = mean.prob))+
-  geom_col()+
-  facet_wrap(vars(model))
 
 # Compare covariate responses ----------------------
 # Load in cov responses
@@ -891,7 +860,7 @@ covplot.21 <- ggplot(data = smol.a1.21, aes(x = model, y = mean))+
   geom_point(size = 1.5)+
   geom_errorbar(ymin = smol.a1.21$lo, ymax = smol.a1.21$hi,
                   size = 1, width = 0.2)+
-  geom_point(aes(y = -3), color = "red", size = 1.5)+
+  geom_point(aes(y = 0), color = "red", size = 1.5)+
   geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
   scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
   labs(x = "Model", y = "Coefficient")+
@@ -902,7 +871,7 @@ covplot.22 <- ggplot(data = smol.a1.22, aes(x = model, y = mean))+
   geom_point(size = 1.5)+
   geom_errorbar(ymin = smol.a1.22$lo, ymax = smol.a1.22$hi,
                 size = 1, width = 0.2)+
-  geom_point(aes(y = 0), color = "red", size = 1.5)+
+  geom_point(aes(y = -3), color = "red", size = 1.5)+
   geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
   scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
   labs(x = "Model", y = "Coefficient")+
@@ -947,16 +916,17 @@ get.diff <- function(){
   }
 
   # subtract true and estimated richness
-  z.diff <- list()
+  z.site <- list()
   for(i in 1:length(z.rich)){
-    z.diff[[i]] <- lapply(z.rich[[i]], function(x) tru.rich[[i]]-x)
+    z.site[[i]] <- lapply(z.rich[[i]], 
+                          function(x) cbind(x, tru.rich[[i]]))
   }
-  names(z.diff) <- names(zs)
+  names(z.site) <- names(zs)
   
-  return(z.diff)
+  return(z.site)
 }
 
-z.diff <- get.diff()
+z.site <- get.diff()
 
 # Get true coefficients
 indices <- seq(from = 1, to = length(sim.res), by = 4)
@@ -976,11 +946,7 @@ for(i in 1:50){
   repnames[i] <- paste("Rep", i, sep = "")
 }
 
-modnames <- logical()
-for(i in 1:length(z.diff)){
-  x <- rep(names(z.diff)[i], 30)
-  modnames <- append(modnames, x)
-}
+modnames <- names(z.site)
 
 # Coerce all to data frames
 coef.frame <- as.data.frame(do.call(cbind, coefs))
@@ -989,28 +955,26 @@ coef.frame$Site <- sitenames
 coef.frame <- pivot_longer(coef.frame, -Site, names_to = "Rep", 
                            values_to = "Cov")
 
-diff.frame <- lapply(z.diff, function(x) as.data.frame(do.call(cbind, x)))
+diff.frame <- lapply(z.site, function(x) as.data.frame(do.call(rbind, x)))
 diff.frame <- do.call(rbind, diff.frame)
-diff.frame$Model <- modnames
-colnames(diff.frame)[1:50] <- repnames
+diff.frame$Model <- rep(modnames, each = nrow(diff.frame)/7)
+colnames(diff.frame) <- c("Est", "Tru", "Model")
 diff.frame$Site <- rep(sitenames, 7)
-diff.frame <- pivot_longer(diff.frame, cols = -c(Model, Site), 
-                           names_to = "Rep", values_to = "Diff")
+diff.frame$Rep <- rep(repnames, each = 30)
 
 big.ass.frame <- left_join(diff.frame, coef.frame, 
                            by = c("Rep", "Site")) %>%
-  group_by(Model, Rep) %>%
-  summarise(Mean.diff = mean(Diff), Median.diff = median(Diff))
+  mutate(Model = factor(Model, levels = unique(diff.frame$Model))) %>%
+  mutate(Diff = Tru-Est)
 
-qplot(data = big.ass.frame, x = Model, y = Mean.diff, geom = 'boxplot')
+qplot(data = big.ass.frame, x = Est, y = Tru, color = Model, 
+      geom = "smooth")
+qplot(data = big.ass.frame, x = Cov,y = Diff, color = Model)
 
-mod <- aov(data = big.ass.frame, Mean.diff~Model)
-# hsd in agricolae package
-hsd <- HSD.test(mod, trt = "Model", group = T)
-hsd
-
-modsum <- summary(mod)
-modsum[[1]]$`Sum Sq`[1]/sum(modsum[[1]]$`Sum Sq`)
+ggplot(data = big.ass.frame, aes(x = Est, y = Tru, color = Model))+
+  geom_point()+
+  geom_abline(slope = 1, intercept = 0, color = "black")+
+  geom_smooth(method = 'lm', se = F)
 
 # Look at occ estimates for missing species ---------------------
 # Get true values
