@@ -965,16 +965,33 @@ diff.frame$Rep <- rep(repnames, each = 30)
 big.ass.frame <- left_join(diff.frame, coef.frame, 
                            by = c("Rep", "Site")) %>%
   mutate(Model = factor(Model, levels = unique(diff.frame$Model))) %>%
-  mutate(Diff = Tru-Est)
-
+  mutate(Diff = Tru-Est) %>%
+  group_by(Model, Rep) %>%
+  summarise(mean.diff = mean(Diff), med.diff = median(Diff))
+# using median because skewed low
+  
 qplot(data = big.ass.frame, x = Est, y = Tru, color = Model, 
       geom = "smooth")
 qplot(data = big.ass.frame, x = Cov,y = Diff, color = Model)
 
-ggplot(data = big.ass.frame, aes(x = Est, y = Tru, color = Model))+
-  geom_point()+
-  geom_abline(slope = 1, intercept = 0, color = "black")+
-  geom_smooth(method = 'lm', se = F)
+qplot(data = big.ass.frame, x = Model, y = med.diff,
+      geom = "boxplot")
+
+# Going with box plots for now
+ggplot(data = big.ass.frame, aes(x = Model, y = med.diff))+
+  geom_boxplot(fill = 'lightgray')+
+  geom_hline(yintercept = 0, linetype = "dashed")+
+  labs(y = "Median Difference (True - Estimated)")+
+  theme_bw(base_size = 14)+
+  theme(panel.grid = element_blank(), axis.title.x = element_blank())
+
+# ggsave("siterich.jpeg", height = 4, width = 6, units = "in")
+
+med.mod <- aov(data = big.ass.frame, med.diff~Model)
+
+summary(med.mod)[[1]]$`Sum Sq`[1]/sum(summary(med.mod)[[1]]$`Sum Sq`)
+
+med.hsd <- HSD.test(y = med.mod, trt = "Model")
 
 # Look at occ estimates for missing species ---------------------
 # Get true values
@@ -1058,6 +1075,7 @@ ggplot(data = undet.s21, aes(x = cov, y = Occ))+
 
 ggplot(data = undet.s22, aes(x = cov, y = Occ))+
   geom_point()+
+  geom_hline(yintercept = 0, linetype = "dashed")+
   facet_wrap(vars(model))+
   labs(x = "Covariate", y = "True Occupancy-Estimated Occupancy")+
   theme_bw()+
