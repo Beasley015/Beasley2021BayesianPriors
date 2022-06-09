@@ -17,7 +17,7 @@ library(gridExtra)
 library(grid)
 
 # Set seed
-set.seed(15)
+set.seed(10)
 
 # Mammal data --------------------------------
 # Read in data and sites with no captures
@@ -85,7 +85,7 @@ mamm.array <- array(as.numeric(mamm.array), dim = dim(mamm.array))
 mamm.array[mamm.array > 1] <- 1
 
 # Create array for augmented species
-undetected <- array(0, dim = c(J, max(K), 1))
+undetected <- array(0, dim = c(J, max(K), 3))
 
 # Put arrays together
 mamm.aug <- abind(mamm.array, undetected, along = 3)
@@ -317,7 +317,7 @@ cat("
 
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
-VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
+VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 3, priors = NULL,
                        cov1 = forests, textdoc = "realdat.txt", 
                        burn = 5000, iter = 15000, thin = 10){
   
@@ -363,16 +363,16 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 1, priors = NULL,
 #               n.iter = 15000, n.thin = 10, inits = init.values)
 
 # Run models and save outputs
-# uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf)
-# saveRDS(uninf.mod, "real_uninf.rds")
-# 
-# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
-#                           priors = weakinf)
-# saveRDS(weakinf.mod, "real_weakinf.rds")
-# 
-# modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
-#                           priors = modinf)
-# saveRDS(modinf.mod, "real_modinf.rds")
+uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf)
+saveRDS(uninf.mod, "real_uninf.rds")
+
+weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
+                          priors = weakinf)
+saveRDS(weakinf.mod, "real_weakinf.rds")
+
+modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
+                          priors = modinf)
+saveRDS(modinf.mod, "real_modinf.rds")
 
 # Read in models
 uninf.mod <- readRDS("ModelOutputs/real_uninf.rds")
@@ -464,7 +464,7 @@ get.ns <- function(jag){
                     aes(x = as.integer(as.character(N_Species)),
                         y = Freq))+
     geom_col(width = 1, color = 'lightgray')+
-    geom_vline(xintercept = Ns.median, linetype = 'dashed', size = 2)+
+    geom_vline(xintercept = 11, linetype = 'dashed', size = 2)+
     labs(x = "Estimated Species", y = "Frequency")+
     scale_y_continuous(expand = c(0,0))+
     theme_classic(base_size = 18)+
@@ -523,7 +523,7 @@ rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
 
 ggsave(rich.plot, filename = "SiteRichness_Real.jpeg", dpi = 600)
 
-# Covariate responses -------------------
+# Covariate responses REVISE -------------------
 get.cov <- function(jag){
   # Extract covariate estimates from jags object
   a1s <- jag$BUGSoutput$sims.list$a1

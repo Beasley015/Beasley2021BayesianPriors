@@ -15,6 +15,7 @@ library(patchwork)
 library(fitdistrplus)
 library(gridExtra)
 library(grid)
+library(agricolae)
 
 # Set seed
 set.seed(15)
@@ -884,7 +885,7 @@ covs <- (covplot.21/covplot.22)+
 # ggsave(covs, filename = "undet_cov.jpeg", dpi = 600, width = 8,
 #        height = 6, units = "in")
 
-# Compare site-level richness and covariate ----------------------
+# Compare site-level richness btn models ----------------------
 # Get true values
 sim.res <- read_rds(file = "simres.rds")
 indices <- seq(from = 4, to = 200, by = 4)
@@ -977,21 +978,46 @@ qplot(data = big.ass.frame, x = Cov,y = Diff, color = Model)
 qplot(data = big.ass.frame, x = Model, y = med.diff,
       geom = "boxplot")
 
+med.mod <- aov(data = big.ass.frame, med.diff~Model)
+
+summary(med.mod)[[1]]$`Sum Sq`[1]/sum(summary(med.mod)[[1]]$`Sum Sq`)
+
+med.hsd <- HSD.test(y = med.mod, trt = "Model")
+
+hsd.df <- data.frame(Model = rownames(med.hsd$groups),
+                     group = med.hsd$groups$groups)
+
+big.ass.frame <- left_join(big.ass.frame, hsd.df, by = "Model") %>%
+  mutate(Model = factor(Model, 
+                        levels = unique(big.ass.frame$Model))) %>%
+  mutate(Type = case_when(startsWith(as.character(Model), "mod") ~
+                            "Uninformative",
+                          startsWith(as.character(Model), "inf") ~
+                            "Informative",
+                          startsWith(as.character(Model), "mis") ~
+                            "Misspecified")) %>%
+  mutate(Type = factor(Type, levels = unique(Type))) %>%
+  mutate(Weight = case_when(endsWith(as.character(Model), "weak") ~
+                              "Weak",
+                            endsWith(as.character(Model), "mod") ~
+                              "Moderate",
+                            endsWith(as.character(Model), "strong") ~
+                              "Strong")) %>%
+  mutate(Weight = factor(Weight, levels = unique(Weight)))
+  
+
 # Going with box plots for now
-ggplot(data = big.ass.frame, aes(x = Model, y = med.diff))+
-  geom_boxplot(fill = 'lightgray')+
+ggplot(data = big.ass.frame, aes(x = Type, y = med.diff,
+                                 fill = Weight))+
+  geom_boxplot(outlier.shape = NA)+
+  scale_fill_viridis_d(na.value = "lightgray")+
+  # geom_text(aes(label = group, y = 2.5))+
   geom_hline(yintercept = 0, linetype = "dashed")+
   labs(y = "Median Difference (True - Estimated)")+
   theme_bw(base_size = 14)+
   theme(panel.grid = element_blank(), axis.title.x = element_blank())
 
 # ggsave("siterich.jpeg", height = 4, width = 6, units = "in")
-
-med.mod <- aov(data = big.ass.frame, med.diff~Model)
-
-summary(med.mod)[[1]]$`Sum Sq`[1]/sum(summary(med.mod)[[1]]$`Sum Sq`)
-
-med.hsd <- HSD.test(y = med.mod, trt = "Model")
 
 # Look at occ estimates for missing species ---------------------
 # Get true values
@@ -1064,21 +1090,67 @@ undet.long <- undet.frame %>%
 undet.s21 <- filter(undet.long, Species == "Spec21")
 undet.s22 <- filter(undet.long, Species == "Spec22")
 
+unique.mods <- unique(undet.s21$model)
+
+undet.figs <- function(df, mods){
+  # Create list to hold figures
+  plt <- list()
+
+  for(i in 1:length(mods)){
+    # create data frame 
+    small.df <- df[df$model == mods[i], ]
+    
+    # plot results of one model type
+    plt[[i]] <- ggplot(data = small.df, aes(x = cov, y = Occ))+
+      geom_point()+
+      geom_hline(yintercept = 0, linetype = "dashed")+
+      labs(x = "Covariate", y = "True Occupancy-Estimated Occupancy")+
+      theme_bw(base_size = 14)+
+      theme(panel.grid = element_blank(), 
+            axis.title = element_blank())
+  }
+  
+  return(plt)
+}
+
 # Plots
-ggplot(data = undet.s21, aes(x = cov, y = Occ))+
-  geom_point()+
-  geom_hline(yintercept = 0, linetype = "dashed")+
-  facet_wrap(vars(model))+
-  labs(x = "Covariate", y = "True Occupancy-Estimated Occupancy")+
-  theme_bw()+
-  theme(panel.grid = element_blank())
+s21 <- undet.figs(df = undet.s21, mods = unique.mods)
+s22 <- undet.figs(df = undet.s22, mods = unique.mods)
 
-ggplot(data = undet.s22, aes(x = cov, y = Occ))+
-  geom_point()+
-  geom_hline(yintercept = 0, linetype = "dashed")+
-  facet_wrap(vars(model))+
-  labs(x = "Covariate", y = "True Occupancy-Estimated Occupancy")+
-  theme_bw()+
-  theme(panel.grid = element_blank())
+layout <- "
+#AA#
+BBEE
+CCFF
+DDGG
+"
 
+# Put them all together
+s21.full <- s21[[1]]+s21[[2]]+s21[[3]]+s21[[4]]+s21[[5]]+
+  s21[[6]]+s21[[7]]+
+  plot_layout(design = layout)+
+  plot_annotation(tag_levels = "a")
 
+gn <- patchworkGrob(s21.full)
+s21final <- grid.arrange(gn, bottom = textGrob("Covariate", 
+                              gp=gpar(fontsize = 14), hjust = 0.8),
+                            left = textGrob("True-Estimated Occupancy"
+                                          ,rot = 90,
+                                          gp = gpar(fontsize = 14)))
+
+# ggsave(s21final, filename = "s21occ.jpeg", width = 6,
+#        height = 5, units = 'in', dpi = 600)
+
+s22.full <- s22[[1]]+s22[[2]]+s22[[3]]+s22[[4]]+s22[[5]]+
+  s22[[6]]+s22[[7]]+
+  plot_layout(design = layout)+
+  plot_annotation(tag_levels = "a")
+
+gn <- patchworkGrob(s22.full)
+s22final <- grid.arrange(gn, bottom = textGrob("Covariate", 
+                                               gp=gpar(fontsize = 14), hjust = 0.8),
+                         left = textGrob("True-Estimated Occupancy"
+                                         ,rot = 90,
+                                         gp = gpar(fontsize = 14)))
+
+# ggsave(s22final, filename = "s21occ.jpeg", width = 6,
+#        height = 5, units = 'in', dpi = 600)
