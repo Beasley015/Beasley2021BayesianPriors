@@ -1009,15 +1009,16 @@ big.ass.frame <- left_join(big.ass.frame, hsd.df, by = "Model") %>%
 # Going with box plots for now
 ggplot(data = big.ass.frame, aes(x = Type, y = med.diff,
                                  fill = Weight))+
-  geom_boxplot(outlier.shape = NA)+
+  geom_boxplot(outlier.shape = NA, varwidth = T)+
   scale_fill_viridis_d(na.value = "lightgray")+
-  # geom_text(aes(label = group, y = 2.5))+
+  geom_text(aes(label = group, y = 2.5), 
+            position = position_dodge(width = 1))+
   geom_hline(yintercept = 0, linetype = "dashed")+
   labs(y = "Median Difference (True - Estimated)")+
   theme_bw(base_size = 14)+
   theme(panel.grid = element_blank(), axis.title.x = element_blank())
 
-# ggsave("siterich.jpeg", height = 4, width = 6, units = "in")
+ggsave("siterich.jpeg", height = 4, width = 6, units = "in")
 
 # Look at occ estimates for missing species ---------------------
 # Get true values
