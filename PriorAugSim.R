@@ -869,7 +869,7 @@ smol.a1.21 <- filter(a1.stat, Species == "Spec21")
 smol.a1.22 <- filter(a1.stat, Species == "Spec22")
 
 # Make interval plots
-ggplot(data = smol.a1.21, aes(x = Weight, y = mean))+
+covplot.21 <- ggplot(data = smol.a1.21, aes(x = Weight, y = mean))+
   geom_point(size = 1.5)+
   geom_errorbar(ymin = smol.a1.21$lo, ymax = smol.a1.21$hi,
                   size = 1, width = 0.2)+
@@ -885,7 +885,7 @@ ggplot(data = smol.a1.21, aes(x = Weight, y = mean))+
         strip.placement = "outside",
         panel.grid = element_blank(), axis.title.x = element_blank())
 
-covplot.22 <- ggplot(data = smol.a1.22, aes(x = model, y = mean))+
+covplot.22 <- ggplot(data = smol.a1.22, aes(x = Weight, y = mean))+
   geom_point(size = 1.5)+
   geom_errorbar(ymin = smol.a1.22$lo, ymax = smol.a1.22$hi,
                 size = 1, width = 0.2)+
@@ -894,7 +894,12 @@ covplot.22 <- ggplot(data = smol.a1.22, aes(x = model, y = mean))+
   scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
   labs(x = "Model", y = "Coefficient")+
   theme_bw(base_size = 14)+
-  theme(panel.grid = element_blank())
+  facet_grid(~Type, scales = "free_x", space = "free_x",
+             switch = "x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        panel.grid = element_blank(), axis.title.x = element_blank())
 
 covs <- (covplot.21/covplot.22)+
   plot_annotation(tag_levels = "a")
@@ -987,10 +992,6 @@ big.ass.frame <- left_join(diff.frame, coef.frame,
   group_by(Model, Rep) %>%
   summarise(mean.diff = mean(Diff), med.diff = median(Diff))
 # using median because skewed low
-  
-qplot(data = big.ass.frame, x = Est, y = Tru, color = Model, 
-      geom = "smooth")
-qplot(data = big.ass.frame, x = Cov,y = Diff, color = Model)
 
 qplot(data = big.ass.frame, x = Model, y = med.diff,
       geom = "boxplot")
@@ -1012,7 +1013,7 @@ big.ass.frame <- left_join(big.ass.frame, hsd.df, by = "Model") %>%
                           startsWith(as.character(Model), "inf") ~
                             "Informative",
                           startsWith(as.character(Model), "mis") ~
-                            "Misspecified")) %>%
+                            "Mis-specified")) %>%
   mutate(Type = factor(Type, levels = unique(Type))) %>%
   mutate(Weight = case_when(endsWith(as.character(Model), "weak") ~
                               "Weak",
@@ -1035,7 +1036,7 @@ ggplot(data = big.ass.frame, aes(x = Type, y = med.diff,
   theme_bw(base_size = 14)+
   theme(panel.grid = element_blank(), axis.title.x = element_blank())
 
-ggsave("siterich.jpeg", height = 4, width = 6, units = "in")
+# ggsave("siterich.jpeg", height = 4, width = 6, units = "in")
 
 # Look at occ estimates for missing species ---------------------
 # Get true values
