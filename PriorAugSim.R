@@ -847,26 +847,43 @@ a1.stat <- a1s %>%
   group_by(Species, model) %>%
   summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
               hi = quantile(a1, 0.975)) %>%
-  mutate(model = factor(model, 
-                        levels = c("mod.uninf", "inf.weak", 
-                                   "inf.mod", "inf.strong", 
-                                   "misinf.weak", "misinf.mod",
-                                   "misinf.strong")))
+  mutate(Type = case_when(startsWith(as.character(model), "mod") ~ 
+                            "Uninformative", 
+                          startsWith(as.character(model), "inf") ~
+                            "Informative", 
+                          startsWith(as.character(model), "mis") ~
+                            "Mis-specified")) %>%
+  mutate(Type = factor(Type, levels = c("Uninformative", 
+                                        "Informative",
+                                        "Mis-specified"))) %>%
+  mutate(Weight = case_when(endsWith(as.character(model), "weak") ~
+                              "Weak",
+                            endsWith(as.character(model), "mod") ~
+                              "Moderate",
+                            endsWith(as.character(model), "strong") ~
+                              "Strong")) %>%
+  mutate(Weight = factor(Weight, levels = c("Weak", "Moderate", 
+                                            "Strong")))
   
 smol.a1.21 <- filter(a1.stat, Species == "Spec21")
 smol.a1.22 <- filter(a1.stat, Species == "Spec22")
 
 # Make interval plots
-covplot.21 <- ggplot(data = smol.a1.21, aes(x = model, y = mean))+
+ggplot(data = smol.a1.21, aes(x = Weight, y = mean))+
   geom_point(size = 1.5)+
   geom_errorbar(ymin = smol.a1.21$lo, ymax = smol.a1.21$hi,
                   size = 1, width = 0.2)+
   geom_point(aes(y = 0), color = "red", size = 1.5)+
   geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
   scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
-  labs(x = "Model", y = "Coefficient")+
+  labs(y = "Coefficient")+
   theme_bw(base_size = 14)+
-  theme(panel.grid = element_blank())
+  facet_grid(~Type, scales = "free_x", space = "free_x",
+             switch = "x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        panel.grid = element_blank(), axis.title.x = element_blank())
 
 covplot.22 <- ggplot(data = smol.a1.22, aes(x = model, y = mean))+
   geom_point(size = 1.5)+
