@@ -85,7 +85,7 @@ mamm.array <- array(as.numeric(mamm.array), dim = dim(mamm.array))
 mamm.array[mamm.array > 1] <- 1
 
 # Create array for augmented species
-undetected <- array(0, dim = c(J, max(K), 3))
+undetected <- array(0, dim = c(J, max(K), 2))
 
 # Put arrays together
 mamm.aug <- abind(mamm.array, undetected, along = 3)
@@ -317,7 +317,7 @@ cat("
 
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
-VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 3, priors = NULL,
+VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
                        cov1 = forests, textdoc = "realdat.txt", 
                        burn = 5000, iter = 15000, thin = 10){
   
@@ -363,16 +363,17 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 3, priors = NULL,
 #               n.iter = 15000, n.thin = 10, inits = init.values)
 
 # Run models and save outputs
-uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf)
-saveRDS(uninf.mod, "real_uninf.rds")
-
-weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
-                          priors = weakinf)
-saveRDS(weakinf.mod, "real_weakinf.rds")
-
-modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 10,
-                          priors = modinf)
-saveRDS(modinf.mod, "real_modinf.rds")
+# uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf,
+#                         thin = 5, burn = 4000)
+# saveRDS(uninf.mod, "real_uninf.rds")
+# 
+# weakinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug,
+#                           priors = weakinf)
+# saveRDS(weakinf.mod, "real_weakinf.rds")
+# 
+# modinf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, thin = 5,
+#                           priors = modinf)
+# saveRDS(modinf.mod, "real_modinf.rds")
 
 # Read in models
 uninf.mod <- readRDS("ModelOutputs/real_uninf.rds")
@@ -469,7 +470,7 @@ get.ns <- function(jag){
     scale_y_continuous(expand = c(0,0))+
     theme_classic(base_size = 18)+
     theme(axis.text.y = element_blank(), 
-          axis.title.y = element_blank(),
+          axis.title = element_blank(),
           legend.key.height = unit(40, units = 'pt'))
   
   out.list <- list(plot = Ns.plot, mode = Ns.mode, mean = Ns.mean,
@@ -478,7 +479,16 @@ get.ns <- function(jag){
   return(out.list)
 }
 
-lapply(modlist, get.ns)
+nlist <- lapply(modlist, get.ns)
+nplot <-nlist[[1]]$plot + nlist[[2]]$plot + nlist[[3]]$plot +
+  plot_annotation(tag_levels = 'a')
+
+gn <- patchworkGrob(nplot)
+Ns.plt <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
+                                             gp=gpar(fontsize = 14)))
+
+# ggsave(Ns.plt, filename = "real.ns.jpeg", height = 3, width = 5, 
+#        units = "in")
 
 # Site-level richness -------------------
 # Pull Zs from each item in list  
