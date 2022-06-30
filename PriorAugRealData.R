@@ -490,55 +490,12 @@ Ns.plt <- grid.arrange(gn, bottom = textGrob("Species Richness (N)",
 # ggsave(Ns.plt, filename = "real.ns.jpeg", height = 3, width = 5, 
 #        units = "in")
 
-# Site-level richness -------------------
-# Pull Zs from each item in list  
-Zs <- lapply(modlist, function(x) x$BUGSoutput$sims.list$Z)
-
-# Get avg. occurrence matrices  
-Zs.mean <- lapply(Zs, apply, c(2,3), mean)
-
-# Get site-level richness  
-site.rich <- lapply(Zs.mean, rowSums)
-
-# Convert list to data.frame
-rich.frame <- as.data.frame(do.call(cbind, site.rich))
-colnames(rich.frame) <- c('uninf', 'inf.weak', 'inf.mod')
-
-rich.frame$Obs <- rowSums(apply(mamm.aug, c(1,3), max))
-rich.frame$Cov <- forests
-
-rich.long <- rich.frame %>%
-  pivot_longer(uninf:Obs, names_to = 'model', 
-               values_to = 'Richness') %>%
-  mutate(mod.type = case_when(startsWith(model,"un")~"Uninformed",
-                              endsWith(model,"weak")~"Weakly Informed",
-                              endsWith(model,"mod")~"Moderately Informed",
-                              model == "Obs"~"Observed"))
-
-order <- c("Observed", "True", "Uninformed", "Weakly Informed",
-           "Moderately Informed")
-rich.long$mod.type <- factor(rich.long$mod.type, levels = order)
-
-rich.plot <- ggplot(data = rich.long, aes(x = Cov, y = Richness,
-                                          color = mod.type))+
-  geom_point()+
-  geom_smooth(aes(fill = mod.type), method = 'lm', alpha = 0.2)+
-  labs(x = "PC1")+
-  expand_limits(y = 0)+
-  scale_color_viridis_d()+
-  scale_fill_viridis_d()+
-  theme_bw(base_size = 14)+
-  theme(panel.grid = element_blank(), 
-        legend.title = element_blank())
-
-ggsave(rich.plot, filename = "SiteRichness_Real.jpeg", dpi = 600)
-
 # Covariate responses REVISE -------------------
 get.cov <- function(jag){
   # Extract covariate estimates from jags object
   a1s <- jag$BUGSoutput$sims.list$a1
   
-  a1s <- as.data.frame(a1s)
+  a1s <- as.data.frame(a1s)[,-12]
   
   colnames(a1s) <- c(specs, "SYFL")
   
@@ -548,7 +505,8 @@ get.cov <- function(jag){
                  values_to = "a1")
   
   full.names <- dplyr::select(mamm.raw, Genus:Abbrev)
-  full.names <- rbind(full.names, c("Sylvilagus", "floridanus", "SYFL"))
+  full.names <- rbind(full.names, c("Sylvilagus", "floridanus", 
+                                    "SYFL"))
   
   a1.stat <- a1.long %>%
     group_by(Spec) %>%
