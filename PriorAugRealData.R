@@ -491,64 +491,49 @@ Ns.plt <- grid.arrange(gn, bottom = textGrob("Species Richness (N)",
 #        units = "in")
 
 # Covariate responses REVISE -------------------
-get.cov <- function(jag){
-  # Extract covariate estimates from jags object
-  a1s <- jag$BUGSoutput$sims.list$a1
-  
-  a1s <- as.data.frame(a1s)[,-12]
-  
-  colnames(a1s) <- c(specs, "SYFL")
-  
-  # Pivot data frame for plotting
-  a1.long <- a1s %>%
-    pivot_longer(cols = everything(), names_to = "Spec", 
-                 values_to = "a1")
-  
-  full.names <- dplyr::select(mamm.raw, Genus:Abbrev)
-  full.names <- rbind(full.names, c("Sylvilagus", "floridanus", 
-                                    "SYFL"))
-  
-  a1.stat <- a1.long %>%
-    group_by(Spec) %>%
-    summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
-              hi = quantile(a1, 0.975)) %>%
-    left_join(y = full.names, by = c("Spec" = "Abbrev")) %>%
-    distinct() %>%
-    mutate(full.name = paste(substring(Genus,1,1), Species, sep = "."))
-  
-  # Make interval plot
-  plot <- ggplot(data = a1.stat, aes(x = full.name, y = mean))+
-    geom_point()+
-    geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
-                  size = 1, width = 0.2)+
-    geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
-    scale_y_continuous(limits = c(-12,12))+
-    labs(x = "Species", y = "Coefficient")+
-    theme_bw(base_size = 14)+
-    theme(panel.grid = element_blank(), 
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-          axis.title = element_blank())
-  
-  rows <- logical()
-  for(i in 1:nrow(a1.stat)){
-    rows[i] <- between(0, a1.stat$lo[i], a1.stat$hi[i])
-  }
-  
-  sigs <- rep(NA, nrow(a1.stat))
-  sigs[which(rows == FALSE)] <- a1.stat$full.name[which(rows == FALSE)]
-  
-  outs <- plot+geom_point(aes(x = sigs, y = 6), shape = 8)
-  
-  return(outs)
+# Load in cov responses
+all.a1 <- lapply(modlist, function(x) x$BUGSoutput$sims.list$a1)
+
+# Add column for for model type
+modtypes <- c("Uninformative", "Weakly Informative", 
+              "Moderately Informative")
+for(i in 1:length(modtypes)){
+  all.a1[[i]] <- as.data.frame(all.a1[[i]])
+  all.a1[[i]]$type <- modtypes[i]
 }
 
-covslist <- lapply(modlist, get.cov)
+# Combine all iterations of each model
+a1.combined <- do.call(rbind, all.a1)
+  
+# Pare down species list
+a1.combined <- a1.combined[,-c(1:10)]
+names(a1.combined)[1] <- "Cov"
 
-all.covplot <- covslist[[1]]/covslist[[2]]/covslist[[3]]+
-  plot_annotation(tag_levels = "a")
+# Calculate means and quantiles
+a1.stat <- a1.combined %>%
+  group_by(type) %>%
+  summarise(mean = mean(Cov), lo = quantile(Cov, 0.025), 
+            hi = quantile(Cov, 0.975)) %>%
+  mutate(type = factor(type, levels = c("Uninformative",
+                                        "Weakly Informative",
+                                        "Moderately Informative")))
 
-gcov <- patchworkGrob(all.covplot)
-big.covplot <- grid.arrange(gcov, bottom = "Species", left = "Coefficient of Vegetation Cover")
+# Make interval plot
+ggplot(data = a1.stat, aes(x = type, y = mean))+
+  geom_point(size = 1.5)+
+  geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi,
+                size = 1, width = 0.2)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
+  scale_y_continuous(limits = c(-10, 10), expand = c(0,0))+
+  labs(y = "Coefficient")+
+  theme_bw(base_size = 14)+
+  facet_grid(~type, scales = "free_x", space = "free_x",
+             switch = "x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        panel.grid = element_blank(), axis.title.x = element_blank(),
+        axis.text.x = element_blank())
 
-# ggsave(big.covplot, file = "realdatcov.jpeg", width = 6, height = 8,
+# ggsave(file = "realdatcov.jpeg", width = 6, height = 3,
 #        units = 'in', dpi = 600)
