@@ -113,10 +113,10 @@ vegdat <- data.frame(Site = filtered.veg$Site,
 # Plot
 pc <- ggplot(data = vegdat, aes(x = scale(PC1), y = scale(PC2), 
                           color = Habitat))+
-  geom_point(size = 3)+
+  geom_point(size = 2)+
   scale_color_viridis_d()+
   labs(x = "PC1", y = "PC2")+
-  theme_bw(base_size = 14)+
+  theme_bw(base_size = 12)+
   theme(panel.grid = element_blank())+
   annotation_custom(grob = textGrob(label = "Leaf Litter"), 
                     ymin = -2.4, ymax = -2.4, xmin = 1.4, 
@@ -137,7 +137,8 @@ gt <- ggplot_gtable(ggplot_build(pc))
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
 
-ggsave(gt, filename = "PC12.jpeg", dpi = 600)
+# ggsave(gt, filename = "PC12.jpeg", dpi = 600, width = 4, height = 3,
+#        units = "in")
 
 # PC1 (separates forest & everything else) explains 82.4% 
 forests <- vegdat$PC1

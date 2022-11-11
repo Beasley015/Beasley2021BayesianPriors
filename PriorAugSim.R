@@ -1123,8 +1123,9 @@ undet.figs <- function(df, mods){
     plt[[i]] <- ggplot(data = small.df, aes(x = cov, y = Occ))+
       geom_point()+
       geom_hline(yintercept = 0, linetype = "dashed")+
+      scale_y_continuous(limits = c(-1,1))+
       labs(x = "Covariate", y = "True Occupancy-Estimated Occupancy")+
-      theme_bw(base_size = 14)+
+      theme_bw()+
       theme(panel.grid = element_blank(), 
             axis.title = element_blank())
   }
@@ -1151,13 +1152,13 @@ s21.full <- s21[[1]]+s21[[2]]+s21[[3]]+s21[[4]]+s21[[5]]+
 
 gn <- patchworkGrob(s21.full)
 s21final <- grid.arrange(gn, bottom = textGrob("Covariate", 
-                              gp=gpar(fontsize = 14), hjust = 0.8),
+                              gp=gpar(fontsize = 16), hjust = 0.4),
                             left = textGrob("True-Estimated Occupancy"
                                           ,rot = 90,
-                                          gp = gpar(fontsize = 14)))
+                                          gp = gpar(fontsize = 16)))
 
-# ggsave(s21final, filename = "s21occ.jpeg", width = 6,
-#        height = 5, units = 'in', dpi = 600)
+# ggsave(s21final, filename = "s21occ.jpeg", width = 10,
+#        height = 10, units = 'in', dpi = 600)
 
 s22.full <- s22[[1]]+s22[[2]]+s22[[3]]+s22[[4]]+s22[[5]]+
   s22[[6]]+s22[[7]]+
@@ -1166,10 +1167,11 @@ s22.full <- s22[[1]]+s22[[2]]+s22[[3]]+s22[[4]]+s22[[5]]+
 
 gn <- patchworkGrob(s22.full)
 s22final <- grid.arrange(gn, bottom = textGrob("Covariate", 
-                                               gp=gpar(fontsize = 14), hjust = 0.8),
+                                               gp=gpar(fontsize = 16),
+                                               hjust = 0.4),
                          left = textGrob("True-Estimated Occupancy"
                                          ,rot = 90,
-                                         gp = gpar(fontsize = 14)))
+                                         gp = gpar(fontsize = 16)))
 
-# ggsave(s22final, filename = "s21occ.jpeg", width = 6,
-#        height = 5, units = 'in', dpi = 600)
+# ggsave(s22final, filename = "s22occ.jpeg", width = 10,
+#        height = 10, units = 'in', dpi = 600)
