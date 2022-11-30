@@ -27,9 +27,10 @@ naug <- 3 # Species never detected; used to set prior on N
 nsite <- 30
 nsurvey <- 4
 
-Ks <- rep(nsurvey, nsite)
+Ks <- rep(nsurvey, nsite) # vector of surveys per site
 
-# Priors
+# Write JAGS scripts for priors on undetected species
+# Uninformative priors
 uninf <- "for(i in 1:(spec+aug)){
           #Create priors from hyperpriors
             w[i] ~ dbern(omega)
@@ -40,6 +41,7 @@ uninf <- "for(i in 1:(spec+aug)){
             b0[i] ~ dnorm(b0.mean, tau.b0)"
 
 
+# Weakly informative priors
 weakinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -83,6 +85,7 @@ weakinf <- "#Add info for species-level priors
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
+# Moderately informative
 modinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -127,6 +130,7 @@ modinf <- "#Add info for species-level priors
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
+# Strongly informative
 stronginf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -170,6 +174,7 @@ stronginf <- "#Add info for species-level priors
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
+# Weakly mis-specified
 weakmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -213,6 +218,7 @@ weakmisinf <- "#Add info for species-level priors
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
+# Moderately mis-specified
 modmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -256,6 +262,7 @@ modmisinf <- "#Add info for species-level priors
 
               b0[i] ~ dnorm(b0.mean, tau.b0)"
 
+# Strongly mis-specified
 strongmisinf <- "#Add info for species-level priors
             
             lim <- c(20, 21, 22)
@@ -320,12 +327,12 @@ sim.covs <- function(){
 
 # Function to simulate occupancy data ---------------------------
 occ.func <- function(resp2cov, cov){
-  # Get probs from a beta distribution
+  # Get occupancy probs from a beta distribution
   sim.occ <- rbeta(n = nspec, shape1 = 2, shape2 = 4)
   # Keep undetected species consistent in all sims
   sim.occ[21:22] <- c(0.1, 0.4)
 
-  #Get site-level psi to account for covariates
+  #Get site-level occupancy prob (psi) to account for covariates
   alpha0 <- logit(sim.occ)
   
   logit.psi <- matrix(NA, nrow = nspec+nmiss, ncol = nsite)
@@ -336,13 +343,13 @@ occ.func <- function(resp2cov, cov){
   
   psi <- inv.logit(logit.psi)
   
-  #create list of abundance vectors
+  #create list of occupancy vectors for each species
   nlist<-list()
   for(a in 1:(nspec+nmiss)){
     nlist[[a]] <- rbinom(n = nsite, size = 1, prob = psi[a,])
   }
   
-  #Turn abundance vectors into abundance matrix
+  #Turn vectors into presence/absence matrix
   ns<-do.call(rbind, nlist)
   
   # Fill any 0s so all species occupy at least 1 site
@@ -362,7 +369,7 @@ occ.func <- function(resp2cov, cov){
 det.func <- function(mat, psi){
   # Generate mean detection probabilities from beta dist
   mean.p <- rbeta(n = nspec, shape1 = 2, shape2 = 8)
-  mean.p <- sort(mean.p, decreasing = T)
+  mean.p <- sort(mean.p, decreasing = T) # sorting keeps it tidy
 
   # add undetected species
   mean.p[21:22] <- 0
@@ -370,12 +377,13 @@ det.func <- function(mat, psi){
   #Detection intercept and cov responses
   beta0<-logit(mean.p) #put it on logit scale
 
-  #Logit link function
+  #Logit link function: accounts for site, survey covariates
+  # if covariates are present
   logit.p <- array(NA, dim = c(nsite, nsurvey, (nspec+nmiss)))
   for(i in 1:(nspec+nmiss)){
     for(j in 1:nsite){
       for(k in 1:nsurvey){
-        logit.p[j,,i] <- beta0[i]
+        logit.p[j,,i] <- beta0[i] # add detection covariates here
       }
     }
   }
@@ -416,7 +424,7 @@ det.func <- function(mat, psi){
     maxobs <- apply(obsdata, c(1,3), max)
   }
   
-  # Add augmented species
+  # Add augmented species - not present, puts prior on N
   augdata <- array(0, dim = c(nsite, nsurvey, naug))
   
   obsdata <- abind(obsdata, augdata, along = 3)
@@ -458,7 +466,8 @@ VivaLaMSOM <- function(J = nsite, K = nsurvey, obs, spec, aug = 0,
   parms <- c('a0','a1','Z','N','n0')
   
   # Initial values
-  maxobs <- apply(obs, c(1,3), max)
+  maxobs <- apply(obs, c(1,3), max) # starting w observed data
+  # helps avoid parent node incompatibility
   init.values<-function(){
     inits <- list(
       a0 = rnorm(n = (spec+aug)),
@@ -483,7 +492,7 @@ VivaLaMSOM <- function(J = nsite, K = nsurvey, obs, spec, aug = 0,
   return(model)
 }
 
-# Write Models ----------------------------
+# Write JAGS scripts ----------------------------
 # Model without augmentation
 cat("
     model{
@@ -581,16 +590,18 @@ write.model <- function(priors){
 
 # Function to fit models ------------------------------------
 fit.mods <- function(cov, obs, sim.occ){
-  # Aug model just in case
+  # Non-Augmented model just in case
   # mod.noaug <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
   #                         textdoc = 'noaug.txt')
 
+  # Mod with uninformative priors
   mod.uninf <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
                           textdoc = 'aug_model.txt', cov = cov,
                           obs = obs, sim.occ = sim.occ,
                           aug = nmiss+naug, burn = 2500, 
                           iter = 10000, thin = 10)
 
+  # Mods with informative priors of varying strength
   inf.weak <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
                          textdoc = 'aug_model.txt', cov = cov,
                          obs = obs, sim.occ = sim.occ,
@@ -609,6 +620,7 @@ fit.mods <- function(cov, obs, sim.occ){
                            aug = nmiss+naug, priors = stronginf,
                            burn = 8000, iter = 12000, thin = 3)
 
+  # Mods with mis-specified priors of varying strength
   misinf.weak <- VivaLaMSOM(J = nsite, K = Ks, spec = nspec, 
                             textdoc = 'aug_model.txt', cov = cov,
                             obs = obs, sim.occ = sim.occ,
@@ -658,16 +670,21 @@ forth.eorlingas <- function(iters){
   saveRDS(sim.res, file = "simres.rds")
 }
 
-# forth.eorlingas(iters = 50)
+# forth.eorlingas(iters = 50) # warning: will take several hours
+# unless you set up parallel processing
 
 # Function to load results ---------------
 get.outs <- function(param){
+  # Pull file names from outputs folder
   filenames <- list.files("./Outputs")
   
+  # Create blank list to store results
   param.list <- list()
+  # Vector of model types
   modtype <- c('mod.uninf', 'inf.weak', 'inf.mod', 'inf.strong',
                'misinf.weak', 'misinf.mod', 'misinf.strong')
   
+  # Pulls desired results from each model
   for(i in 1:length(filenames)){
     out <- readRDS(file = paste("./Outputs/", filenames[i],
                                 sep = ""))
@@ -685,6 +702,7 @@ get.outs <- function(param){
     print(paste("i = ", i, sep = ""))
   }
   
+  # add model names to results output
   names(param.list) <- modtype
   
   return(param.list)
@@ -733,6 +751,8 @@ ns.center <- function(jag, center = "mean"){
   }
 }
 
+# Get summary of metacommunity richness using different
+# measures of centrality 
 ns.means <- lapply(all.n, ns.center, center = "mean")
 ns.medians <- lapply(all.n, ns.center, center = "median")
 ns.modes <- lapply(all.n, ns.center, center = "mode")
@@ -775,10 +795,10 @@ ns.plot <- function(dat, center){
   return(Ns.plot)
 }
 
+# Look at summarised results
 nouts.mean <- lapply(ns.means, ns.plot, center = "mean")
 nouts.mode <- lapply(ns.modes, ns.plot, center = "mode")
 nouts.median <- lapply(ns.medians, ns.plot, center = "median")
-# I think it's because one spec is rare, another common
 
 # Define plot layout
 layout <- "
@@ -798,10 +818,12 @@ Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+histos[[5]]+
   plot_layout(guides = "collect")&
   xlim(19.5, 25.5)
 
+# Add labels
 gn <- patchworkGrob(Ns.base)
 Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
                                    gp=gpar(fontsize = 14), hjust = 0.8))
   
+# Save figure
 # ggsave(Ns.megaplot, filename = "ns_median.jpeg", width = 6,
 #        height = 5, units = 'in', dpi = 600)
 
@@ -978,6 +1000,7 @@ coef.frame$Site <- sitenames
 coef.frame <- pivot_longer(coef.frame, -Site, names_to = "Rep", 
                            values_to = "Cov")
 
+# More shenanigans to get the data right
 diff.frame <- lapply(z.site, function(x) as.data.frame(do.call(rbind, x)))
 diff.frame <- do.call(rbind, diff.frame)
 diff.frame$Model <- rep(modnames, each = nrow(diff.frame)/7)
@@ -985,6 +1008,7 @@ colnames(diff.frame) <- c("Est", "Tru", "Model")
 diff.frame$Site <- rep(sitenames, 7)
 diff.frame$Rep <- rep(repnames, each = 30)
 
+# the final data frame
 big.ass.frame <- left_join(diff.frame, coef.frame, 
                            by = c("Rep", "Site")) %>%
   mutate(Model = factor(Model, levels = unique(diff.frame$Model))) %>%
@@ -993,18 +1017,19 @@ big.ass.frame <- left_join(diff.frame, coef.frame,
   summarise(mean.diff = mean(Diff), med.diff = median(Diff))
 # using median because skewed low
 
-qplot(data = big.ass.frame, x = Model, y = med.diff,
-      geom = "boxplot")
-
+# Use aov to get effect sizes, even though aov isn't used
 med.mod <- aov(data = big.ass.frame, med.diff~Model)
 
+# Effect sizes
 summary(med.mod)[[1]]$`Sum Sq`[1]/sum(summary(med.mod)[[1]]$`Sum Sq`)
 
+# use HSD to assign groups
 med.hsd <- HSD.test(y = med.mod, trt = "Model")
 
 hsd.df <- data.frame(Model = rownames(med.hsd$groups),
                      group = med.hsd$groups$groups)
 
+# More manipulation to get labels right on figure
 big.ass.frame <- left_join(big.ass.frame, hsd.df, by = "Model") %>%
   mutate(Model = factor(Model, 
                         levels = unique(big.ass.frame$Model))) %>%

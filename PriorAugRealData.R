@@ -93,6 +93,7 @@ mamm.aug <- abind(mamm.array, undetected, along = 3)
 # Vegetation data ------------------------
 veg <- read.csv("Data/VegRawData.csv")
 
+# summarise data for PCA
 veg %>%
   dplyr::select(c(Site, Habitat, Canopy:X.DeadVeg)) %>%
   group_by(Site, Habitat) %>%
@@ -132,7 +133,7 @@ pc <- ggplot(data = vegdat, aes(x = scale(PC1), y = scale(PC2),
                     ymin = -1.1, ymax = -1.1, xmin = -1.6, 
                     xmax = -1.6)
 
-# Code to override clipping
+# Code to override clipping to include labels
 gt <- ggplot_gtable(ggplot_build(pc))
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
@@ -272,50 +273,6 @@ write.model <- function(priors){
   writeLines(mod, "realdat.txt") 
 }
 
-# Write non-augmented model for testing purposes
-cat("
-    model{
-      
-    # Define hyperprior distributions: intercepts
-    omega ~ dunif(0,1)
-    
-    #Intercepts
-    mean.a0 ~ dunif(0,1)
-    a0.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a0 ~ dgamma(0.1, 0.1)
-    
-    mean.a1 ~ dunif(0,1)
-    a1.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a1 ~ dgamma(0.1, 0.1)
-    
-    mean.b0 ~ dunif(0,1)
-    b0.mean <- log(mean.b0)-log(1-mean.b0)
-    tau.b0 ~ dgamma(0.1, 0.1)
-    
-    #Add info for species-level priors
-            for(i in 1:spec){
-              #Create priors from hyperpriors
-              a0[i] ~ dnorm(a0.mean, tau.a0)
-                             
-              a1[i] ~ dnorm(a1.mean, tau.a1)
-
-              b0[i] ~ dnorm(b0.mean, tau.b0)
-    
-      #Estimate occupancy of species i at point j
-      for (j in 1:J){
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov1[j]
-        Z[j,i] ~ dbern(psi[j,i])
-    
-        #Estimate detection of i at point j during sampling period k
-        for(k in 1:K[j]){
-          logit(p[j,k,i]) <-  b0[i]
-          obs[j,k,i] ~ dbern(p[j,k,i]*Z[j,i])
-    }
-    }
-    }
-    
-    }", file = "noaug.txt")
-
 # Send model to JAGS --------------------------------------------
 # Write JAGS function
 VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
@@ -351,17 +308,6 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
   
   return(model)
 }
-
-# Test model with no augmented species
-# data <- list(J = J, K = K, obs = mamm.array, spec = nspec,
-#              cov1 = forests)
-# parms <- c('a0.mean', 'a1.mean', 'b0.mean', 'a0', 'b0', 'a1')
-# init.values <- function(){
-#   inits <- list(Z = apply(mamm.array, c(1,3), max))
-# }
-# noaug <- jags(model.file = 'noaug.txt', data = data, n.chains = 3,
-#               parameters.to.save = parms, n.burnin = 5000,
-#               n.iter = 15000, n.thin = 10, inits = init.values)
 
 # Run models and save outputs
 # uninf.mod <- VivaLaMSOM(J = J, K = K, obs = mamm.aug, priors = uninf,
@@ -442,15 +388,17 @@ ggplot(data = VT)+
   theme_classic(base_size = 14)+
   theme(axis.title = element_blank(), axis.text = element_blank())
 
-ggsave(file = "sitemap.jpeg", dpi = 600)
+# ggsave(file = "sitemap.jpeg", dpi = 600)
 
 # Get Ns -----------------------
 get.ns <- function(jag){
+  # Calculates mode
   getmode <- function(x) {
     uniqx <- unique(x)
     uniqx[which.max(tabulate(match(x, uniqx)))]
   }
   
+  # Create posterior dist for N
   Ns <- as.vector(jag$BUGSoutput$sims.list$N)
   Ns %>%
     table() %>%
@@ -458,10 +406,12 @@ get.ns <- function(jag){
     {. ->> ns.frame}
   colnames(ns.frame) <- c("N_Species", "Freq")
   
+  # Summary stats
   Ns.mode <-getmode(Ns)
   Ns.mean <- mean(Ns)
   Ns.median <- median(Ns)
   
+  # Plot
   Ns.plot <- ggplot(data = ns.frame, 
                     aes(x = as.integer(as.character(N_Species)),
                         y = Freq))+
@@ -480,6 +430,7 @@ get.ns <- function(jag){
   return(out.list)
 }
 
+# Finalize plot
 nlist <- lapply(modlist, get.ns)
 nplot <-nlist[[1]]$plot + nlist[[2]]$plot + nlist[[3]]$plot +
   plot_annotation(tag_levels = 'a')
@@ -491,7 +442,7 @@ Ns.plt <- grid.arrange(gn, bottom = textGrob("Species Richness (N)",
 # ggsave(Ns.plt, filename = "real.ns.jpeg", height = 3, width = 5, 
 #        units = "in")
 
-# Covariate responses REVISE -------------------
+# Covariate responses -------------------
 # Load in cov responses
 all.a1 <- lapply(modlist, function(x) x$BUGSoutput$sims.list$a1)
 
