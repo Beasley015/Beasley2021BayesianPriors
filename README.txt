@@ -3,7 +3,7 @@ richness and occupancy for undetected species"
 
 Beasley 2021
 
-Manuscript currently submitted for review in Ecology
+Manuscript currently submitted for review in Ecological Applications
 
 Data: Contains raw mammalian capture data collected throughout Vermont, USA, in summer
 2019. Also contains vegetation data collected during the same period, a KML file of 
