@@ -11,7 +11,7 @@ trapline locations. A .csv file called "AugmentedSites" contains information on 
 where no mammals were captured during the sampling period, which is useful for setting
 up data for multi-species occupancy models.
 
-ModelOutputs: Contains posterior distributions (i.e. results) of Bayesian Multi-Species
+Outputs: Contains posterior distributions (i.e. results) of Bayesian Multi-Species
 Occupancy Models described in the manuscript and in Appendix S1.
 
 More detailed metadata is included in each folder.
