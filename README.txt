@@ -21,3 +21,6 @@ effects of prior aggregation on model results.
 
 "PriorAugRealData.R" contains code for applying prior aggregation to empirical data of
 small mammal communities in Vermont, USA, collected in summer 2019.
+
+"EcoInfPrior_AppendS2_23Jun2021.Rmd" is the raw file (with code) for the educational 
+tutorial in Appendix S2. 
