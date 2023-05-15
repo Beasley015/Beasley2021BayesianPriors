@@ -323,9 +323,9 @@ VivaLaMSOM <- function(J, K, obs, spec = nspec, aug = 2, priors = NULL,
 # saveRDS(modinf.mod, "real_modinf.rds")
 
 # Read in models
-uninf.mod <- readRDS("ModelOutputs/real_uninf.rds")
-weakinf.mod <- readRDS("ModelOutputs/real_weakinf.rds")
-modinf.mod <- readRDS("ModelOutputs/real_modinf.rds")
+uninf.mod <- readRDS("real_uninf.rds")
+weakinf.mod <- readRDS("real_weakinf.rds")
+modinf.mod <- readRDS("real_modinf.rds")
 
 # Put models in list
 modlist <- list(uninf.mod, weakinf.mod, modinf.mod)
@@ -416,10 +416,9 @@ get.ns <- function(jag){
                     aes(x = as.integer(as.character(N_Species)),
                         y = Freq))+
     geom_col(width = 1, color = 'lightgray')+
-    geom_vline(xintercept = 11, linetype = 'dashed', size = 2)+
     labs(x = "Estimated Species", y = "Frequency")+
     scale_y_continuous(expand = c(0,0))+
-    theme_classic(base_size = 18)+
+    theme_classic(base_size = 14)+
     theme(axis.text.y = element_blank(), 
           axis.title = element_blank(),
           legend.key.height = unit(40, units = 'pt'))
@@ -439,7 +438,7 @@ gn <- patchworkGrob(nplot)
 Ns.plt <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
                                              gp=gpar(fontsize = 14)))
 
-# ggsave(Ns.plt, filename = "real.ns.jpeg", height = 3, width = 5, 
+# ggsave(Ns.plt, filename = "real.ns.jpeg", height = 3, width = 5,
 #        units = "in")
 
 # Covariate responses -------------------

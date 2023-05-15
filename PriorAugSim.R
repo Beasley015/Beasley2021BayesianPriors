@@ -16,6 +16,8 @@ library(fitdistrplus)
 library(gridExtra)
 library(grid)
 library(agricolae)
+library(ggridges)
+library(data.table)
 
 # Set seed
 set.seed(15)
@@ -463,7 +465,7 @@ VivaLaMSOM <- function(J = nsite, K = nsurvey, obs, spec, aug = 0,
   }
   
   # Specify parameters
-  parms <- c('a0','a1','Z','N','n0')
+  parms <- c('a0','a1','Z','N','a1.mean')
   
   # Initial values
   maxobs <- apply(obs, c(1,3), max) # starting w observed data
@@ -671,7 +673,10 @@ forth.eorlingas <- function(iters){
 }
 
 # forth.eorlingas(iters = 50) # warning: will take several hours
-# unless you set up parallel processing
+# (approx. 12-15) unless you set up parallel processing
+
+# there is also a warning I haven't fixed 
+# It will not affect final results
 
 # Function to load results ---------------
 get.outs <- function(param){
@@ -708,12 +713,63 @@ get.outs <- function(param){
   return(param.list)
 }
 
+# Compare hyperparameter distribution --------------------
+hyper.means <- get.outs(param = "a1.mean")
+
+fewer.means <- hyper.means[c("mod.uninf", "inf.strong", 
+                             "misinf.strong")]
+names(fewer.means) <- c("Uninformative", "StrongInformative",
+                        "StrongMisSpecified")
+
+for(i in 1:length(fewer.means)){
+  fewer.means[[i]] <- lapply(fewer.means[[i]],
+                             function(x) 
+                               data.frame(cbind(as.vector(x), 
+                                     names(fewer.means)[[i]])))
+}
+
+fewer.means <- do.call('c', fewer.means)
+
+reps <- rep(1:50, 3)
+for(i in 1:length(fewer.means)){
+  fewer.means[[i]] <- cbind(fewer.means[[i]], reps[i])
+}
+
+means.frame <- do.call(rbind, fewer.means)
+means.frame$X1 <- as.numeric(means.frame$X1)
+colnames(means.frame) <- c("a1.mean", "modtype", "rep")
+
+ggplot(data = means.frame, aes(x = a1.mean, 
+                               group = interaction(modtype,rep), 
+                               color = modtype))+
+  geom_density()+
+  xlim(c(-4, 4))+
+  labs(x = "a1 Mean", y = "Density")+
+  scale_color_viridis_d(name = "Model Type", end = 0.9)+
+  theme_bw()+
+  theme(panel.grid = element_blank())
+
+# ggsave(filename="a1posteriors.jpeg", width = 4, height = 4, 
+#        units = "in")
+
+ggplot(data = means.frame[means.frame$rep %in% 1:9,], 
+       aes(x = a1.mean, color = modtype))+
+  geom_density()+
+  facet_wrap(vars(as.character(rep)))+
+  labs(x = "Community Mean (a1)", y = "Density")+
+  scale_color_viridis_d(name = "Model Type", end = 0.9)+
+  theme_bw()+
+  theme(panel.grid = element_blank())
+
+# ggsave(filename = "a1posteriors_facet.jpeg", width = 6, height = 6,
+#        units = "in")
+
 # Compare Ns -------------------------
 # Load all n's into R
 all.n <- get.outs(param = "N")
 
 # Calculate measure of centrality
-ns.center <- function(jag, center = "mean"){
+ns.center <- function(jag, center = "mode"){
   if(center == "mode"){
     # Create list for storage of tables
     jagtab <- list()
@@ -796,9 +852,7 @@ ns.plot <- function(dat, center){
 }
 
 # Look at summarised results
-nouts.mean <- lapply(ns.means, ns.plot, center = "mean")
 nouts.mode <- lapply(ns.modes, ns.plot, center = "mode")
-nouts.median <- lapply(ns.medians, ns.plot, center = "median")
 
 # Define plot layout
 layout <- "
@@ -808,11 +862,11 @@ CCFF
 DDGG
 "
 
-histos <- nouts.median
+histos <- nouts.mode
 
 # Create figure
-Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+histos[[5]]+
-  histos[[6]]+histos[[7]]+
+Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+
+  histos[[5]]+histos[[6]]+histos[[7]]+
   plot_layout(design = layout)+
   plot_annotation(tag_levels = "a")+
   plot_layout(guides = "collect")&
@@ -821,11 +875,50 @@ Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+histos[[5]]+
 # Add labels
 gn <- patchworkGrob(Ns.base)
 Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
-                                   gp=gpar(fontsize = 14), hjust = 0.8))
-  
+                                                  gp=gpar(fontsize = 14), hjust = 0.8))
+
 # Save figure
-# ggsave(Ns.megaplot, filename = "ns_median.jpeg", width = 6,
+# ggsave(Ns.megaplot, filename = "ns_mode.jpeg", width = 6,
 #        height = 5, units = 'in', dpi = 600)
+
+# Alternative: Ridge plot
+# Assign reps to each
+list.combined <- lapply(all.n, function(y) 
+  as.data.frame(do.call("rbind", y)))
+
+list.combined2 <- lapply(list.combined, function(y)
+  data.frame(y, rep = rep(1:50, each = nrow(y)/50)))
+
+for(i in 1:length(list.combined2)){
+  list.combined2[[i]]$model <- names(list.combined2)[i]
+}
+
+ns.frame <- rbindlist(list.combined2)
+
+ns.frame <- ns.frame %>%
+  group_by(V1, rep, model) %>%
+  summarise(count = n())
+
+test <- filter(ns.frame, model == "misinf.strong")
+
+strongmis.ridge <- ggplot(data = test, aes(x = V1, y = rep, 
+                                         group = rep))+
+  geom_ridgeline(aes(height = count, scale = 0.1), alpha = 0.5)+
+  geom_vline(xintercept = 22, linetype = "dashed")+
+  lims(y = c(0,350))+
+  labs(x = "Regional Richness (Estimated)", y = "Frequency")+
+  theme_bw()+
+  theme(panel.grid = element_blank())
+
+ggsave(strongmis.ridge, filename = "strongmis_ridge.jpeg", width = 3, 
+       height = 3, units = "in")
+
+(uninf.ridge + weakmis.ridge)/
+  (modmis.ridge + strongmis.ridge)&
+  plot_annotation(tag_levels = "a")
+
+# ggsave(filename = "misplotsN.jpeg", width = 6, height = 5, 
+#        units = "in")
 
 # Compare covariate responses ----------------------
 # Load in cov responses
@@ -1012,22 +1105,24 @@ diff.frame$Rep <- rep(repnames, each = 30)
 big.ass.frame <- left_join(diff.frame, coef.frame, 
                            by = c("Rep", "Site")) %>%
   mutate(Model = factor(Model, levels = unique(diff.frame$Model))) %>%
-  mutate(Diff = Tru-Est) %>%
+  mutate(Diff = (Tru-Est)/Tru) %>%
   group_by(Model, Rep) %>%
   summarise(mean.diff = mean(Diff), med.diff = median(Diff))
 # using median because skewed low
 
 # Use aov to get effect sizes, even though aov isn't used
 med.mod <- aov(data = big.ass.frame, med.diff~Model)
+mean.mod <- aov(data = big.ass.frame, mean.diff~Model)
 
 # Effect sizes
-summary(med.mod)[[1]]$`Sum Sq`[1]/sum(summary(med.mod)[[1]]$`Sum Sq`)
+summary(mean.mod)[[1]]$`Sum Sq`[1]/sum(summary(mean.mod)[[1]]$`Sum Sq`)
 
 # use HSD to assign groups
 med.hsd <- HSD.test(y = med.mod, trt = "Model")
+mean.hsd <- HSD.test(y = mean.mod, trt = "Model")
 
-hsd.df <- data.frame(Model = rownames(med.hsd$groups),
-                     group = med.hsd$groups$groups)
+hsd.df <- data.frame(Model = rownames(mean.hsd$groups),
+                     group = mean.hsd$groups$groups)
 
 # More manipulation to get labels right on figure
 big.ass.frame <- left_join(big.ass.frame, hsd.df, by = "Model") %>%
@@ -1048,16 +1143,15 @@ big.ass.frame <- left_join(big.ass.frame, hsd.df, by = "Model") %>%
                               "Strong")) %>%
   mutate(Weight = factor(Weight, levels = unique(Weight)))
   
-
 # Going with box plots for now
-ggplot(data = big.ass.frame, aes(x = Type, y = med.diff,
+ggplot(data = big.ass.frame, aes(x = Type, y = mean.diff,
                                  fill = Weight))+
   geom_boxplot(outlier.shape = NA, varwidth = T)+
   scale_fill_viridis_d(na.value = "lightgray")+
-  geom_text(aes(label = group, y = 2.5), 
+  geom_text(aes(label = group, y = 0.3), 
             position = position_dodge(width = 1))+
   geom_hline(yintercept = 0, linetype = "dashed")+
-  labs(y = "Median Difference (True - Estimated)")+
+  labs(y = "Mean Difference (Scaled)")+
   theme_bw(base_size = 14)+
   theme(panel.grid = element_blank(), axis.title.x = element_blank())
 
@@ -1200,3 +1294,96 @@ s22final <- grid.arrange(gn, bottom = textGrob("Covariate",
 
 # ggsave(s22final, filename = "s22occ.jpeg", width = 10,
 #        height = 10, units = 'in', dpi = 600)
+
+# Model coefficients for detected/other augmented species ---------
+all.a1 <- get.outs(param = "a1")
+
+# Reformat lists
+list.to.frame <- function(x){
+  # Assign reps to each
+  list.combined <- lapply(x, function(y) 
+    as.data.frame(do.call("rbind", y)))
+  
+  list.combined2 <- lapply(list.combined, function(y)
+    data.frame(y, rep = rep(1:50, each = nrow(y)/50)))
+  
+  # Create species list
+  specs <- logical()
+  for(i in 1:(nspec+naug+nmiss)){
+    specs[i] <- paste("Spec", i, sep = "")
+  }
+  
+  # rename columns
+  list.cols <- lapply(list.combined2, setNames, c(specs, "rep"))
+  
+  # Add column to each data frame
+  modnames <- names(list.cols)
+  list.named <- mapply(cbind, list.cols, "model" = modnames, 
+                       SIMPLIFY = F)
+  
+  # Merge it all into data frame
+  big.ass.data.frame <- do.call(rbind, list.named)
+  
+  return(big.ass.data.frame)
+}
+
+chonk <- list.to.frame(all.a1)
+
+# pivot to long format
+a1s <- chonk %>%
+  pivot_longer(cols = -c(model, rep), names_to = "Species",
+               values_to = "a1")
+
+# Calculate means and quantiles
+a1.stat <- a1s %>%
+  group_by(Species, model,rep) %>%
+  summarise(mean = mean(a1), lo = quantile(a1, 0.025), 
+            hi = quantile(a1, 0.975)) %>%
+  mutate(Type = case_when(startsWith(as.character(model), "mod") ~ 
+                            "Uninformative", 
+                          startsWith(as.character(model), "inf") ~
+                            "Informative", 
+                          startsWith(as.character(model), "mis") ~
+                            "Mis-specified")) %>%
+  mutate(Type = factor(Type, levels = c("Uninformative", 
+                                        "Informative",
+                                        "Mis-specified"))) %>%
+  mutate(Weight = case_when(endsWith(as.character(model), "weak") ~
+                              "Weak",
+                            endsWith(as.character(model), "mod") ~
+                              "Moderate",
+                            endsWith(as.character(model), "strong") ~
+                              "Strong")) %>%
+  mutate(Weight = factor(Weight, levels = c("Weak", "Moderate", 
+                                            "Strong")))
+
+spec.subset <- c(paste("Spec", sample(1:20, size = 3), sep = ""),
+                 "Spec24", "Spec25")
+
+smol.frame <- a1.stat %>%
+  filter(Species %in% spec.subset) %>%
+  filter(rep < 4) %>%
+  filter((Weight != "Weak") %>% replace_na(TRUE)) %>%
+  filter((Weight != "Moderate") %>% replace_na(TRUE)) %>%
+  mutate(Species = factor(Species, levels = spec.subset))
+
+noprior1 <- ggplot(data = smol.frame[smol.frame$rep == 1,], 
+       aes(x = Species, y = mean,color = Type))+
+  geom_point(position = position_dodge(width=.9))+
+  geom_errorbar(aes(ymin = lo, ymax = hi), 
+                position = position_dodge(width = .9))+
+  geom_hline(yintercept = 0, linetype = "dashed")+
+  scale_color_viridis_d(end = 0.9, name = "Model Type")+
+  labs(y = "Coefficient Estimate (a1)")+
+  theme_bw()+
+  theme(panel.grid = element_blank())
+
+# ggsave(filename = "NoPrior_rep3.jpeg", width = 4, height = 3,
+#        units = "in")
+
+(noprior1/noprior2/noprior3)+
+  plot_layout(guides = "collect")&
+  plot_annotation(tag_levels = "a")
+
+# ggsave(filename = "NoPrior_allrep.jpeg", width = 5, height = 8,
+#        units = "in")
