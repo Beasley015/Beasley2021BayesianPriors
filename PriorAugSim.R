@@ -23,9 +23,9 @@ library(data.table)
 set.seed(15)
 
 # Global variables
-nspec <- 20
-nmiss <- 2 # Species present but not detected during sampling
-naug <- 3 # Species never detected; used to set prior on N
+nspec <- 20 # Detected species
+nmiss <- 2 # Species present in community but not detected
+naug <- 3 # Species are not in community; used as controls
 nsite <- 30
 nsurvey <- 4
 
@@ -768,157 +768,71 @@ ggplot(data = means.frame[means.frame$rep %in% 1:9,],
 # Load all n's into R
 all.n <- get.outs(param = "N")
 
-# Calculate measure of centrality
-ns.center <- function(jag, center = "mode"){
-  if(center == "mode"){
-    # Create list for storage of tables
-    jagtab <- list()
-    # For loop to calculate mode for each element
-    for(i in 1:50){
-      #Convert to character
-      jag[[i]] <- as.character(jag[[i]])
-      # Create table
-      jagtab[[i]] <- table(jag[[i]])
-      
-      # Find most common value in table
-      jag[[i]] <- names(table(jag[[i]]))[which.max(jagtab[[i]])]
-    }
-    # Change to vector of modes
-    x = unlist(jag)
-    return(x)
-    
-  } else if(center == "median"){
-    for(i in 1:50){
-    # Get median
-     jag[[i]] <- median(as.vector(jag[[i]]))
-    }
-    # Change to vector
-    x = unlist(jag)
-    return(x)
-    
-  } else if(center == "mean"){
-    for(i in 1:50){
-    # Get mean
-    jag[[i]] <- mean(jag[[i]])
-    }
-    # Change to vector
-    x = unlist(jag)
-    return(x)
-  }
-}
-
-# Get summary of metacommunity richness using different
-# measures of centrality 
-ns.means <- lapply(all.n, ns.center, center = "mean")
-ns.medians <- lapply(all.n, ns.center, center = "median")
-ns.modes <- lapply(all.n, ns.center, center = "mode")
-
-# Plot it
-ns.plot <- function(dat, center){
-  if(center == "mean"){
-    Ns.plot <- ggplot(data = data.frame(ns = dat), aes(x = ns))+
-      geom_histogram(binwidth = 0.5, color = 'lightgray')+
-      geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"),
-                 size = 1.5)+
-      scale_y_continuous(expand = c(0,0))+
-      theme_classic(base_size = 12)+
-      theme(axis.text.y = element_blank(), 
-            axis.title = element_blank(), 
-            plot.margin = unit(c(0,0,0,0), units = "point"),
-            legend.position = "None")
-  } else{
-  ns.frame <- dat %>%
-    table() %>%
-    data.frame() %>%
-    {. ->> ns.frame}
-  colnames(ns.frame) <- c("N_Species", "Freq")
-
+# Probability of estimating species richness N
+# Where target = regional richness
+prob.N <- function(jag, target){
+  probs <- lapply(jag, 
+                  function(x) length(which(x %in% target))/nrow(x))
   
-  Ns.plot <- ggplot(data = ns.frame, 
-                    aes(x = as.integer(as.character(N_Species)), 
-                        y = Freq))+
-    geom_col(color = 'lightgray')+
-    geom_vline(aes(xintercept = nspec+nmiss, linetype = "True"),
-               size = 1.5)+
-    scale_y_continuous(expand = c(0,0))+
-    theme_classic(base_size = 12)+
-    theme(axis.text.y = element_blank(), 
-          axis.title = element_blank(), 
-          plot.margin = unit(c(0,0,0,0), units = "point"),
-          legend.position = "None")
+  prob.vec <- unlist(probs)
   
-  }
-  return(Ns.plot)
+  return(prob.vec)
 }
 
-# Look at summarised results
-nouts.mode <- lapply(ns.modes, ns.plot, center = "mode")
+# Run above function
+prob.N.out <- lapply(all.n, prob.N, target = c(21:22))
 
-# Define plot layout
-layout <- "
-#AA#
-BBEE
-CCFF
-DDGG
-"
+# Change list to a data frame and re-label model type column
+prob.frame <- as.data.frame(do.call(cbind, prob.N.out)) %>%
+  pivot_longer(cols = everything(), names_to = "Modtype", 
+               values_to = "Prob") %>%
+  mutate(Modtype = factor(Modtype, levels = c("mod.uninf", "inf.weak",
+                          "inf.mod", "inf.strong", "misinf.weak",
+                          "misinf.mod", "misinf.strong")))
 
-histos <- nouts.mode
+# Create aov object to do HSD comparisons
+n.mod <- aov(data = prob.frame, formula = Prob~Modtype)
 
-# Create figure
-Ns.base <- histos[[1]]+histos[[2]]+histos[[3]]+histos[[4]]+
-  histos[[5]]+histos[[6]]+histos[[7]]+
-  plot_layout(design = layout)+
-  plot_annotation(tag_levels = "a")+
-  plot_layout(guides = "collect")&
-  xlim(19.5, 25.5)
+# HSD for group letters
+n.hsd <- HSD.test(y = n.mod, trt = "Modtype")
 
-# Add labels
-gn <- patchworkGrob(Ns.base)
-Ns.megaplot <- grid.arrange(gn, bottom = textGrob("Species Richness (N)", 
-                                                  gp=gpar(fontsize = 14), hjust = 0.8))
+hsd.df <- data.frame(Modtype = rownames(n.hsd$groups),
+                     group = n.hsd$groups$groups)
 
-# Save figure
-# ggsave(Ns.megaplot, filename = "ns_mode.jpeg", width = 6,
-#        height = 5, units = 'in', dpi = 600)
+# More manipulation to get labels right on figure
+prob.frame<- left_join(prob.frame, hsd.df, by = "Modtype") %>%
+  mutate(Type = case_when(startsWith(as.character(Modtype), "mod") ~
+                            "Uninformative",
+                          startsWith(as.character(Modtype), "inf") ~
+                            "Informative",
+                          startsWith(as.character(Modtype), "mis") ~
+                            "Mis-specified")) %>%
+  mutate(Type = factor(Type, levels = unique(Type))) %>%
+  mutate(Weight = case_when(endsWith(as.character(Modtype), "weak") ~
+                              "Weak",
+                            endsWith(as.character(Modtype), "mod") ~
+                              "Moderate",
+                            endsWith(as.character(Modtype), "strong") ~
+                              "Strong")) %>%
+  mutate(Weight = factor(Weight, levels = unique(Weight)))
 
-# Alternative: Ridge plot
-# Assign reps to each
-list.combined <- lapply(all.n, function(y) 
-  as.data.frame(do.call("rbind", y)))
+# Create violin plots
+ggplot(data = prob.frame, aes(x = Weight, y = Prob, fill = Weight))+
+  geom_violin()+
+  geom_text(aes(label = group, y = 0.78))+
+  scale_fill_viridis_d(end = 0.9, na.value = "lightgray")+
+  theme_bw(base_size = 14)+
+  labs(y = "Probability")+
+  facet_grid(~Type, scales = "free_x", space = "free_x",
+             switch = "x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        panel.grid = element_blank(), axis.title.x = element_blank(),
+        axis.text.x = element_blank())
 
-list.combined2 <- lapply(list.combined, function(y)
-  data.frame(y, rep = rep(1:50, each = nrow(y)/50)))
-
-for(i in 1:length(list.combined2)){
-  list.combined2[[i]]$model <- names(list.combined2)[i]
-}
-
-ns.frame <- rbindlist(list.combined2)
-
-ns.frame <- ns.frame %>%
-  group_by(V1, rep, model) %>%
-  summarise(count = n())
-
-test <- filter(ns.frame, model == "misinf.strong")
-
-strongmis.ridge <- ggplot(data = test, aes(x = V1, y = rep, 
-                                         group = rep))+
-  geom_ridgeline(aes(height = count, scale = 0.1), alpha = 0.5)+
-  geom_vline(xintercept = 22, linetype = "dashed")+
-  lims(y = c(0,350))+
-  labs(x = "Regional Richness (Estimated)", y = "Frequency")+
-  theme_bw()+
-  theme(panel.grid = element_blank())
-
-ggsave(strongmis.ridge, filename = "strongmis_ridge.jpeg", width = 3, 
-       height = 3, units = "in")
-
-(uninf.ridge + weakmis.ridge)/
-  (modmis.ridge + strongmis.ridge)&
-  plot_annotation(tag_levels = "a")
-
-# ggsave(filename = "misplotsN.jpeg", width = 6, height = 5, 
-#        units = "in")
+# ggsave(filename = "ProbN2122.jpeg", dpi = 600, width = 8.5,
+#        height = 6, units = "in")
 
 # Compare covariate responses ----------------------
 # Load in cov responses
