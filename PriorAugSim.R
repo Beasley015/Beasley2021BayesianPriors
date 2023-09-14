@@ -74,6 +74,9 @@ weakinf <- "#Add info for species-level priors
                                  *pooled.var0[i]
               pooled.mean1[i] <- sum(lb1[i,]*c(a1.mean,inf.mean1[g[i]+1]))
                                  *pooled.var1[i]
+                                 
+              # ifelse statements below indicate whether the species
+              # has an aggregated prior or not
               
               a0[i] ~ dnorm(ifelse(i==21 || i==22, pooled.mean0[i], 
                             a0.mean), 

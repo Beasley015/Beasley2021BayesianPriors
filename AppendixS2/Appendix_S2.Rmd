@@ -1,11 +1,18 @@
 ---
 title: 'Appendix S2: Tutorial for creating aggregated priors using R and JAGS'
-output:
-  word_document: default
-  pdf_document: default
+author: 'E.M. Beasley'
+subtitle: |
+  | Ecologically informed priors improve Bayesian model estimates of species richness and occupancy for undetected species
+  | *Ecological Applications*
+output: pdf_document
 urlcolor: blue
 bibliography: Ch1InformedPriors.bib
-csl: ecology.csl
+csl: ecological-applications.csl
+header-includes:
+  - \renewcommand{\figurename}{Figure S}
+  - \makeatletter
+  - \def\fnum@figure{\figurename\thefigure}
+  - \makeatother
 ---
 
 ```{r setup, include=FALSE}
@@ -41,7 +48,9 @@ nsurvey <- 4 # surveys per site
 
 Ks <- rep(nsurvey, nsite) # vector of surveys at each site
 
-# Vector of covariate responses: half of species respond negatively
+# Vector of species-specific linear relationships between
+# the environmental covariate & occupancy probability: 
+# half of species respond negatively
 resp2cov <- c(rnorm(n = 5, sd = 0.25),
               rnorm(n = 5, mean = -3, sd = 0.25))
 
@@ -147,9 +156,9 @@ By calculating the column sums, we can see that one species went undetected in t
 colSums(maxobs) # One species was not observed
 ```
 
-To make the JAGS script easier to write and the figures more readable, the undetected species was moved to the last column in the observed data. Code for this procedure can be found in Appendix S3.
+To make the JAGS script easier to write and the figures more readable, the undetected species was moved to the last column in the observed data:
   
-```{r, include = F}
+```{r, include = T}
 # Remove undetected species
 obs.data <- obs.data[,,-which(colSums(maxobs) == 0)]
 
@@ -178,7 +187,7 @@ resp2cov <- reorder(resp2cov)
 tru <- reorder(tru)
 maxobs <- reorder(maxobs)
 
-# Augment observed with all-zero encounter history
+# Augment observed with all-zero encounter history as a control
 ems.array <- array(0, dim = c(nsite, nsurvey, 1))
 obs.aug <- abind(obs.data, ems.array, along = 3)
 ```
@@ -196,124 +205,9 @@ resp2cov[10]
 
 We will round this value to -3 as the mean of the informed prior distribution. We will also assign a variance of 0.5 (standard deviation of approximately 0.7). This value is somewhat arbitrary, but in general large standard deviations (> 2) are not recommended, as they can yield bimodal posterior distributions [@northrup_comment_2018].
   
-We will use the Markov chain Monte Carlo (MCMC) sampler JAGS to analyze the model. JAGS is compatible with most operating systems and the language is similar to R. The package R2jags will allow us to call JAGS directly from R.
+We will use the Markov chain Monte Carlo (MCMC) sampler JAGS to analyze the model. JAGS is compatible with most operating systems and the language is similar to R. The package R2jags will allow us to call JAGS directly from R. The full JAGS script and raw Markdown file used to create this appendix can be found [here](https://github.com/Beasley015/Beasley2021BayesianPriors).
 
-In order for JAGS to analyze the model, we have to write a text file to send to JAGS. Begin by writing a character object that defines the mean and variance of the informed prior distribution:
-  
-```{r}
-# Write script for priors in JAGS language
-priors <- "#Info for species-level prior distribution
-            inf.mean <- -3 #mean of distribution
-            inf.var <- 0.5 #variance of distribution"
-```
-            
-Next, define the relative weights of the community-level hyperprior and the informed species-level prior. The weight is a value between 0 and 1 that determines the relative contribution of each prior to the aggregated prior (weights of each prior must sum to 1). To assign weights, create a vector with the weight of the community-level prior as the first element and the species-level prior as the second: 
-  
-```{r}            
-priors <- paste(priors,
-          "#Define prior weights: how much each distribution 
-          #contributes to the final aggregate
-          #Hyperprior first, then informed
-            weights <- c(0.5, 0.5) #these are equal weights")
-```
-  
-Next, pool the distributions. For normal distributions, the pooled mean $\mu_{pooled}$ is:  
-  
-$\mu_{pooled} = \sum(\mathbf{w}\mathbf{\mu})*v_{pooled}$
-  
-where $\mathbf{\mu}$ is a vector of raw means and $v_{pooled}$ the pooled variance. The pooled variance $v_{pooled}$ is:  
-  
-$v_{pooled} = 1/\sum{\mathbf{w}}$
-  
-The term $\mathbf{w}$ is defined as $\mathbf{w} = \mathbf{\alpha}/\mathbf{v}$, where $\mathbf{\alpha}$ is the vector of weights and $\mathbf{v}$ is a vector of raw variances.
-
-Because $\mathbf{w}$ typically represents the regional occupancy of a species in MSOM notation, we will use the term 'lb' to calculate the pooled mean and variance. The terms 'a1.mean' and '1/tau.a1' are the mean and variance, respectively, of the community-level hyperprior, which we will define later.
-  
-```{r}          
-priors <- paste(priors, 
-            "#Pool the distributions  
-            lb[1] <- weights[1]/(1/tau.a1) 
-            #1/tau.a0 is the variation of hyperprior
-            lb[2] <- weights[2]/inf.var
-            
-            pooled.var <- 1/sum(lb)
-            pooled.mean <- sum(lb*c(a1.mean,inf.mean))
-              *pooled.var")
-```
-
-Finally, we will use the pooled mean and variance of the aggregated prior above when we define species-level priors:
-  
-```{r}          
-priors <- paste(priors,
-                "for(i in 1:spec){
-                  #Create priors from hyperpriors/aggregated prior
-                  w[i] ~ dbern(omega) 
-                  #w=1 means species was available for sampling
-              
-                  a0[i] ~ dnorm(a0.mean, tau.a0)
-                  #a0 is the occupancy intercept
-                             
-                  a1[i] ~ dnorm(ifelse(i==10,pooled.mean,a1.mean), 
-                            ifelse(i==10,(1/pooled.var),tau.a1))
-                  #Use ifelse() here because detected species
-                  #are still drawn from hyperprior
-
-                  b0[i] ~ dnorm(b0.mean, tau.b0)
-                  #b0 is detection intercept")
-```
-
-### 3. Write the JAGS script
-
-Next, we write the full model script in the JAGS language:
-  
-```{r}
-# Function to create text file
-write.model <- function(priors){
-  mod <- paste("
-    model{
-    # Define hyperprior distributions: intercepts
-    omega ~ dunif(0,1)
-    
-    mean.a0 ~ dunif(0,1)
-    a0.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a0 ~ dgamma(0.1, 0.1)
-    
-    mean.a1 ~ dunif(0,1)
-    a1.mean <- log(mean.a0)-log(1-mean.a0)
-    tau.a1 ~ dgamma(0.1, 0.1)
-    
-    mean.b0 ~ dunif(0,1)
-    b0.mean <- log(mean.b0)-log(1-mean.b0)
-    tau.b0 ~ dgamma(0.1, 0.1)
-
-    ",priors,"
-
-      #Estimate occupancy of species i at point j
-      for (j in 1:J){
-        logit(psi[j,i]) <- a0[i] + a1[i]*cov[j]
-        Z[j,i] ~ dbern(psi[j,i]*w[i])
-    
-        #Estimate detection of i at point j during survey k
-        for(k in 1:K[j]){
-          logit(p[j,k,i]) <-  b0[i]
-          obs[j,k,i] ~ dbern(p[j,k,i]*Z[j,i])
-    }
-    }
-    }
-    
-    #Estimate total richness by adding observed and unobserved species
-    n0<-sum(w[spec])
-    N<-(spec-1)+n0
-    
-    }
-    ")
-  writeLines(mod, "samplemod.txt") 
-}
-
-write.model(priors = priors)
-```
-
-### 4. Run model
+### 3. Run model
 
 Before running the model, we need to send some information to JAGS, including our data, the parameters we want JAGS to return, and the initial values for the Markov chains.
   
@@ -338,7 +232,7 @@ init.values<-function(){
 }
 ```
 
-Finally, run the model in JAGS. Additional code for saving and loading the model results can be found in Appendix S3.
+Finally, run the model in JAGS. Additional code for saving and loading the model results can be found in the [Github repository](https://github.com/Beasley015/Beasley2021BayesianPriors).
   
 ```{r, echo = T, warning=F, results='hide', message = F}
 # Send model to JAGS
@@ -354,28 +248,38 @@ model <- jags(model.file = 'samplemod.txt', data = datalist,
 # model <- readRDS(file = "sample_mod.rds")
 ```
 
-### 5. Creating Figures
+### 4. Creating Figures
 
-#### 5.1 Check to see if aggregation worked  
+#### 4.1 Check to see if aggregation worked  
   
 We can check if prior aggregation worked by comparing the posterior distribution (i.e. the model result) to the aggregated prior, and the aggregated prior to its parent distributions. If prior aggregation was successful, the aggregated prior should be somewhere in between the informed species-level prior and the community-level hyperprior. The posterior distribution should resemble the aggregated prior more than the two parent distributions.
 
 We will start by extracting the mean and standard deviation of each prior from the model. Note that model parameters are either variance or precision (tau); these need to be converted to standard deviation.
   
 ```{r}
+# Function to get value at peak of posterior distribution
+get.peak <- function(param){
+  # Get location of value that is highest on the y axis when 
+  # plotting density function
+  highest.y <- which.max(density(param)$y)
+  
+  # Find that value
+  peak <- density(param)$x[highest.y]
+  
+  return(peak)
+}
+
 # Get values from aggregated prior
-pooled.mean <- median(model$BUGSoutput$sims.list$pooled.mean) 
-pooled.sd <- median(sqrt(model$BUGSoutput$sims.list$pooled.var))
-# Medians used because posterior is asymmetrical
+pooled.mean <- get.peak(model$BUGSoutput$sims.list$pooled.mean) 
+pooled.sd <- get.peak(sqrt(model$BUGSoutput$sims.list$pooled.var))
 
 # Create objects from informed values used in priors
 inf.mean <- -3
 inf.sd <- sqrt(1/0.5)
   
 # Pull community distribution priors from model
-comm.mean <- median(model$BUGSoutput$sims.list$a1.mean)
-comm.sd <- median(sqrt(1/model$BUGSoutput$sims.list$tau.a1))
-# These are symmetrical but using median for consistency
+comm.mean <- get.peak(model$BUGSoutput$sims.list$a1.mean)
+comm.sd <- get.peak(sqrt(1/model$BUGSoutput$sims.list$tau.a1))
   
 # Pull posteriors from model
 post.mean <- mean(model$BUGSoutput$sims.list$a1[,10])
@@ -384,7 +288,7 @@ post.sd <- sd(model$BUGSoutput$sims.list$a1[,10])
   
 We will compare the distributions using ggplot:  
   
-```{r Figure1, fig.cap="Comparison of the posterior distribution of the undetected species (red line) and the priors (black lines). The aggregated prior (solid black line) should fall somewhere in between the informed species-level prior (dotted black line) and uninformed community-level prior (dashed black line).", fig.width=5, fig.height=3}
+```{r Figure S1, fig.cap="Comparison of the posterior distribution of the undetected species (red line) and the priors (black lines). The aggregated prior (solid black line) should fall somewhere in between the informed species-level prior (dotted black line) and uninformed community-level prior (dashed black line).", fig.width=5, fig.height=3}
 
 # Plot the distributions
 ggplot()+
@@ -413,7 +317,7 @@ ggplot()+
 
 Based on this figure, prior aggregation was successful. The posterior distribution (red) is most similar to the aggregated prior (solid black line). Note that the posterior has been pulled slightly towards the center of the community-level prior (dashed black line): this is normal, and occurs as a result of modeling all species in the context of the community.  
 
-#### 5.2 Regional richness estimates
+#### 4.2 Regional richness estimates
 
 Next, we will evaluate whether the model successfully accounted for the regional occurrence of the undetected species. First we will extract the posterior distribution of the parameter N, or regional species richness, from the model. To determine whether the model accounted for the missing species, you can use a measure of centrality such as the median:
   
@@ -432,9 +336,9 @@ colnames(ns.frame) <- c("N_Species", "Freq")
 median(Ns)
 ```
 
-Or, more commonly, the expected value for the parameter (i.e. the peak of the posterior probability distribution, Figure 2). For our simulated data, the expected value and median estimates agree on a regional richness estimate of 10 species.
+Or, more commonly, the expected value for the parameter (i.e. the peak of the posterior probability distribution, Figure S2). For our simulated data, the expected value and median estimates agree on a regional richness estimate of 10 species.
   
-```{r Figure2, fig.cap="Posterior distribution of estimated regional species richness. The expected regional richness value, or the peak of the distribution, is 10 species, meaning the model successfully accounted for the undetected species.", fig.width=3, fig.height=3}
+```{r Figure S2, fig.cap="Posterior distribution of estimated regional species richness. The expected regional richness value, or the peak of the distribution, is 10 species, meaning the model successfully accounted for the undetected species.", fig.width=3, fig.height=3}
 # Check it graphically
 Ns.median <- median(Ns)
 ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)),
@@ -451,7 +355,7 @@ ggplot(data = ns.frame, aes(x = as.integer(as.character(N_Species)),
   
 ```
 
-#### 5.3 Covariate responses
+#### 4.3 Covariate responses
 
 To examine individual species' responses to the environmental covariate, we begin by extracting the parameter from the JAGS object and adding labels denoting species IDs:
   
@@ -490,12 +394,12 @@ a1.stat <- a1.long %>%
 
 Create the plot using ggplot:
   
-```{r Figure 3, fig.cap = "Estimated species-level responses to the simulated covariate. Mean estimates are denoted by black dots, whereas the true, simulated values are denoted with red dots. Error bars represent the 95% credible interval (CI); a CI which does not overlap 0 is usually considered significant.", fig.width=6, fig.height=3}
+```{r Figure S3, fig.cap = "Estimated species-level responses to the simulated covariate. Mean estimates are denoted by black dots, whereas the true, simulated values are denoted with red dots. Error bars represent the 95% credible interval (CI); a CI which does not overlap 0 is usually considered significant.", fig.width=6, fig.height=3}
 # Make interval plot
 ggplot(data = a1.stat, aes(x = Spec, y = mean))+
   geom_point(size = 1.5)+
   geom_errorbar(ymin = a1.stat$lo, ymax = a1.stat$hi, 
-                size = 1, width = 0.2)+
+                size = 1, width = 0.5)+
   geom_point(aes(y = tru.resp), color = "red", size = 1.5)+
   geom_hline(yintercept = 0, linetype = "dashed", size = 1)+
   scale_y_continuous(limits = c(-25, 20))+
@@ -504,6 +408,6 @@ ggplot(data = a1.stat, aes(x = Spec, y = mean))+
   theme(panel.grid = element_blank())
 ```
 
-The model correctly estimated significant negative covariate responses for detected species 1--4 and the undetected species 10 (Figure 3). Based on the position of the mean (black dots) relative to the 95% CI, we can also deduce that the posterior distributions for the detected species are highly skewed, with long tails extending away from zero. By contrast, the "stabilizing" effect of informed priors is clear in the model estimate for species 10, which has a more symmetrical and precise posterior distribution.
+The model correctly estimated significant negative covariate responses for detected species 1--4 and the undetected species 10 (Figure S3). Based on the position of the mean (black dots) relative to the 95% CI, we can also deduce that the posterior distributions for the detected species are highly skewed, with long tails extending away from zero. By contrast, the "stabilizing" effect of informed priors is clear in the model estimate for species 10, which has a more symmetrical and precise posterior distribution.
 
-### 6. Literature Cited
+### 5. Literature Cited

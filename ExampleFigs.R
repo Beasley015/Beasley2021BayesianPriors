@@ -7,12 +7,12 @@ library(tidyverse)
 
 # Sample occupancy distribution
 ggplot()+
-  stat_function(fun = dbeta, n = 100, args = list(shape1 = 4, shape2 = 7),
+  stat_function(fun = dbeta, n = 100, args = list(shape1 = 7, shape2 = 4),
                 size = 1)+
-  stat_function(fun = dbeta, n = 100, args = list(shape1 = 15, shape2 = 7), 
-                color = "red", size = 1)+
-  stat_function(fun = dbeta, n = 100, args = list(shape1=10, shape2=10),
-                color = "red", linetype = "dashed", size = 1)+
+  # stat_function(fun = dbeta, n = 100, args = list(shape1 = 7, shape2 = 15), 
+  #               color = "red", size = 1)+
+  # stat_function(fun = dbeta, n = 100, args = list(shape1=10, shape2=10),
+  #               color = "red", linetype = "dashed", size = 1)+
   scale_x_continuous(breaks = c(0, 1))+
   labs(x = expression(psi))+
   theme_bw(base_size = 36)+
