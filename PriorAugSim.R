@@ -16,7 +16,6 @@ library(fitdistrplus)
 library(gridExtra)
 library(grid)
 library(agricolae)
-library(ggridges)
 library(data.table)
 
 # Set seed
@@ -1060,7 +1059,10 @@ big.ass.frame <- left_join(big.ass.frame, hsd.df, by = "Model") %>%
                               "Strong")) %>%
   mutate(Weight = factor(Weight, levels = unique(Weight)))
   
-# Going with box plots for now
+# Un-comment this line and dev.off() to save image
+# jpeg(filename = "siterich.jpeg", width = 6, height = 4,
+#      units = "in", res = 600)
+
 ggplot(data = big.ass.frame, aes(x = Type, y = mean.diff,
                                  fill = Weight))+
   geom_boxplot(outlier.shape = NA, varwidth = T)+
@@ -1072,7 +1074,10 @@ ggplot(data = big.ass.frame, aes(x = Type, y = mean.diff,
   theme_bw(base_size = 14)+
   theme(panel.grid = element_blank(), axis.title.x = element_blank())
 
-# ggsave("siterich.jpeg", height = 4, width = 6, units = "in")
+# dev.off()
+
+# ggsave("siterich.jpeg", width = 6, height = 4, units = "in",
+#        dpi = 600)
 
 # Look at occ estimates for missing species ---------------------
 # Get true values

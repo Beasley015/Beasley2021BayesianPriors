@@ -1,6 +1,6 @@
 ---
 title: 'Appendix S2: Tutorial for creating aggregated priors using R and JAGS'
-author: 'E.M. Beasley'
+author: 'Emily M. Beasley'
 subtitle: |
   | Ecologically informed priors improve Bayesian model estimates of species richness and occupancy for undetected species
   | *Ecological Applications*
