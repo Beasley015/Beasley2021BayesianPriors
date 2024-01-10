@@ -3,9 +3,9 @@ richness and occupancy for undetected species"
 
 E.M.Beasley
 
-Last updated August 2023
+Last updated January 2024
 
-Manuscript currently submitted for review in Ecological Applications
+Manuscript accepted to Ecological Applications
 
 AppendixS2: Contains all files needed to reproduce Appendix S2, including R Markdown
 file, JAGS script, and other files necessary for citation formatting.
